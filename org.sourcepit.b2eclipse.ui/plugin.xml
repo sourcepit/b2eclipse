@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <wizard
+            class="org.sourcepit.b2eclipse.ui.b2Wizard"
+            icon="icon/activity_act_003.gif"
+            id="de.visualrules.b2eclipse.ui.ImportWizard"
+            name="New b2 Project">
+      </wizard>
+   </extension>
+ <extension
+       point="org.eclipse.ui.preferencePages">
+    <page
+          class="org.sourcepit.b2eclipse.ui.WizardPageOne"
+          id="org.sourcepit.b2eclipse.ui.b2eclipsePP"
+          name="DirectoryDialog">
+    </page>
+ </extension>
+   
+
+</plugin>
