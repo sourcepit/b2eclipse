@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -87,6 +88,8 @@ public class WizardPageOne extends WizardPage
     */
    private void addWidgets()
    {
+
+      
 
       rBtn1 = new Button(modulePageWidgetContainer, SWT.RADIO);
       rBtn1.setSelection(true);
@@ -390,6 +393,7 @@ public class WizardPageOne extends WizardPage
    {
       modulePageWidgetContainer = new Composite(parent, SWT.NONE);
       modulePageWidgetContainer.setLayout(new GridLayout(4, false));
+      
 
       addWidgets();
 

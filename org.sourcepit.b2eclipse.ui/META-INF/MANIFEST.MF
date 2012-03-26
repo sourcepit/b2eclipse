@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: B2Integration-Bundle
-Bundle-SymbolicName: org.sourcepit.b2eclipse.ui;singleton:=true
+Bundle-SymbolicName: org.sourcepit.b2eclipse;singleton:=true
 Bundle-Version: 1.0.0.qualifer
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
