@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: B2eclipseTest
-Bundle-SymbolicName: org.sourcepit.b2eclipseTest
+Bundle-Name: Test
+Bundle-SymbolicName: org.sourcepit.b2eclipse.test; singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.sourcepit.b2eclipse;bundle-version="1.0.0",
  org.junit
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

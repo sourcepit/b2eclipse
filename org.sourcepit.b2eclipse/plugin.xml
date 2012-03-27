@@ -4,7 +4,7 @@
    <extension
          point="org.eclipse.ui.importWizards">
       <wizard
-            class="org.sourcepit.b2eclipse.ui.b2Wizard"
+            class="org.sourcepit.b2eclipse.ui.B2Wizard"
             icon="icon/activity_act_003.gif"
             id="de.visualrules.b2eclipse.ui.ImportWizard"
             name="New b2 Project">

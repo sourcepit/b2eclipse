@@ -396,10 +396,10 @@ public class WizardPageOne extends WizardPage
 
       addWidgets();
 
-      if (b2Wizard.getPath() != null)
+      if (B2Wizard.getPath() != null)
       {
-         dirTxt.setText(String.valueOf(b2Wizard.getPath()));
-         dirTreeViewer.setInput(new File(String.valueOf(b2Wizard.getPath())));
+         dirTxt.setText(String.valueOf(B2Wizard.getPath()));
+         dirTreeViewer.setInput(new File(String.valueOf(B2Wizard.getPath())));
 
 
       }

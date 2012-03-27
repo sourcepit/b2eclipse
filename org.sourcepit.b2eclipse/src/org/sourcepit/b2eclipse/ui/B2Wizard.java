@@ -16,7 +16,7 @@ import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.provider.TreeContentProvider;
 
 
-public class b2Wizard extends Wizard implements IImportWizard, ISelectionListener
+public class B2Wizard extends Wizard implements IImportWizard, ISelectionListener
 {
 
 
@@ -24,7 +24,7 @@ public class b2Wizard extends Wizard implements IImportWizard, ISelectionListene
    private WizardPageOne modulePage;
 
 
-   public b2Wizard()
+   public B2Wizard()
    {
       super();
       setWindowTitle("Import b2 Projects");
@@ -79,7 +79,7 @@ public class b2Wizard extends Wizard implements IImportWizard, ISelectionListene
    public void selectionChanged(IWorkbenchPart part, ISelection selection)
    {
 
-      if (part != b2Wizard.this)
+      if (part != B2Wizard.this)
       {
          init(PlatformUI.getWorkbench(), (IStructuredSelection) selection);
       }
