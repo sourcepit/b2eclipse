@@ -2,9 +2,19 @@
 package org.sourcepit.b2eclipse.ui;
 
 
+import java.io.File;
+import java.util.List;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -22,7 +32,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
    private static IPath projectPath;
    private WizardPageOne modulePage;
-
+   IProject project;
 
    public B2Wizard()
    {
@@ -42,6 +52,43 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    @Override
    public boolean performFinish()
    {
+
+      Runnable runnable = new Runnable()
+      {
+         public void run()
+         {
+            try
+            {
+               List<File> projects = modulePage.getSelectedProjects();
+
+               for (int i = 0; i < projects.size(); i++)
+               {
+
+                  final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+                  IPath projectDotProjectFile = new Path(String.valueOf(projects.get(i)));
+                  IProjectDescription projectDescription = workspace.loadProjectDescription(projectDotProjectFile);
+                  IProject project = workspace.getRoot().getProject(projectDescription.getName());
+                  JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+
+                  if (modulePage.checkBtn.getSelection())
+                  {
+                     modulePage.workingSetManager.addToWorkingSets(project, modulePage.ws);
+                  }
+
+
+               }
+            }
+            catch (CoreException e)
+            {
+               e.printStackTrace();
+            }
+         }
+      };
+
+
+      final IWorkbench workbench = PlatformUI.getWorkbench();
+      workbench.getDisplay().syncExec(runnable);
+
 
       return true;
    }
@@ -85,8 +132,8 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
 
    }
-   
-   
+
+
    /**
     * deaktiviert den SelectionListener
     */
@@ -97,7 +144,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       super.dispose();
    }
 
-   
+
    public static IPath getPath()
    {
       return projectPath;

@@ -6,15 +6,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -30,7 +23,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
@@ -49,12 +42,13 @@ public class WizardPageOne extends WizardPage
    private Shell dirShell;
    private Composite modulePageWidgetContainer;
    private CheckboxTreeViewer dirTreeViewer;
-   private static String directoryName;
+   private String directoryName;
    private Label dirLbl, workspaceLbl, workingSetLbl;
    private GridData gridData, gridData2;
-   private Button dirBtn, workspaceBtn, rBtn1, rBtn2, rBtn3, workingSetBtn, createProjectsBtn, selectAllBtn,
-      deselectAllBtn;
+   public Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn;
    TreeContentProvider moduleTreeContentProvider = new TreeContentProvider();
+   IWorkingSetManager workingSetManager;
+   IWorkingSet[] ws;
 
    public WizardPageOne(String name)
    {
@@ -68,6 +62,8 @@ public class WizardPageOne extends WizardPage
     * 
     * @return die ausgewählten Projekte im Treeviewer
     */
+
+
    public List<File> getSelectedProjects()
    {
       Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
@@ -81,8 +77,7 @@ public class WizardPageOne extends WizardPage
 
       return getSelectedProjects;
    }
-   
-   
+
 
    /**
     * fügt die Widgets hinzu
@@ -90,7 +85,6 @@ public class WizardPageOne extends WizardPage
    private void addWidgets()
    {
 
-      
 
       rBtn1 = new Button(modulePageWidgetContainer, SWT.RADIO);
       rBtn1.setSelection(true);
@@ -131,12 +125,8 @@ public class WizardPageOne extends WizardPage
       dirTreeViewer = new CheckboxTreeViewer(modulePageWidgetContainer);
       dirTreeViewer.setContentProvider(moduleTreeContentProvider);
       dirTreeViewer.setLabelProvider(new TreeLabelProvider());
-      dirTreeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 3));
+      dirTreeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 2));
 
-
-      createProjectsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      createProjectsBtn.setText("Create...");
-      createProjectsBtn.setLayoutData(gridData2);
 
       selectAllBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
       selectAllBtn.setText("Select All");
@@ -147,7 +137,7 @@ public class WizardPageOne extends WizardPage
       deselectAllBtn.setLayoutData(gridData2);
 
 
-      rBtn3 = new Button(modulePageWidgetContainer, SWT.CHECK);
+      checkBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
 
       workingSetLbl = new Label(modulePageWidgetContainer, SWT.NONE);
       workingSetLbl.setText("Add project/s to working sets:");
@@ -260,12 +250,12 @@ public class WizardPageOne extends WizardPage
       });
 
 
-      rBtn3.addSelectionListener(new SelectionAdapter()
+      checkBtn.addSelectionListener(new SelectionAdapter()
       {
          @Override
          public void widgetSelected(SelectionEvent e)
          {
-            if (rBtn3.getSelection())
+            if (checkBtn.getSelection())
             {
 
                workingSetBtn.setEnabled(true);
@@ -286,56 +276,12 @@ public class WizardPageOne extends WizardPage
          public void handleEvent(Event event)
          {
 
-            IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
+            workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
             IWorkingSetSelectionDialog workingSetSelectionDialog = workingSetManager.createWorkingSetSelectionDialog(
                dirShell, true);
             workingSetSelectionDialog.open();
 
-
-         }
-
-
-      });
-
-      createProjectsBtn.addListener(SWT.Selection, new Listener()
-      {
-
-         @Override
-         public void handleEvent(Event event)
-         {
-
-            Runnable runnable = new Runnable()
-            {
-               public void run()
-               {
-                  try
-                  {
-                     List<File> projects = getSelectedProjects();
-
-                     for (int i = 0; i < projects.size(); i++)
-                     {
-
-                        final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-                        IPath projectDotProjectFile = new Path(String.valueOf(projects.get(i)));
-                        IProjectDescription projectDescription = workspace
-                           .loadProjectDescription(projectDotProjectFile);
-                        IProject project = workspace.getRoot().getProject(projectDescription.getName());
-                        JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(),
-                           null);
-
-
-                     }
-                  }
-                  catch (CoreException e)
-                  {
-                     e.printStackTrace();
-                  }
-               }
-            };
-
-
-            final IWorkbench workbench = PlatformUI.getWorkbench();
-            workbench.getDisplay().syncExec(runnable);
+            ws = workingSetSelectionDialog.getSelection();
 
 
          }
@@ -396,7 +342,7 @@ public class WizardPageOne extends WizardPage
    {
       modulePageWidgetContainer = new Composite(parent, SWT.NONE);
       modulePageWidgetContainer.setLayout(new GridLayout(4, false));
-      
+
 
       addWidgets();
 
