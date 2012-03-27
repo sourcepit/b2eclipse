@@ -81,6 +81,8 @@ public class WizardPageOne extends WizardPage
 
       return getSelectedProjects;
    }
+   
+   
 
    /**
     * fügt die Widgets hinzu
@@ -184,6 +186,7 @@ public class WizardPageOne extends WizardPage
             dirTxt.setText(directoryName);
             workspaceTxt.setText("");
 
+            System.out.println(directoryName);
             dirTreeViewer.setInput(new File(directoryName));
 
          }
@@ -372,6 +375,7 @@ public class WizardPageOne extends WizardPage
             for (int i = 0; i < moduleTreeContentProvider.getProjects().size(); i++)
             {
 
+               System.out.println(moduleTreeContentProvider.getProjects().get(i));
                dirTreeViewer.setSubtreeChecked(moduleTreeContentProvider.getProjects().get(i), false);
 
             }
