@@ -39,10 +39,9 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       super();
       setWindowTitle("Import b2 Projects");
       modulePage = new WizardPageOne("Module");
+      
 
       addPage(modulePage);
-
-
    }
 
 
@@ -72,7 +71,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
                   if (modulePage.checkBtn.getSelection())
                   {
-                     modulePage.workingSetManager.addToWorkingSets(project, modulePage.ws);
+                     modulePage.workingSetManager.addToWorkingSets(project, modulePage.workingSet);
                   }
 
 

@@ -28,7 +28,8 @@ public class TreeLabelProvider extends LabelProvider
    {
      
          File file = (File) element;
-         return file.getParent();
+         String cutString = file.getParent();    
+         return cutString.substring(cutString.lastIndexOf("\\")).replace("\\", "").concat("  (" + cutString + ")");
           
    }
 

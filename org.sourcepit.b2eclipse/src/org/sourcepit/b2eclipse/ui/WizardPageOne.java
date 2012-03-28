@@ -16,10 +16,10 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -43,12 +43,12 @@ public class WizardPageOne extends WizardPage
    private Composite modulePageWidgetContainer;
    private CheckboxTreeViewer dirTreeViewer;
    private String directoryName;
-   private Label dirLbl, workspaceLbl, workingSetLbl;
-   private GridData gridData, gridData2;
+   private GridData gridData, gridData2, gridData3;
    public Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn;
-   TreeContentProvider moduleTreeContentProvider = new TreeContentProvider();
+   private TreeContentProvider moduleTreeContentProvider = new TreeContentProvider();
+   public Combo workingSetCombo;
    IWorkingSetManager workingSetManager;
-   IWorkingSet[] ws;
+   IWorkingSet[] workingSet, wsTemp;
 
    public WizardPageOne(String name)
    {
@@ -86,12 +86,6 @@ public class WizardPageOne extends WizardPage
    {
 
 
-      rBtn1 = new Button(modulePageWidgetContainer, SWT.RADIO);
-      rBtn1.setSelection(true);
-
-      dirLbl = new Label(modulePageWidgetContainer, SWT.NONE);
-      dirLbl.setText("Select module directory:");
-
       gridData = new GridData();
       gridData.horizontalAlignment = SWT.FILL;
 
@@ -99,6 +93,13 @@ public class WizardPageOne extends WizardPage
       gridData2.horizontalAlignment = SWT.FILL;
       gridData2.verticalAlignment = SWT.TOP;
 
+      gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
+      gridData3.widthHint = 500;
+      gridData3.heightHint = 300;
+
+      rBtn1 = new Button(modulePageWidgetContainer, SWT.RADIO);
+      rBtn1.setText("Select module directory:");
+      rBtn1.setSelection(true);
 
       dirTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
       dirTxt.setLayoutData(gridData);
@@ -107,10 +108,10 @@ public class WizardPageOne extends WizardPage
       dirBtn.setText("Browse...");
       dirBtn.setLayoutData(gridData2);
 
-      rBtn2 = new Button(modulePageWidgetContainer, SWT.RADIO);
 
-      workspaceLbl = new Label(modulePageWidgetContainer, SWT.NONE);
-      workspaceLbl.setText("Select project:");
+      rBtn2 = new Button(modulePageWidgetContainer, SWT.RADIO);
+      rBtn2.setText("Select project:");
+
 
       workspaceTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
       workspaceTxt.setLayoutData(gridData);
@@ -125,7 +126,7 @@ public class WizardPageOne extends WizardPage
       dirTreeViewer = new CheckboxTreeViewer(modulePageWidgetContainer);
       dirTreeViewer.setContentProvider(moduleTreeContentProvider);
       dirTreeViewer.setLabelProvider(new TreeLabelProvider());
-      dirTreeViewer.getTree().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 3, 2));
+      dirTreeViewer.getTree().setLayoutData(gridData3);
 
 
       selectAllBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
@@ -138,13 +139,18 @@ public class WizardPageOne extends WizardPage
 
 
       checkBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
+      checkBtn.setText("Select Working Set:");
+      checkBtn.setLayoutData(gridData);
 
-      workingSetLbl = new Label(modulePageWidgetContainer, SWT.NONE);
-      workingSetLbl.setText("Add project/s to working sets:");
+      workingSetCombo = new Combo(modulePageWidgetContainer, SWT.DROP_DOWN | SWT.READ_ONLY | SWT.HORIZONTAL
+         | SWT.LEFT_TO_RIGHT);
+      workingSetCombo.setEnabled(false);
+      workingSetCombo.setLayoutData(gridData);
 
       workingSetBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
       workingSetBtn.setText("Select...");
       workingSetBtn.setEnabled(false);
+      workingSetBtn.setLayoutData(gridData);
 
 
    }
@@ -176,7 +182,6 @@ public class WizardPageOne extends WizardPage
             dirTxt.setText(directoryName);
             workspaceTxt.setText("");
 
-            System.out.println(directoryName);
             dirTreeViewer.setInput(new File(directoryName));
 
          }
@@ -259,11 +264,14 @@ public class WizardPageOne extends WizardPage
             {
 
                workingSetBtn.setEnabled(true);
+               workingSetCombo.setEnabled(true);
+
             }
             else
             {
 
                workingSetBtn.setEnabled(false);
+               workingSetCombo.setEnabled(false);
             }
          }
       });
@@ -279,9 +287,26 @@ public class WizardPageOne extends WizardPage
             workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
             IWorkingSetSelectionDialog workingSetSelectionDialog = workingSetManager.createWorkingSetSelectionDialog(
                dirShell, true);
-            workingSetSelectionDialog.open();
+            if (dirTreeViewer.getCheckedElements().length != 0)
+            {
 
-            ws = workingSetSelectionDialog.getSelection();
+               workingSetSelectionDialog.open();
+
+            }
+
+
+            workingSet = workingSetSelectionDialog.getSelection();
+
+            if (workingSet != null)
+            {
+
+               for (int i = 0; i < workingSet.length; i++)
+               {
+                  workingSetCombo.add(workingSet[i].getName().concat(","), workingSetCombo.getItemCount());
+                  workingSetCombo.setText(workingSetCombo.getItem(i));
+               }
+
+            }
 
 
          }
@@ -321,7 +346,6 @@ public class WizardPageOne extends WizardPage
             for (int i = 0; i < moduleTreeContentProvider.getProjects().size(); i++)
             {
 
-               System.out.println(moduleTreeContentProvider.getProjects().get(i));
                dirTreeViewer.setSubtreeChecked(moduleTreeContentProvider.getProjects().get(i), false);
 
             }
@@ -341,7 +365,7 @@ public class WizardPageOne extends WizardPage
    public void createControl(Composite parent)
    {
       modulePageWidgetContainer = new Composite(parent, SWT.NONE);
-      modulePageWidgetContainer.setLayout(new GridLayout(4, false));
+      modulePageWidgetContainer.setLayout(new GridLayout(3, false));
 
 
       addWidgets();

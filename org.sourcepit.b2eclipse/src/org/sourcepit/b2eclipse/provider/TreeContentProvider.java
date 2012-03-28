@@ -30,7 +30,8 @@ public class TreeContentProvider implements ITreeContentProvider
    }
 
    /**
-    * setInput() Methode welche rekursiv nach .project Dateien sucht 
+    * setInput() Methode welche rekursiv nach .project Dateien sucht
+    * 
     * @return und diese Projekte dann zurückgibt
     */
    @Override
@@ -88,14 +89,16 @@ public class TreeContentProvider implements ITreeContentProvider
       return false;
 
    }
-   
-   public ArrayList<File> getProjects(){
+
+   public ArrayList<File> getProjects()
+   {
       return projectFileList;
    }
 
 
    /**
     * falls andere Projekte ausgewählt werden, so werden die alten Einträge in der ArrayList verworfen
+    * 
     * @return gibt leere Projektliste zurück
     */
    public static ArrayList<File> clearArrayList()
