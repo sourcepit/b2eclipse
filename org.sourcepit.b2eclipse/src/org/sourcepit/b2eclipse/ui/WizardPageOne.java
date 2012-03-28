@@ -48,7 +48,7 @@ public class WizardPageOne extends WizardPage
    private TreeContentProvider moduleTreeContentProvider = new TreeContentProvider();
    public Combo workingSetCombo;
    IWorkingSetManager workingSetManager;
-   IWorkingSet[] workingSet, wsTemp;
+   IWorkingSet[] workingSet;
 
    public WizardPageOne(String name)
    {
@@ -289,24 +289,18 @@ public class WizardPageOne extends WizardPage
                dirShell, true);
             if (dirTreeViewer.getCheckedElements().length != 0)
             {
-
+               if (workingSet != null)
+               {
+                  workingSetSelectionDialog.setSelection(workingSet);
+               }
                workingSetSelectionDialog.open();
+
 
             }
 
 
             workingSet = workingSetSelectionDialog.getSelection();
-
-            if (workingSet != null)
-            {
-
-               for (int i = 0; i < workingSet.length; i++)
-               {
-                  workingSetCombo.add(workingSet[i].getName().concat(","), workingSetCombo.getItemCount());
-                  workingSetCombo.setText(workingSetCombo.getItem(i));
-               }
-
-            }
+            
 
 
          }
@@ -383,9 +377,10 @@ public class WizardPageOne extends WizardPage
 
       addListener();
 
-
       setControl(modulePageWidgetContainer);
+
       setPageComplete(true);
+
 
    }
 
