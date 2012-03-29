@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2012 Sourcepit.org contributors and others. All rights reserved. This program and the accompanying
+ * materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
 
 package org.sourcepit.b2eclipse.ui;
 
@@ -33,22 +38,22 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.sourcepit.b2eclipse.provider.TreeContentProvider;
 import org.sourcepit.b2eclipse.provider.TreeLabelProvider;
 
-
+/**
+ * @author Marco Grupe
+ */
 public class WizardPageOne extends WizardPage
 {
-
-
    private Text dirTxt, workspaceTxt;
    private Shell dirShell;
    private Composite modulePageWidgetContainer;
    private CheckboxTreeViewer dirTreeViewer;
    private String directoryName;
    private GridData gridData, gridData2, gridData3;
-   public Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn;
+   private Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn;
    private TreeContentProvider moduleTreeContentProvider = new TreeContentProvider();
-   public Combo workingSetCombo;
-   IWorkingSetManager workingSetManager;
-   IWorkingSet[] workingSet;
+   private Combo workingSetCombo;
+   private IWorkingSetManager workingSetManager;
+   private IWorkingSet[] workingSet;
 
    public WizardPageOne(String name)
    {
@@ -73,6 +78,12 @@ public class WizardPageOne extends WizardPage
          getSelectedProjects.add(new File(getCheckedElements[i].toString()));
 
       }
+
+      // getDialogSettings().put("selctedWorkingsets", new String[]{"", "", ""});
+      //
+      // getDialogSettings().getArray("selctedWorkingsets");
+      //
+      // getDialogSettings().addNewSection("marcosSection");
 
 
       return getSelectedProjects;
@@ -162,31 +173,22 @@ public class WizardPageOne extends WizardPage
    {
       dirBtn.addListener(SWT.Selection, new Listener()
       {
-
-
          @Override
          public void handleEvent(Event event)
          {
-
             dirTreeViewer.remove(TreeContentProvider.clearArrayList());
 
             DirectoryDialog dd = new DirectoryDialog(dirShell, SWT.OPEN);
             dd.setText("Directory Selection...");
             directoryName = dd.open();
-
-
             if (directoryName == null)
                return;
-
 
             dirTxt.setText(directoryName);
             workspaceTxt.setText("");
 
             dirTreeViewer.setInput(new File(directoryName));
-
          }
-
-
       });
 
       workspaceBtn.addListener(SWT.Selection, new Listener()
@@ -195,7 +197,6 @@ public class WizardPageOne extends WizardPage
          public void handleEvent(Event event)
          {
             dirTreeViewer.remove(TreeContentProvider.clearArrayList());
-
             ElementTreeSelectionDialog etsd = new ElementTreeSelectionDialog(dirShell, new WorkbenchLabelProvider(),
                new BaseWorkbenchContentProvider());
             etsd.setTitle("Project Selection");
@@ -210,8 +211,6 @@ public class WizardPageOne extends WizardPage
                dirTreeViewer.setInput(new File(directoryName));
             }
          }
-
-
       });
 
       rBtn1.addListener(SWT.Selection, new Listener()
@@ -279,33 +278,24 @@ public class WizardPageOne extends WizardPage
 
       workingSetBtn.addListener(SWT.Selection, new Listener()
       {
-
          @Override
          public void handleEvent(Event event)
          {
-
             workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
             IWorkingSetSelectionDialog workingSetSelectionDialog = workingSetManager.createWorkingSetSelectionDialog(
                dirShell, true);
             if (dirTreeViewer.getCheckedElements().length != 0)
             {
-               if (workingSet != null)
+               if (getWorkingSet() != null)
                {
-                  workingSetSelectionDialog.setSelection(workingSet);
+                  workingSetSelectionDialog.setSelection(getWorkingSet());
                }
                workingSetSelectionDialog.open();
-
-
             }
-
-
             workingSet = workingSetSelectionDialog.getSelection();
-            
-
-
+            addItemToCombo();
+            setWorkingSetSelection();
          }
-
-
       });
 
       selectAllBtn.addListener(SWT.Selection, new Listener()
@@ -382,6 +372,54 @@ public class WizardPageOne extends WizardPage
       setPageComplete(true);
 
 
+   }
+
+   public boolean isCheckButtonSelected()
+   {
+      return checkBtn.getSelection();
+   }
+
+   public IWorkingSetManager getWorkingSetManager()
+   {
+      return workingSetManager;
+
+   }
+
+   public IWorkingSet[] getWorkingSet()
+   {
+      return workingSet;
+   }
+
+   private void addItemToCombo()
+   {
+      if (getWorkingSet() != null)
+      {
+         for (int i = 0; i < getWorkingSet().length; i++)
+         {
+            for (int y = 0; y < workingSetCombo.getItemCount(); y++)
+            {
+               if (workingSetCombo.getItem(y).equals(getWorkingSet()[i].getName()))
+               {
+                  return;
+               }
+            }
+            workingSetCombo.add(getWorkingSet()[i].getName());
+
+
+         }
+         workingSetCombo.setText(getWorkingSet()[0].getName());
+      }
+   }
+   
+   private void setWorkingSetSelection(){
+      // String wsName = workingSetCombo.getItem(0);
+      //
+      //
+      // IWorkingSet workingSet2 = workingSetManager.getWorkingSet(wsName);
+      // if (workingSet2 != null)
+      // {
+      //
+      // }
    }
 
 

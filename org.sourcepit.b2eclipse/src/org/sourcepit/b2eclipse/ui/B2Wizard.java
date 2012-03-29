@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2012 Sourcepit.org contributors and others. All rights reserved. This program and the accompanying
+ * materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
 
 package org.sourcepit.b2eclipse.ui;
 
@@ -23,8 +28,12 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
+import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.provider.TreeContentProvider;
 
+/**
+ * @author Marco Grupe
+ */
 
 public class B2Wizard extends Wizard implements IImportWizard, ISelectionListener
 {
@@ -32,14 +41,13 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
    private static IPath projectPath;
    private WizardPageOne modulePage;
-   IProject project;
 
    public B2Wizard()
    {
       super();
       setWindowTitle("Import b2 Projects");
       modulePage = new WizardPageOne("Module");
-      
+
 
       addPage(modulePage);
    }
@@ -69,17 +77,15 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
                   IProject project = workspace.getRoot().getProject(projectDescription.getName());
                   JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
 
-                  if (modulePage.checkBtn.getSelection())
+                  if (modulePage.isCheckButtonSelected() && modulePage.getWorkingSet() != null)
                   {
-                     modulePage.workingSetManager.addToWorkingSets(project, modulePage.workingSet);
+                     modulePage.getWorkingSetManager().addToWorkingSets(project, modulePage.getWorkingSet());
                   }
-
-
                }
             }
             catch (CoreException e)
             {
-               e.printStackTrace();
+               Activator.error("alles scheiﬂe", e);
             }
          }
       };
