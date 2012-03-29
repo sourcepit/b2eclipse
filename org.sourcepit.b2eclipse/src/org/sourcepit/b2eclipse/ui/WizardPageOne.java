@@ -18,6 +18,7 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -54,12 +55,18 @@ public class WizardPageOne extends WizardPage
    private Combo workingSetCombo;
    private IWorkingSetManager workingSetManager;
    private IWorkingSet[] workingSet;
+   private IWorkingSetSelectionDialog workingSetSelectionDialog;
+   private IWorkingSet workingSetComboItem;
+   private String ausgabe = "";
+
 
    public WizardPageOne(String name)
    {
+
       super(name);
       setTitle("Module");
       setDescription("Please specify a project or directory to import. ");
+
    }
 
 
@@ -78,12 +85,6 @@ public class WizardPageOne extends WizardPage
          getSelectedProjects.add(new File(getCheckedElements[i].toString()));
 
       }
-
-      // getDialogSettings().put("selctedWorkingsets", new String[]{"", "", ""});
-      //
-      // getDialogSettings().getArray("selctedWorkingsets");
-      //
-      // getDialogSettings().addNewSection("marcosSection");
 
 
       return getSelectedProjects;
@@ -282,19 +283,13 @@ public class WizardPageOne extends WizardPage
          public void handleEvent(Event event)
          {
             workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
-            IWorkingSetSelectionDialog workingSetSelectionDialog = workingSetManager.createWorkingSetSelectionDialog(
-               dirShell, true);
+            workingSetSelectionDialog = workingSetManager.createWorkingSetSelectionDialog(dirShell, true);
             if (dirTreeViewer.getCheckedElements().length != 0)
             {
-               if (getWorkingSet() != null)
-               {
-                  workingSetSelectionDialog.setSelection(getWorkingSet());
-               }
-               workingSetSelectionDialog.open();
+               selectWorkingSetSelectionDialog();
             }
             workingSet = workingSetSelectionDialog.getSelection();
             addItemToCombo();
-            setWorkingSetSelection();
          }
       });
 
@@ -337,6 +332,23 @@ public class WizardPageOne extends WizardPage
          }
 
 
+      });
+
+      workingSetCombo.addSelectionListener(new SelectionListener()
+      {
+         public void widgetSelected(SelectionEvent e)
+         {
+
+            workingSetComboItem = workingSetManager.getWorkingSet(workingSetCombo.getText());
+            workingSet = new IWorkingSet[] { workingSetComboItem };
+
+
+         }
+
+         public void widgetDefaultSelected(SelectionEvent e)
+         {
+            System.out.println(workingSetCombo.getText());
+         }
       });
 
 
@@ -390,36 +402,78 @@ public class WizardPageOne extends WizardPage
       return workingSet;
    }
 
+   //TODO vereinfachen!!!
    private void addItemToCombo()
    {
       if (getWorkingSet() != null)
       {
-         for (int i = 0; i < getWorkingSet().length; i++)
+         if (getWorkingSet().length == 1)
          {
-            for (int y = 0; y < workingSetCombo.getItemCount(); y++)
+            for (int i = 0; i < getWorkingSet().length; i++)
             {
-               if (workingSetCombo.getItem(y).equals(getWorkingSet()[i].getName()))
+
+
+               for (int y = 0; y < workingSetCombo.getItemCount(); y++)
                {
-                  return;
+                  if (workingSetCombo.getItem(y).equals(getWorkingSet()[i].getName()))
+                  {
+                     return;
+                  }
+
                }
+
+
+               workingSetCombo.add(getWorkingSet()[i].getName());
+
+
             }
-            workingSetCombo.add(getWorkingSet()[i].getName());
-
-
+            workingSetCombo.setText(getWorkingSet()[0].getName());
          }
-         workingSetCombo.setText(getWorkingSet()[0].getName());
+         else
+         {
+            for (int i = 0; i < getWorkingSet().length; i++)
+            {
+
+
+               for (int y = 0; y < workingSetCombo.getItemCount(); y++)
+               {
+                  if (workingSetCombo.getItem(y).equals(getWorkingSet()[i].getName()))
+                  {
+                     return;
+                  }
+
+               }
+
+               ausgabe = ausgabe.concat(getWorkingSet()[i].getName().concat(","));
+  
+
+
+            }
+            workingSetCombo.add(ausgabe);
+            workingSetCombo.setText(ausgabe);
+         }
+
+
       }
+
    }
-   
-   private void setWorkingSetSelection(){
-      // String wsName = workingSetCombo.getItem(0);
-      //
-      //
-      // IWorkingSet workingSet2 = workingSetManager.getWorkingSet(wsName);
-      // if (workingSet2 != null)
-      // {
-      //
-      // }
+
+   private void selectWorkingSetSelectionDialog()
+   {
+      if (workingSetComboItem != null)
+      {
+         workingSetSelectionDialog.setSelection(new IWorkingSet[] { workingSetComboItem });
+         workingSetSelectionDialog.open();
+      }
+      else if (getWorkingSet() != null)
+      {
+         workingSetSelectionDialog.setSelection(getWorkingSet());
+         workingSetSelectionDialog.open();
+      }
+      else
+      {
+         workingSetSelectionDialog.open();
+      }
    }
 
 

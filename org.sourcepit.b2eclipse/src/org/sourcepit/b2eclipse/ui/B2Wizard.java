@@ -42,14 +42,15 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    private static IPath projectPath;
    private WizardPageOne modulePage;
 
+
    public B2Wizard()
    {
       super();
       setWindowTitle("Import b2 Projects");
       modulePage = new WizardPageOne("Module");
-
-
       addPage(modulePage);
+
+
    }
 
 
@@ -59,6 +60,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    @Override
    public boolean performFinish()
    {
+
 
       Runnable runnable = new Runnable()
       {
