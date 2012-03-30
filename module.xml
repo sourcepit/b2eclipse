@@ -48,6 +48,7 @@
 					<artifactId>tycho-surefire-plugin</artifactId>
 					<configuration>
 						<argLine>-Xms64m -Xmx128m</argLine>
+						<testFailureIgnore></testFailureIgnore>
 					</configuration>
 				</plugin>
 			</plugins>
