@@ -339,8 +339,19 @@ public class WizardPageOne extends WizardPage
          public void widgetSelected(SelectionEvent e)
          {
 
-            workingSetComboItem = workingSetManager.getWorkingSet(workingSetCombo.getText());
-            workingSet = new IWorkingSet[] { workingSetComboItem };
+            if(workingSetCombo.getText().contains(",")){
+               String[] split = workingSetCombo.getText().split(",");
+               workingSet = new IWorkingSet[split.length];
+               for(int i=0;i<split.length;i++){
+                  workingSetComboItem = workingSetManager.getWorkingSet(split[i]);
+                  workingSet[i] = workingSetComboItem;
+               }
+            }
+            else{
+               workingSetComboItem = workingSetManager.getWorkingSet(workingSetCombo.getText());
+               workingSet = new IWorkingSet[] { workingSetComboItem };
+            }
+            
 
 
          }
@@ -437,18 +448,19 @@ public class WizardPageOne extends WizardPage
 
                for (int y = 0; y < workingSetCombo.getItemCount(); y++)
                {
-                  if (workingSetCombo.getItem(y).equals(getWorkingSet()[i].getName()))
+                  if (workingSetCombo.getItem(y).equals(ausgabe))
                   {
                      return;
                   }
 
                }
-
+               
                ausgabe = ausgabe.concat(getWorkingSet()[i].getName().concat(","));
   
 
 
             }
+            ausgabe = ausgabe.substring(0, ausgabe.length()-1); 
             workingSetCombo.add(ausgabe);
             workingSetCombo.setText(ausgabe);
          }
@@ -462,7 +474,7 @@ public class WizardPageOne extends WizardPage
    {
       if (workingSetComboItem != null)
       {
-         workingSetSelectionDialog.setSelection(new IWorkingSet[] { workingSetComboItem });
+         workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
       }
       else if (getWorkingSet() != null)

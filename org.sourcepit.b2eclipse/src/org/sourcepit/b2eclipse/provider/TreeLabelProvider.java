@@ -9,7 +9,9 @@ package org.sourcepit.b2eclipse.provider;
 
 import java.io.File;
 
+import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
@@ -17,7 +19,7 @@ import org.eclipse.ui.PlatformUI;
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
-public class TreeLabelProvider extends LabelProvider
+public class TreeLabelProvider extends LabelProvider implements IColorProvider
 {
 
    /**
@@ -38,6 +40,20 @@ public class TreeLabelProvider extends LabelProvider
          String cutString = file.getParent();    
          return cutString.substring(cutString.lastIndexOf("\\")).replace("\\", "").concat("  (" + cutString + ")");
           
+   }
+
+   @Override
+   public Color getForeground(Object element)
+   {
+      
+      return null;
+   }
+
+   @Override
+   public Color getBackground(Object element)
+   {
+      // TODO: git_user_name Auto-generated method stub
+      return null;
    }
 
 
