@@ -15,24 +15,23 @@
 
 	<repositories>
 		<repository>
-			<id>indigo</id>
-			<!-- <url>http://download.eclipse.org/releases/indigo</url> -->
-			<!-- indigo mirror -->
-			<url>http://immplbui01.innovations.de:47080/p2repo/eclipse/indigo/</url>
-			<layout>p2</layout>
+			<id>srcpit-public</id>
+			<url>${srcpit.nexus.url}/content/groups/public/</url>
 		</repository>
 		<repository>
-			<id>srcpit-public</id>
-			<url>http://nexus.sourcepit.org/content/groups/public/</url>
+			<id>indigo</id>
+			<url>http://p2.sourcepit.org/eclipse/indigo/</url>
+			<layout>p2</layout>
 		</repository>
 	</repositories>
 
 	<pluginRepositories>
 		<pluginRepository>
 			<id>srcpit-public</id>
-			<url>http://nexus.sourcepit.org/content/groups/public/</url>
+			<url>${srcpit.nexus.url}/content/groups/public/</url>
 		</pluginRepository>
 	</pluginRepositories>
+
 
 	<build>
 		<extensions>
