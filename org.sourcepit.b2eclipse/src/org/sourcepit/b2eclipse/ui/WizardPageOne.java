@@ -50,14 +50,21 @@ public class WizardPageOne extends WizardPage
    private CheckboxTreeViewer dirTreeViewer;
    private String directoryName;
    private GridData gridData, gridData2, gridData3;
-   private Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn;
+   private Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn,
+      selectPluginsBtn, selectTestsBtn, selectDocsBtn;
    private TreeContentProvider moduleTreeContentProvider = new TreeContentProvider();
    private Combo workingSetCombo;
    private IWorkingSetManager workingSetManager;
    private IWorkingSet[] workingSet;
    private IWorkingSetSelectionDialog workingSetSelectionDialog;
    private IWorkingSet workingSetComboItem;
-   private String ausgabe = "";
+   private String comboBoxItems = "";
+   private Object[] getCheckedElements;
+   private List<File> getSelectedProjects;
+   private DirectoryDialog dd;
+   private ElementTreeSelectionDialog etsd;
+   private String[] splitItems;
+   private static final WizardPageOne INSTANCE = new WizardPageOne("Module");
 
 
    public WizardPageOne(String name)
@@ -69,6 +76,11 @@ public class WizardPageOne extends WizardPage
 
    }
 
+   public static WizardPageOne getInstance()
+   {
+      return INSTANCE;
+   }
+
 
    /**
     * 
@@ -78,14 +90,13 @@ public class WizardPageOne extends WizardPage
 
    public List<File> getSelectedProjects()
    {
-      Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
-      List<File> getSelectedProjects = new ArrayList<File>();
+      getCheckedElements = dirTreeViewer.getCheckedElements();
+      getSelectedProjects = new ArrayList<File>();
       for (int i = 0; i < getCheckedElements.length; i++)
       {
          getSelectedProjects.add(new File(getCheckedElements[i].toString()));
 
       }
-
 
       return getSelectedProjects;
    }
@@ -105,7 +116,7 @@ public class WizardPageOne extends WizardPage
       gridData2.horizontalAlignment = SWT.FILL;
       gridData2.verticalAlignment = SWT.TOP;
 
-      gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
+      gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 5);
       gridData3.widthHint = 500;
       gridData3.heightHint = 300;
 
@@ -149,6 +160,18 @@ public class WizardPageOne extends WizardPage
       deselectAllBtn.setText("Deselect All");
       deselectAllBtn.setLayoutData(gridData2);
 
+      selectTestsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
+      selectTestsBtn.setText("Select Tests");
+      selectTestsBtn.setLayoutData(gridData2);
+
+      selectDocsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
+      selectDocsBtn.setText("Select Docs");
+      selectDocsBtn.setLayoutData(gridData2);
+
+      selectPluginsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
+      selectPluginsBtn.setText("Select Plugins");
+      selectPluginsBtn.setLayoutData(gridData2);
+
 
       checkBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
       checkBtn.setText("Select Working Set:");
@@ -177,18 +200,18 @@ public class WizardPageOne extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
-            dirTreeViewer.remove(TreeContentProvider.clearArrayList());
+            TreeContentProvider.clearArrayList();
 
-            DirectoryDialog dd = new DirectoryDialog(dirShell, SWT.OPEN);
+            dd = new DirectoryDialog(dirShell, SWT.OPEN);
             dd.setText("Directory Selection...");
             directoryName = dd.open();
             if (directoryName == null)
                return;
-
             dirTxt.setText(directoryName);
             workspaceTxt.setText("");
 
             dirTreeViewer.setInput(new File(directoryName));
+
          }
       });
 
@@ -197,8 +220,8 @@ public class WizardPageOne extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
-            dirTreeViewer.remove(TreeContentProvider.clearArrayList());
-            ElementTreeSelectionDialog etsd = new ElementTreeSelectionDialog(dirShell, new WorkbenchLabelProvider(),
+            TreeContentProvider.clearArrayList();
+            etsd = new ElementTreeSelectionDialog(dirShell, new WorkbenchLabelProvider(),
                new BaseWorkbenchContentProvider());
             etsd.setTitle("Project Selection");
             etsd.setMessage("Select a project:");
@@ -262,6 +285,7 @@ public class WizardPageOne extends WizardPage
          {
             if (checkBtn.getSelection())
             {
+
 
                workingSetBtn.setEnabled(true);
                workingSetCombo.setEnabled(true);
@@ -334,31 +358,94 @@ public class WizardPageOne extends WizardPage
 
       });
 
+      selectTestsBtn.addListener(SWT.Selection, new Listener()
+      {
+
+         @Override
+         public void handleEvent(Event event)
+         {
+
+            for (int i = 0; i < moduleTreeContentProvider.getProjects().size(); i++)
+            {
+
+               if (moduleTreeContentProvider.getProjects().get(i).getParent().endsWith(".tests"))
+               {
+                  dirTreeViewer.setSubtreeChecked(moduleTreeContentProvider.getProjects().get(i), true);
+               }
+
+            }
+
+         }
+
+      });
+
+      selectDocsBtn.addListener(SWT.Selection, new Listener()
+      {
+
+         @Override
+         public void handleEvent(Event event)
+         {
+
+            for (int i = 0; i < moduleTreeContentProvider.getProjects().size(); i++)
+            {
+
+               if (moduleTreeContentProvider.getProjects().get(i).getParent().endsWith(".docs"))
+               {
+                  dirTreeViewer.setSubtreeChecked(moduleTreeContentProvider.getProjects().get(i), true);
+               }
+
+            }
+
+         }
+
+      });
+
+      selectPluginsBtn.addListener(SWT.Selection, new Listener()
+      {
+
+         @Override
+         public void handleEvent(Event event)
+         {
+
+            for (int i = 0; i < moduleTreeContentProvider.getProjects().size(); i++)
+            {
+
+               if (moduleTreeContentProvider.getProjects().get(i).getParent().endsWith(".module"))
+               {
+                  dirTreeViewer.setSubtreeChecked(moduleTreeContentProvider.getProjects().get(i), true);
+               }
+
+            }
+
+         }
+
+      });
+
       workingSetCombo.addSelectionListener(new SelectionListener()
       {
          public void widgetSelected(SelectionEvent e)
          {
 
-            if(workingSetCombo.getText().contains(",")){
-               String[] split = workingSetCombo.getText().split(",");
-               workingSet = new IWorkingSet[split.length];
-               for(int i=0;i<split.length;i++){
-                  workingSetComboItem = workingSetManager.getWorkingSet(split[i]);
+            if (workingSetCombo.getText().contains(","))
+            {
+               splitItems = workingSetCombo.getText().split(",");
+               workingSet = new IWorkingSet[splitItems.length];
+               for (int i = 0; i < splitItems.length; i++)
+               {
+                  workingSetComboItem = workingSetManager.getWorkingSet(splitItems[i]);
                   workingSet[i] = workingSetComboItem;
                }
             }
-            else{
+            else
+            {
                workingSetComboItem = workingSetManager.getWorkingSet(workingSetCombo.getText());
                workingSet = new IWorkingSet[] { workingSetComboItem };
             }
-            
-
 
          }
 
          public void widgetDefaultSelected(SelectionEvent e)
          {
-            System.out.println(workingSetCombo.getText());
          }
       });
 
@@ -413,7 +500,6 @@ public class WizardPageOne extends WizardPage
       return workingSet;
    }
 
-   //TODO vereinfachen!!!
    private void addItemToCombo()
    {
       if (getWorkingSet() != null)
@@ -448,21 +534,21 @@ public class WizardPageOne extends WizardPage
 
                for (int y = 0; y < workingSetCombo.getItemCount(); y++)
                {
-                  if (workingSetCombo.getItem(y).equals(ausgabe))
+                  if (workingSetCombo.getItem(y).equals(comboBoxItems))
                   {
                      return;
                   }
 
                }
-               
-               ausgabe = ausgabe.concat(getWorkingSet()[i].getName().concat(","));
-  
+
+               comboBoxItems = comboBoxItems.concat(getWorkingSet()[i].getName().concat(","));
 
 
             }
-            ausgabe = ausgabe.substring(0, ausgabe.length()-1); 
-            workingSetCombo.add(ausgabe);
-            workingSetCombo.setText(ausgabe);
+            comboBoxItems = comboBoxItems.substring(0, comboBoxItems.length() - 1);
+            workingSetCombo.add(comboBoxItems);
+            workingSetCombo.setText(comboBoxItems);
+            comboBoxItems = "";
          }
 
 
@@ -474,16 +560,20 @@ public class WizardPageOne extends WizardPage
    {
       if (workingSetComboItem != null)
       {
+         System.out.println("3");
          workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
       }
       else if (getWorkingSet() != null)
       {
+         System.out.println("2");
          workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
+
       }
       else
       {
+         System.out.println("1");
          workingSetSelectionDialog.open();
       }
    }

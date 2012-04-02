@@ -41,13 +41,21 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
    private static IPath projectPath;
    private WizardPageOne modulePage;
+   private List<File> projects;
+   private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+   private final IWorkbench workbench = PlatformUI.getWorkbench();
+   private IPath projectDotProjectFile;
+   private IProjectDescription projectDescription;
+   private IProject project;
+   private Object firstElement;
+   private IResource selectedProject;
 
 
    public B2Wizard()
    {
       super();
       setWindowTitle("Import b2 Projects");
-      modulePage = new WizardPageOne("Module");
+      modulePage = WizardPageOne.getInstance();
       addPage(modulePage);
 
 
@@ -68,15 +76,15 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
          {
             try
             {
-               List<File> projects = modulePage.getSelectedProjects();
+               projects = modulePage.getSelectedProjects();
 
                for (int i = 0; i < projects.size(); i++)
                {
 
-                  final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-                  IPath projectDotProjectFile = new Path(String.valueOf(projects.get(i)));
-                  IProjectDescription projectDescription = workspace.loadProjectDescription(projectDotProjectFile);
-                  IProject project = workspace.getRoot().getProject(projectDescription.getName());
+
+                  projectDotProjectFile = new Path(String.valueOf(projects.get(i)));
+                  projectDescription = workspace.loadProjectDescription(projectDotProjectFile);
+                  project = workspace.getRoot().getProject(projectDescription.getName());
                   JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
 
                   if (modulePage.isCheckButtonSelected() && modulePage.getWorkingSet() != null)
@@ -93,7 +101,6 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       };
 
 
-      final IWorkbench workbench = PlatformUI.getWorkbench();
       workbench.getDisplay().syncExec(runnable);
 
 
@@ -113,12 +120,12 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       {
 
 
-         Object firstElement = selection.getFirstElement();
+         firstElement = selection.getFirstElement();
 
 
          if (firstElement instanceof IAdaptable)
          {
-            IResource selectedProject = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
+            selectedProject = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
             if (selectedProject != null)
             {
                projectPath = selectedProject.getProject().getLocation();
