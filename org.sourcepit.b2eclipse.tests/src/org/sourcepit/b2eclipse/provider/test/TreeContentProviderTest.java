@@ -3,17 +3,17 @@ package org.sourcepit.b2eclipse.provider.test;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sourcepit.b2eclipse.provider.TreeContentProvider;
+import org.sourcepit.b2eclipse.provider.ContentProvider;
 
 public class TreeContentProviderTest
 {
    
-   TreeContentProvider tcp;
+   ContentProvider tcp;
 
    @Before
    public void setUp() throws Exception
    {
-     tcp = new TreeContentProvider();
+     tcp = new ContentProvider();
    }
 
    @After

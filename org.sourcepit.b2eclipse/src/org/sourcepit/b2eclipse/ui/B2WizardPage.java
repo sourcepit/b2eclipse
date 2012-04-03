@@ -36,13 +36,14 @@ import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.dialogs.IWorkingSetSelectionDialog;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
-import org.sourcepit.b2eclipse.provider.TreeContentProvider;
-import org.sourcepit.b2eclipse.provider.TreeLabelProvider;
+import org.sourcepit.b2eclipse.provider.ContentProvider;
+import org.sourcepit.b2eclipse.provider.LabelProvider;
+import org.sourcepit.b2eclipse.structure.TreeviewerInput;
 
 /**
  * @author Marco Grupe
  */
-public class WizardPageOne extends WizardPage
+public class B2WizardPage extends WizardPage
 {
    private Text dirTxt, workspaceTxt;
    private Shell dirShell;
@@ -52,7 +53,7 @@ public class WizardPageOne extends WizardPage
    private GridData gridData, gridData2, gridData3;
    private Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn,
       selectPluginsBtn, selectTestsBtn, selectDocsBtn;
-   private TreeContentProvider moduleTreeContentProvider = new TreeContentProvider();
+   private ContentProvider moduleTreeContentProvider = new ContentProvider();
    private Combo workingSetCombo;
    private IWorkingSetManager workingSetManager;
    private IWorkingSet[] workingSet;
@@ -64,10 +65,10 @@ public class WizardPageOne extends WizardPage
    private DirectoryDialog dd;
    private ElementTreeSelectionDialog etsd;
    private String[] splitItems;
-   private static final WizardPageOne INSTANCE = new WizardPageOne("Module");
+   private static final B2WizardPage INSTANCE = new B2WizardPage("Module");
 
 
-   public WizardPageOne(String name)
+   public B2WizardPage(String name)
    {
 
       super(name);
@@ -76,7 +77,7 @@ public class WizardPageOne extends WizardPage
 
    }
 
-   public static WizardPageOne getInstance()
+   public static B2WizardPage getInstance()
    {
       return INSTANCE;
    }
@@ -94,6 +95,7 @@ public class WizardPageOne extends WizardPage
       getSelectedProjects = new ArrayList<File>();
       for (int i = 0; i < getCheckedElements.length; i++)
       {
+
          getSelectedProjects.add(new File(getCheckedElements[i].toString()));
 
       }
@@ -114,6 +116,7 @@ public class WizardPageOne extends WizardPage
 
       gridData2 = new GridData();
       gridData2.horizontalAlignment = SWT.FILL;
+      gridData2.widthHint = 90;
       gridData2.verticalAlignment = SWT.TOP;
 
       gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 5);
@@ -148,7 +151,7 @@ public class WizardPageOne extends WizardPage
 
       dirTreeViewer = new CheckboxTreeViewer(modulePageWidgetContainer);
       dirTreeViewer.setContentProvider(moduleTreeContentProvider);
-      dirTreeViewer.setLabelProvider(new TreeLabelProvider());
+      dirTreeViewer.setLabelProvider(new LabelProvider());
       dirTreeViewer.getTree().setLayoutData(gridData3);
 
 
@@ -160,6 +163,10 @@ public class WizardPageOne extends WizardPage
       deselectAllBtn.setText("Deselect All");
       deselectAllBtn.setLayoutData(gridData2);
 
+      selectPluginsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
+      selectPluginsBtn.setText("Select Plugins");
+      selectPluginsBtn.setLayoutData(gridData2);
+
       selectTestsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
       selectTestsBtn.setText("Select Tests");
       selectTestsBtn.setLayoutData(gridData2);
@@ -167,10 +174,6 @@ public class WizardPageOne extends WizardPage
       selectDocsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
       selectDocsBtn.setText("Select Docs");
       selectDocsBtn.setLayoutData(gridData2);
-
-      selectPluginsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      selectPluginsBtn.setText("Select Plugins");
-      selectPluginsBtn.setLayoutData(gridData2);
 
 
       checkBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
@@ -200,7 +203,7 @@ public class WizardPageOne extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
-            TreeContentProvider.clearArrayList();
+            TreeviewerInput.clearArrayList();
 
             dd = new DirectoryDialog(dirShell, SWT.OPEN);
             dd.setText("Directory Selection...");
@@ -210,7 +213,7 @@ public class WizardPageOne extends WizardPage
             dirTxt.setText(directoryName);
             workspaceTxt.setText("");
 
-            dirTreeViewer.setInput(new File(directoryName));
+            dirTreeViewer.setInput(new TreeviewerInput(new File(directoryName)));
 
          }
       });
@@ -220,7 +223,7 @@ public class WizardPageOne extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
-            TreeContentProvider.clearArrayList();
+            TreeviewerInput.clearArrayList();
             etsd = new ElementTreeSelectionDialog(dirShell, new WorkbenchLabelProvider(),
                new BaseWorkbenchContentProvider());
             etsd.setTitle("Project Selection");
@@ -232,7 +235,7 @@ public class WizardPageOne extends WizardPage
                directoryName = String.valueOf(((IResource) etsd.getFirstResult()).getLocation());
                workspaceTxt.setText(directoryName);
                dirTxt.setText("");
-               dirTreeViewer.setInput(new File(directoryName));
+               dirTreeViewer.setInput(new TreeviewerInput(new File(directoryName)));
             }
          }
       });
@@ -425,7 +428,6 @@ public class WizardPageOne extends WizardPage
       {
          public void widgetSelected(SelectionEvent e)
          {
-
             if (workingSetCombo.getText().contains(","))
             {
                splitItems = workingSetCombo.getText().split(",");
@@ -441,7 +443,6 @@ public class WizardPageOne extends WizardPage
                workingSetComboItem = workingSetManager.getWorkingSet(workingSetCombo.getText());
                workingSet = new IWorkingSet[] { workingSetComboItem };
             }
-
          }
 
          public void widgetDefaultSelected(SelectionEvent e)
@@ -461,13 +462,12 @@ public class WizardPageOne extends WizardPage
       modulePageWidgetContainer = new Composite(parent, SWT.NONE);
       modulePageWidgetContainer.setLayout(new GridLayout(3, false));
 
-
       addWidgets();
 
       if (B2Wizard.getPath() != null)
       {
          dirTxt.setText(String.valueOf(B2Wizard.getPath()));
-         dirTreeViewer.setInput(new File(String.valueOf(B2Wizard.getPath())));
+         dirTreeViewer.setInput(new TreeviewerInput(new File(String.valueOf(B2Wizard.getPath()))));
 
 
       }

@@ -29,7 +29,8 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.Activator;
-import org.sourcepit.b2eclipse.provider.TreeContentProvider;
+import org.sourcepit.b2eclipse.provider.ContentProvider;
+import org.sourcepit.b2eclipse.structure.TreeviewerInput;
 
 /**
  * @author Marco Grupe
@@ -40,7 +41,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
 
    private static IPath projectPath;
-   private WizardPageOne modulePage;
+   private B2WizardPage modulePage;
    private List<File> projects;
    private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
    private final IWorkbench workbench = PlatformUI.getWorkbench();
@@ -55,7 +56,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    {
       super();
       setWindowTitle("Import b2 Projects");
-      modulePage = WizardPageOne.getInstance();
+      modulePage = B2WizardPage.getInstance();
       addPage(modulePage);
 
 
@@ -95,7 +96,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
             }
             catch (CoreException e)
             {
-               Activator.error("alles scheiﬂe", e);
+               Activator.error("Fehler", e);
             }
          }
       };
@@ -153,7 +154,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
     */
    public void dispose()
    {
-      TreeContentProvider.clearArrayList();
+      TreeviewerInput.clearArrayList();
       PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().removeSelectionListener(this);
       super.dispose();
    }

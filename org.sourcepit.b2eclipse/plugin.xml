@@ -13,7 +13,7 @@
  <extension
        point="org.eclipse.ui.preferencePages">
     <page
-          class="org.sourcepit.b2eclipse.ui.WizardPageOne"
+          class="org.sourcepit.b2eclipse.ui.B2WizardPage"
           id="org.sourcepit.b2eclipse.ui.b2eclipsePP"
           name="DirectoryDialog">
     </page>
