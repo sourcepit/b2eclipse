@@ -389,7 +389,7 @@ public class WizardPageOne extends WizardPage
             for (int i = 0; i < moduleTreeContentProvider.getProjects().size(); i++)
             {
 
-               if (moduleTreeContentProvider.getProjects().get(i).getParent().endsWith(".docs"))
+               if (moduleTreeContentProvider.getProjects().get(i).getParent().endsWith(".doc"))
                {
                   dirTreeViewer.setSubtreeChecked(moduleTreeContentProvider.getProjects().get(i), true);
                }
@@ -560,20 +560,17 @@ public class WizardPageOne extends WizardPage
    {
       if (workingSetComboItem != null)
       {
-         System.out.println("3");
          workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
       }
       else if (getWorkingSet() != null)
       {
-         System.out.println("2");
          workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
 
       }
       else
       {
-         System.out.println("1");
          workingSetSelectionDialog.open();
       }
    }

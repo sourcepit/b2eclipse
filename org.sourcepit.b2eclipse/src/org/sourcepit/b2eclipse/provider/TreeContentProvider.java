@@ -9,16 +9,20 @@ package org.sourcepit.b2eclipse.provider;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.sourcepit.b2eclipse.comparator.FileComparator;
 
 public class TreeContentProvider implements ITreeContentProvider
 {
 
-   private static ArrayList<File> projectFileList = new ArrayList<File>();;
+   private static ArrayList<File> projectFileList = new ArrayList<File>();
+   private static ArrayList<File> projectFileList2 = new ArrayList<File>();
    private File[] projects;
    private File[] elementList;
+   private FileComparator fc = new FileComparator();
 
 
    @Override
@@ -42,31 +46,23 @@ public class TreeContentProvider implements ITreeContentProvider
    @Override
    public File[] getElements(Object inputElement)
    {
-      elementList = ((File) inputElement).listFiles();
-      if (elementList != null)
+
+
+      projectFileList2 = berechnung(inputElement);
+
+
+      Collections.sort(projectFileList2, fc);
+
+
+      projects = new File[projectFileList.size()];
+      for (int y = 0; y < projects.length; y++)
       {
+         projects[y] = projectFileList.get(y);
 
-         for (File file : elementList)
-         {
-            if (file.isDirectory())
-            {
-               getElements(file);
-            }
-            else if (file.getName().endsWith(".project"))
-            {
-               projectFileList.add(file.getAbsoluteFile());
-            }
-
-         }
-
-         projects = new File[projectFileList.size()];
-         for (int y = 0; y < projects.length; y++)
-         {
-            projects[y] = projectFileList.get(y);
-
-         }
 
       }
+
+
       return projects;
    }
 
@@ -93,6 +89,31 @@ public class TreeContentProvider implements ITreeContentProvider
 
       return false;
 
+   }
+
+   public ArrayList<File> berechnung(Object inputElement)
+   {
+
+
+      elementList = ((File) inputElement).listFiles();
+
+      if (elementList != null)
+      {
+
+         for (File file : elementList)
+         {
+            if (file.isDirectory())
+            {
+               berechnung(file);
+            }
+            else if (file.getName().endsWith(".project"))
+            {
+               projectFileList.add(file.getAbsoluteFile());
+            }
+
+         }
+      }
+      return projectFileList;
    }
 
    public ArrayList<File> getProjects()
