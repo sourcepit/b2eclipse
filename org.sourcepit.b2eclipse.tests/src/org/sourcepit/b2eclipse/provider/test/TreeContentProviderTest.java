@@ -1,9 +1,13 @@
 package org.sourcepit.b2eclipse.provider.test;
 
+import java.io.File;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
+import org.sourcepit.b2eclipse.input.TreeviewerInput;
+import static org.junit.Assert.*;
 
 public class TreeContentProviderTest
 {
@@ -23,7 +27,7 @@ public class TreeContentProviderTest
 
    @Test
    public void testGetElements(){
-//      
+      
 //      File[] testProjects = new File[3];
 //      String userPath =  System.getProperty("user.home");
 //      testProjects[0] = new File(userPath +"\\structured-module\\doc\\org.sourcepit.b2.examples.structured.module.doc\\.project");
@@ -32,7 +36,7 @@ public class TreeContentProviderTest
 //
 //      assertArrayEquals(tcp.getElements(new File("C:\\Users\\imm1199\\structured-module")),testProjects);
 //
-//      TreeContentProvider.clearArrayList();
+//      TreeviewerInput.clearArrayList();
 
       
 

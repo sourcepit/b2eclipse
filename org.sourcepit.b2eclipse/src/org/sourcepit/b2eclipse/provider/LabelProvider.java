@@ -12,46 +12,51 @@ import java.io.File;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-import org.sourcepit.b2eclipse.structure.Category;
+import org.sourcepit.b2eclipse.input.Category;
 
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
 public class LabelProvider extends StyledCellLabelProvider
 {
-   private File file;
+   private File plugin;
    private String cutString;
+   private Object element;
+   private StyledString label;
+   private Category category;
 
    /**
     * Ordner icons im Treeviewer
     */
-   
+
    @Override
-   public void update(ViewerCell cell) {
-       Object element = cell.getElement();
-       StyledString text = new StyledString();
+   public void update(ViewerCell cell)
+   {
+      element = cell.getElement();
+      label = new StyledString();
 
-       if (element instanceof Category) {
-           Category category = (Category) element;
-           text.append(category.getName());
-           cell.setImage(PlatformUI.getWorkbench().getSharedImages()
-                   .getImage(ISharedImages.IMG_OBJ_FOLDER));
-           text.append(" ( " +category.getPlugins().size() + " ) ", StyledString.COUNTER_STYLER);
-       } else {
-          file = (File) element;
-          cutString = file.getParent();
-          text.append(cutString.substring(cutString.lastIndexOf("\\")).replace("\\", "").concat("  (" + cutString + ")"));
-           cell.setImage(PlatformUI.getWorkbench().getSharedImages()
-                   .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT ));
-       }
-       cell.setText(text.toString());
-       cell.setStyleRanges(text.getStyleRanges());
-       super.update(cell);
+      if (element instanceof Category)
+      {
+         category = (Category) element;
+         label.append(category.getName());
+         cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
+         label.append(" ( " + category.getPlugins().size() + " ) ", StyledString.COUNTER_STYLER);
+      }
+      else
+      {
+         plugin = (File) element;
+         cutString = plugin.getParent();
+         label.append(cutString.substring(cutString.lastIndexOf("\\")).replace("\\", "")
+            .concat("  (" + cutString + ")"));
+         cell.setImage(PlatformUI.getWorkbench().getSharedImages()
+            .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
+      }
+      cell.setText(label.toString());
+      cell.setStyleRanges(label.getStyleRanges());
+      super.update(cell);
    }
-
 
 
 }

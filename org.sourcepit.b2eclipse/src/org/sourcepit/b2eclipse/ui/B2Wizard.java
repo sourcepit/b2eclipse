@@ -29,8 +29,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.Activator;
-import org.sourcepit.b2eclipse.provider.ContentProvider;
-import org.sourcepit.b2eclipse.structure.TreeviewerInput;
+import org.sourcepit.b2eclipse.input.TreeviewerInput;
 
 /**
  * @author Marco Grupe

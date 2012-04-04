@@ -13,6 +13,7 @@ Require-Bundle: org.eclipse.ui;bundle-version="[3.7.0,4.0.0)",
  org.eclipse.jdt.ui;bundle-version="[3.7.0,4.0.0)"
 Import-Package: org.eclipse.jdt.core,
  org.eclipse.jdt.launching
-Export-Package: org.sourcepit.b2eclipse.provider,
+Export-Package: org.sourcepit.b2eclipse.input,
+ org.sourcepit.b2eclipse.provider,
  org.sourcepit.b2eclipse.ui
 Bundle-Activator: org.sourcepit.b2eclipse.Activator

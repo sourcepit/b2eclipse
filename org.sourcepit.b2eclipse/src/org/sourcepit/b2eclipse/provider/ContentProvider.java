@@ -7,18 +7,13 @@
 package org.sourcepit.b2eclipse.provider;
 
 
-import java.io.File;
-import java.util.ArrayList;
-
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.sourcepit.b2eclipse.structure.Category;
-import org.sourcepit.b2eclipse.structure.TreeviewerInput;
+import org.sourcepit.b2eclipse.input.Category;
+import org.sourcepit.b2eclipse.input.TreeviewerInput;
 
 public class ContentProvider implements ITreeContentProvider
 {
-
-   private static ArrayList<File> projectFileList = new ArrayList<File>();
 
    private TreeviewerInput input;
 
@@ -55,7 +50,6 @@ public class ContentProvider implements ITreeContentProvider
       return false;
    }
 
-
    @Override
    public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
    {
@@ -67,10 +61,7 @@ public class ContentProvider implements ITreeContentProvider
    {
    }
 
-   public ArrayList<File> getProjects()
-   {
-      return projectFileList;
-   }
+  
 
 
 }
