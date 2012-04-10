@@ -109,7 +109,7 @@ public class TreeviewerInput
       return projectFileList;
    }
    
-   public ArrayList<File> getProjects()
+   public ArrayList<File> getProjectFileList()
    {
       return projectFileList;
    }

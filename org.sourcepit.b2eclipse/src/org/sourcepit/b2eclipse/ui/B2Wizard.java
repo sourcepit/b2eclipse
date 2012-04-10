@@ -8,7 +8,10 @@ package org.sourcepit.b2eclipse.ui;
 
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+
+import javax.swing.JCheckBox;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -18,11 +21,15 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbench;
@@ -49,6 +56,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    private IProject project;
    private Object firstElement;
    private IResource selectedProject;
+   int total = 0;
 
 
    public B2Wizard()
@@ -56,6 +64,8 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       super();
       setWindowTitle("Import b2 Projects");
       modulePage = B2WizardPage.getInstance();
+
+
       addPage(modulePage);
 
 
@@ -68,40 +78,43 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    @Override
    public boolean performFinish()
    {
+      projects = modulePage.getSelectedProjects();
 
-
-      Runnable runnable = new Runnable()
+      IRunnableWithProgress runnable = new IRunnableWithProgress()
       {
-         public void run()
+
+         @Override
+         public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
          {
-            try
+
+            monitor.beginTask("Creating projects", projects.size());
+            for (int i = 0; i < projects.size(); i++)
             {
-               projects = modulePage.getSelectedProjects();
-
-               for (int i = 0; i < projects.size(); i++)
-               {
-
-
-                  projectDotProjectFile = new Path(String.valueOf(projects.get(i)));
-                  projectDescription = workspace.loadProjectDescription(projectDotProjectFile);
-                  project = workspace.getRoot().getProject(projectDescription.getName());
-                  JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-
-                  if (modulePage.isCheckButtonSelected() && modulePage.getWorkingSet() != null)
-                  {
-                     modulePage.getWorkingSetManager().addToWorkingSets(project, modulePage.getWorkingSet());
-                  }
-               }
+               if (monitor.isCanceled())
+                  return;
+               Thread.sleep(250);
+               monitor.subTask("Working on " + projects.get(i).getParent());
+               createProjects(i);
+               monitor.worked(1);
             }
-            catch (CoreException e)
-            {
-               Activator.error("Fehler", e);
-            }
+            monitor.done();
          }
       };
 
 
-      workbench.getDisplay().syncExec(runnable);
+      ProgressMonitorDialog dialog = new ProgressMonitorDialog(Display.getCurrent().getActiveShell());
+      try
+      {
+         dialog.run(true, true, runnable);
+      }
+      catch (InvocationTargetException e)
+      {
+         e.printStackTrace();
+      }
+      catch (InterruptedException e)
+      {
+         e.printStackTrace();
+      }
 
 
       return true;
@@ -162,6 +175,28 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    public static IPath getPath()
    {
       return projectPath;
+   }
+
+   public void createProjects(int projectPosition)
+   {
+
+      try
+      {
+         projectDotProjectFile = new Path(String.valueOf(projects.get(projectPosition)));
+         projectDescription = workspace.loadProjectDescription(projectDotProjectFile);
+         project = workspace.getRoot().getProject(projectDescription.getName());
+         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+
+          if (modulePage.getCheckButtonSelection() && modulePage.getWorkingSet() != null)
+          {
+          modulePage.getWorkingSetManager().addToWorkingSets(project, modulePage.getWorkingSet());
+          }
+      }
+      catch (CoreException e)
+      {
+         e.printStackTrace();
+      }
+
    }
 
 
