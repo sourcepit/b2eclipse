@@ -8,10 +8,9 @@ package org.sourcepit.b2eclipse.ui;
 
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
-
-import javax.swing.JCheckBox;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -24,6 +23,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
+import org.eclipse.jface.dialogs.DialogSettings;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
@@ -36,7 +37,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.Activator;
-import org.sourcepit.b2eclipse.input.TreeviewerInput;
+import org.sourcepit.b2eclipse.input.TreeViewerInput;
 
 /**
  * @author Marco Grupe
@@ -48,52 +49,106 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
    private static IPath projectPath;
    private B2WizardPage modulePage;
-   private List<File> projects;
+   private List<File> projectList;
    private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-   private final IWorkbench workbench = PlatformUI.getWorkbench();
-   private IPath projectDotProjectFile;
+   private IPath projectFile;
    private IProjectDescription projectDescription;
    private IProject project;
    private Object firstElement;
    private IResource selectedProject;
-   int total = 0;
+   private ProgressMonitorDialog progressMonitorDialog;
+   private IRunnableWithProgress runnableWithProgress;
+   static final String DIALOG_SETTING_FILE = "workingSets.xml";
+   private DialogSettings dialogSettings;
 
 
    public B2Wizard()
    {
       super();
-      setWindowTitle("Import b2 Projects");
+      setWindowTitle("Import");
+      // setDefaultPageImageDescriptor()); Header ändern
       modulePage = B2WizardPage.getInstance();
 
+      dialogSettings = new DialogSettings("workingSets");
+      
+      File file = new File(DIALOG_SETTING_FILE);
+
+      if (!file.exists())
+      {
+         try
+         {
+           
+            file.createNewFile();
+            dialogSettings.save(DIALOG_SETTING_FILE);
+         }
+         catch (IOException e)
+         {
+            e.printStackTrace();
+         }
+      }
+
+      try
+      {
+         dialogSettings.load(DIALOG_SETTING_FILE);
+      }
+      catch (IOException e)
+      {
+         e.printStackTrace();
+      }
+
+      setDialogSettings(dialogSettings);
 
       addPage(modulePage);
 
 
    }
 
+   /**
+    * While closing the wizard a message dialog opens to confirm {@inheritDoc}
+    */
+   public boolean performCancel()
+   {
+      boolean message = MessageDialog.openConfirm(getShell(), "Confirm Close", "Are you sure you want to close?");
+      if (message)
+         return true;
+      return false;
+   }
+
 
    /**
-    * dafür zuständig um Finish Button zu aktivieren
+    * After pressing the finish button the selected projects will be create {@inheritDoc}
     */
    @Override
    public boolean performFinish()
    {
-      projects = modulePage.getSelectedProjects();
 
-      IRunnableWithProgress runnable = new IRunnableWithProgress()
+      try
+      {
+         // Saves the dialog settings into the specified file.
+         getDialogSettings().save(DIALOG_SETTING_FILE);
+      }
+      catch (IOException e1)
+      {
+         e1.printStackTrace();
+      }
+
+      projectList = modulePage.getSelectedProjects();
+
+      runnableWithProgress = new IRunnableWithProgress()
       {
 
          @Override
          public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
          {
 
-            monitor.beginTask("Creating projects", projects.size());
-            for (int i = 0; i < projects.size(); i++)
+            monitor.beginTask("Creating projects", projectList.size());
+
+            for (int i = 0; i < projectList.size(); i++)
             {
                if (monitor.isCanceled())
                   return;
                Thread.sleep(250);
-               monitor.subTask("Working on " + projects.get(i).getParent());
+               monitor.subTask("Working on " + projectList.get(i).getParent());
                createProjects(i);
                monitor.worked(1);
             }
@@ -102,27 +157,27 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       };
 
 
-      ProgressMonitorDialog dialog = new ProgressMonitorDialog(Display.getCurrent().getActiveShell());
+      progressMonitorDialog = new ProgressMonitorDialog(Display.getCurrent().getActiveShell());
       try
       {
-         dialog.run(true, true, runnable);
+         progressMonitorDialog.run(true, true, runnableWithProgress);
       }
       catch (InvocationTargetException e)
       {
-         e.printStackTrace();
+         Activator.error(e);
       }
       catch (InterruptedException e)
       {
-         e.printStackTrace();
+         Activator.error(e);
       }
-
 
       return true;
    }
 
 
    /**
-    * bei einem Klick auf ein Project im Package Explorer wird dessen Pfad ausgelesen
+    * By clicking project in the package explorer firstElement gets the absolute path of the selected project
+    * {@inheritDoc}
     */
    @Override
    public void init(IWorkbench workbench, IStructuredSelection selection)
@@ -162,11 +217,11 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
 
    /**
-    * deaktiviert den SelectionListener
+    * disposes the SelectionListener
     */
    public void dispose()
    {
-      TreeviewerInput.clearArrayList();
+      TreeViewerInput.clearArrayList();
       PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().removeSelectionListener(this);
       super.dispose();
    }
@@ -177,24 +232,24 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       return projectPath;
    }
 
-   public void createProjects(int projectPosition)
+   private void createProjects(int projectsListPosition)
    {
 
       try
       {
-         projectDotProjectFile = new Path(String.valueOf(projects.get(projectPosition)));
-         projectDescription = workspace.loadProjectDescription(projectDotProjectFile);
+         projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
+         projectDescription = workspace.loadProjectDescription(projectFile);
          project = workspace.getRoot().getProject(projectDescription.getName());
          JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
 
-          if (modulePage.getCheckButtonSelection() && modulePage.getWorkingSet() != null)
-          {
-          modulePage.getWorkingSetManager().addToWorkingSets(project, modulePage.getWorkingSet());
-          }
+         if (modulePage.getCheckButtonSelection() && modulePage.getWorkingSet() != null)
+         {
+            modulePage.getWorkingSetManager().addToWorkingSets(project, modulePage.getWorkingSet());
+         }
       }
       catch (CoreException e)
       {
-         e.printStackTrace();
+         Activator.error(e);
       }
 
    }

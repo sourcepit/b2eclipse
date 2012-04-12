@@ -11,18 +11,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class TreeviewerInput
+public class TreeViewerInput
 {
 
    private File[] elementList;
    private File[] projects;
    private static ArrayList<File> projectFileList = new ArrayList<File>();
    private static List<Category> categories;
-   private  Category categoryModules,categoryTests,categoryDocs;
+   private Category categoryModules, categoryTests, categoryDocs;
+   private static final TreeViewerInput TreeviewerInput_INSTANCE = new TreeViewerInput();
 
-   public TreeviewerInput(){};
-   
-   public TreeviewerInput(Object inputElement)
+   public TreeViewerInput()
+   {
+   };
+
+   public TreeViewerInput(Object inputElement)
    {
 
       getProjects(inputElement);
@@ -35,7 +38,13 @@ public class TreeviewerInput
 
       }
    }
-   
+
+
+   public static TreeViewerInput getInstance()
+   {
+      return TreeviewerInput_INSTANCE;
+   }
+
 
    public List<Category> getData()
    {
@@ -56,15 +65,15 @@ public class TreeviewerInput
       {
          if (projects[i].getParent().endsWith(".module"))
          {
-            categoryModules.getPlugins().add(projects[i]);
+            categoryModules.getModules().add(projects[i]);
          }
          else if (projects[i].getParent().endsWith(".tests"))
          {
-            categoryTests.getPlugins().add(projects[i]);
+            categoryTests.getModules().add(projects[i]);
          }
          else if (projects[i].getParent().endsWith(".doc"))
          {
-            categoryDocs.getPlugins().add(projects[i]);
+            categoryDocs.getModules().add(projects[i]);
          }
       }
 
@@ -108,14 +117,15 @@ public class TreeviewerInput
 
       return projectFileList;
    }
-   
+
    public ArrayList<File> getProjectFileList()
    {
       return projectFileList;
    }
-   
-   public static List<Category> getCategories(){
-      
+
+   public static List<Category> getCategories()
+   {
+
       return categories;
    }
 

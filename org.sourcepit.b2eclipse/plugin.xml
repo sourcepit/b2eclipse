@@ -7,7 +7,7 @@
             class="org.sourcepit.b2eclipse.ui.B2Wizard"
             icon="icon/activity_act_003.gif"
             id="de.visualrules.b2eclipse.ui.ImportWizard"
-            name="New b2 Project">
+            name="Import Modules">
       </wizard>
    </extension>
  <extension

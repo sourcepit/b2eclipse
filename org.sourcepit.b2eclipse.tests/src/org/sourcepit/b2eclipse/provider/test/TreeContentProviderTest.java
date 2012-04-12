@@ -6,7 +6,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
-import org.sourcepit.b2eclipse.input.TreeviewerInput;
+import org.sourcepit.b2eclipse.input.TreeViewerInput;
 import static org.junit.Assert.*;
 
 public class TreeContentProviderTest

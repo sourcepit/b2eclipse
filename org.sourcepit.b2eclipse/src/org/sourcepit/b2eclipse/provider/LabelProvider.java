@@ -21,7 +21,7 @@ import org.sourcepit.b2eclipse.input.Category;
  */
 public class LabelProvider extends StyledCellLabelProvider
 {
-   private File plugin;
+   private File module;
    private String cutString;
    private Object element;
    private StyledString label;
@@ -42,12 +42,12 @@ public class LabelProvider extends StyledCellLabelProvider
          category = (Category) element;
          label.append(category.getName());
          cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
-         label.append(" ( " + category.getPlugins().size() + " ) ", StyledString.COUNTER_STYLER);
+         label.append(" ( " + category.getModules().size() + " ) ", StyledString.COUNTER_STYLER);
       }
       else
       {
-         plugin = (File) element;
-         cutString = plugin.getParent();
+         module = (File) element;
+         cutString = module.getParent();
          label.append(cutString.substring(cutString.lastIndexOf("\\")).replace("\\", "")
             .concat("  (" + cutString + ")"));
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()

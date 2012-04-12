@@ -15,11 +15,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
-import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.ICheckStateListener;
-import org.eclipse.jface.viewers.IDoubleClickListener;
-import org.eclipse.jface.viewers.ITreeViewerListener;
-import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -42,7 +38,7 @@ import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.dialogs.IWorkingSetSelectionDialog;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
-import org.sourcepit.b2eclipse.input.TreeviewerInput;
+import org.sourcepit.b2eclipse.input.TreeViewerInput;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
 
@@ -53,48 +49,44 @@ public class B2WizardPage extends WizardPage
 {
 
    private Text dirTxt, workspaceTxt;
+   private Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn;
    private Shell dirShell;
    private Composite modulePageWidgetContainer;
    private CheckboxTreeViewer dirTreeViewer;
-
-   private String directoryName;
    private GridData gridData, gridData2, gridData3;
-   private Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn, selectAllBtn, deselectAllBtn,
-      selectPluginsBtn, selectTestsBtn, selectDocsBtn;
-   private ContentProvider moduleTreeContentProvider = new ContentProvider();
-   private TreeviewerInput treeViewerInput = new TreeviewerInput();
    private Combo workingSetCombo;
-   private IWorkingSetManager workingSetManager;
+   private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
    private IWorkingSet[] workingSet;
    private IWorkingSetSelectionDialog workingSetSelectionDialog;
    private IWorkingSet workingSetComboItem;
-   private String comboBoxItems = "";
+   private String directoryName, comboBoxItems = "";
+   private String[] splitItems;
    private Object[] getCheckedElements;
    private List<File> getSelectedProjects;
-   private DirectoryDialog dd;
-   private ElementTreeSelectionDialog etsd;
-   private String[] splitItems;
-   private static final B2WizardPage INSTANCE = new B2WizardPage("Module");
+   private DirectoryDialog directoryDialog;
+   private ElementTreeSelectionDialog elementTreeSelectionDialog;
+   private static final B2WizardPage B2WIZARDPAGE_INSTANCE = new B2WizardPage("Module");
    private boolean checkButtonSelection = false;
+   private static final String DIALOG_SETTINGS_KEY = "workingSets";
 
 
    public B2WizardPage(String name)
    {
       super(name);
-      setTitle("Module");
+      setTitle("Import Modules");
       setDescription("Please specify a project or directory to import. ");
    }
 
 
    public static B2WizardPage getInstance()
    {
-      return INSTANCE;
+      return B2WIZARDPAGE_INSTANCE;
    }
 
 
    /**
     * 
-    * @return die ausgewählten Projekte im Treeviewer
+    * @return the selected projects in TreeViewer
     */
    public List<File> getSelectedProjects()
    {
@@ -103,7 +95,7 @@ public class B2WizardPage extends WizardPage
 
       for (int i = 0; i < getCheckedElements.length; i++)
       {
-         if (TreeviewerInput.getCategories().contains(getCheckedElements[i]))
+         if (TreeViewerInput.getCategories().contains(getCheckedElements[i]))
          {
             continue;
          }
@@ -115,7 +107,7 @@ public class B2WizardPage extends WizardPage
 
 
    /**
-    * fügt die Widgets hinzu
+    * add Widgets on Wizard Page
     */
    private void addWidgets()
    {
@@ -127,7 +119,7 @@ public class B2WizardPage extends WizardPage
       gridData2.widthHint = 90;
       gridData2.verticalAlignment = SWT.TOP;
 
-      gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 5);
+      gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
       gridData3.widthHint = 500;
       gridData3.heightHint = 300;
 
@@ -155,7 +147,7 @@ public class B2WizardPage extends WizardPage
       workspaceBtn.setLayoutData(gridData2);
 
       dirTreeViewer = new CheckboxTreeViewer(modulePageWidgetContainer);
-      dirTreeViewer.setContentProvider(moduleTreeContentProvider);
+      dirTreeViewer.setContentProvider(new ContentProvider());
       dirTreeViewer.setLabelProvider(new LabelProvider());
       dirTreeViewer.getTree().setLayoutData(gridData3);
 
@@ -167,18 +159,6 @@ public class B2WizardPage extends WizardPage
       deselectAllBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
       deselectAllBtn.setText("Deselect All");
       deselectAllBtn.setLayoutData(gridData2);
-
-      selectPluginsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      selectPluginsBtn.setText("Select Plugins");
-      selectPluginsBtn.setLayoutData(gridData2);
-
-      selectTestsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      selectTestsBtn.setText("Select Tests");
-      selectTestsBtn.setLayoutData(gridData2);
-
-      selectDocsBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      selectDocsBtn.setText("Select Docs");
-      selectDocsBtn.setLayoutData(gridData2);
 
       checkBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
       checkBtn.setText("Select Working Set:");
@@ -197,7 +177,7 @@ public class B2WizardPage extends WizardPage
 
 
    /**
-    * fügt Listener den jeweiligen Widgets hinzu
+    * add Listener to the specific widgets
     */
    private void addListener()
    {
@@ -206,17 +186,17 @@ public class B2WizardPage extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
-            TreeviewerInput.clearArrayList();
+            TreeViewerInput.clearArrayList();
 
-            dd = new DirectoryDialog(dirShell, SWT.OPEN);
-            dd.setText("Directory Selection...");
-            directoryName = dd.open();
+            directoryDialog = new DirectoryDialog(dirShell, SWT.OPEN);
+            directoryDialog.setText("Directory Selection...");
+            directoryName = directoryDialog.open();
             if (directoryName == null)
                return;
             dirTxt.setText(directoryName);
             workspaceTxt.setText("");
 
-            dirTreeViewer.setInput(new TreeviewerInput(new File(directoryName)));
+            dirTreeViewer.setInput(new TreeViewerInput(new File(directoryName)));
 
             dirTreeViewer.expandAll();
 
@@ -228,19 +208,19 @@ public class B2WizardPage extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
-            TreeviewerInput.clearArrayList();
-            etsd = new ElementTreeSelectionDialog(dirShell, new WorkbenchLabelProvider(),
+            TreeViewerInput.clearArrayList();
+            elementTreeSelectionDialog = new ElementTreeSelectionDialog(dirShell, new WorkbenchLabelProvider(),
                new BaseWorkbenchContentProvider());
-            etsd.setTitle("Project Selection");
-            etsd.setMessage("Select a project:");
-            etsd.setInput(ResourcesPlugin.getWorkspace().getRoot());
-            etsd.open();
-            if (etsd.getFirstResult() != null)
+            elementTreeSelectionDialog.setTitle("Project Selection");
+            elementTreeSelectionDialog.setMessage("Select a project:");
+            elementTreeSelectionDialog.setInput(ResourcesPlugin.getWorkspace().getRoot());
+            elementTreeSelectionDialog.open();
+            if (elementTreeSelectionDialog.getFirstResult() != null)
             {
-               directoryName = String.valueOf(((IResource) etsd.getFirstResult()).getLocation());
+               directoryName = String.valueOf(((IResource) elementTreeSelectionDialog.getFirstResult()).getLocation());
                workspaceTxt.setText(directoryName);
                dirTxt.setText("");
-               dirTreeViewer.setInput(new TreeviewerInput(new File(directoryName)));
+               dirTreeViewer.setInput(new TreeViewerInput(new File(directoryName)));
             }
          }
       });
@@ -293,6 +273,9 @@ public class B2WizardPage extends WizardPage
          {
             if (checkBtn.getSelection())
             {
+               if (getDialogSettings().get(DIALOG_SETTINGS_KEY) != null)
+                  workingSetCombo.add(getDialogSettings().get(DIALOG_SETTINGS_KEY));
+               workingSetCombo.setText(getDialogSettings().get(DIALOG_SETTINGS_KEY));
 
                checkButtonSelection = true;
                workingSetBtn.setEnabled(true);
@@ -314,13 +297,14 @@ public class B2WizardPage extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
-            workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
             workingSetSelectionDialog = workingSetManager.createWorkingSetSelectionDialog(dirShell, true);
             if (dirTreeViewer.getCheckedElements().length != 0)
             {
                selectWorkingSetSelectionDialog();
             }
             workingSet = workingSetSelectionDialog.getSelection();
+
+
             addItemToCombo();
          }
       });
@@ -331,17 +315,14 @@ public class B2WizardPage extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
-
-
             setCategoriesChecked();
 
-            for (int i = 0; i < treeViewerInput.getProjectFileList().size(); i++)
+            for (int i = 0; i < TreeViewerInput.getInstance().getProjectFileList().size(); i++)
             {
 
-               dirTreeViewer.setSubtreeChecked(treeViewerInput.getProjectFileList().get(i), true);
+               dirTreeViewer.setSubtreeChecked(TreeViewerInput.getInstance().getProjectFileList().get(i), true);
 
             }
-
 
          }
 
@@ -356,82 +337,16 @@ public class B2WizardPage extends WizardPage
          public void handleEvent(Event event)
          {
             setCategoriesUnchecked();
-            for (int i = 0; i < treeViewerInput.getProjectFileList().size(); i++)
+
+            for (int i = 0; i < TreeViewerInput.getInstance().getProjectFileList().size(); i++)
             {
 
-               dirTreeViewer.setSubtreeChecked(treeViewerInput.getProjectFileList().get(i), false);
+               dirTreeViewer.setSubtreeChecked(TreeViewerInput.getInstance().getProjectFileList().get(i), false);
 
             }
 
          }
 
-
-      });
-
-      selectTestsBtn.addListener(SWT.Selection, new Listener()
-      {
-
-         @Override
-         public void handleEvent(Event event)
-         {
-
-            dirTreeViewer.setChecked(TreeviewerInput.getCategories().get(1), true);
-
-            for (int i = 0; i < treeViewerInput.getProjectFileList().size(); i++)
-            {
-
-               if (treeViewerInput.getProjectFileList().get(i).getParent().endsWith(".tests"))
-               {
-                  dirTreeViewer.setSubtreeChecked(treeViewerInput.getProjectFileList().get(i), true);
-               }
-
-            }
-
-         }
-
-      });
-
-      selectDocsBtn.addListener(SWT.Selection, new Listener()
-      {
-
-         @Override
-         public void handleEvent(Event event)
-         {
-            dirTreeViewer.setChecked(TreeviewerInput.getCategories().get(2), true);
-
-            for (int i = 0; i < treeViewerInput.getProjectFileList().size(); i++)
-            {
-
-               if (treeViewerInput.getProjectFileList().get(i).getParent().endsWith(".doc"))
-               {
-                  dirTreeViewer.setSubtreeChecked(treeViewerInput.getProjectFileList().get(i), true);
-               }
-
-            }
-
-         }
-
-      });
-
-      selectPluginsBtn.addListener(SWT.Selection, new Listener()
-      {
-
-         @Override
-         public void handleEvent(Event event)
-         {
-            dirTreeViewer.setChecked(TreeviewerInput.getCategories().get(0), true);
-
-            for (int i = 0; i < treeViewerInput.getProjectFileList().size(); i++)
-            {
-
-               if (treeViewerInput.getProjectFileList().get(i).getParent().endsWith(".module"))
-               {
-                  dirTreeViewer.setSubtreeChecked(treeViewerInput.getProjectFileList().get(i), true);
-               }
-
-            }
-
-         }
 
       });
 
@@ -484,7 +399,6 @@ public class B2WizardPage extends WizardPage
 
    /**
     * Create specific controls for the wizard page.
-    * 
     */
    public void createControl(Composite parent)
    {
@@ -496,7 +410,7 @@ public class B2WizardPage extends WizardPage
       if (B2Wizard.getPath() != null)
       {
          dirTxt.setText(String.valueOf(B2Wizard.getPath()));
-         dirTreeViewer.setInput(new TreeviewerInput(new File(String.valueOf(B2Wizard.getPath()))));
+         dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(B2Wizard.getPath()))));
 
 
       }
@@ -511,11 +425,6 @@ public class B2WizardPage extends WizardPage
       setPageComplete(true);
 
 
-   }
-
-   public boolean checkButtonSelected()
-   {
-      return true;
    }
 
 
@@ -551,6 +460,8 @@ public class B2WizardPage extends WizardPage
 
 
                workingSetCombo.add(getWorkingSet()[i].getName());
+               if(getDialogSettings() != null)
+                  getDialogSettings().put(DIALOG_SETTINGS_KEY,getWorkingSet()[i].getName());
 
 
             }
@@ -577,6 +488,8 @@ public class B2WizardPage extends WizardPage
             }
             comboBoxItems = comboBoxItems.substring(0, comboBoxItems.length() - 1);
             workingSetCombo.add(comboBoxItems);
+            if(getDialogSettings() != null)
+               getDialogSettings().put(DIALOG_SETTINGS_KEY,comboBoxItems);
             workingSetCombo.setText(comboBoxItems);
             comboBoxItems = "";
          }
@@ -588,7 +501,12 @@ public class B2WizardPage extends WizardPage
 
    private void selectWorkingSetSelectionDialog()
    {
-      if (workingSetComboItem != null)
+      if (workingSetCombo.getText().trim().isEmpty())
+      {
+         workingSetSelectionDialog.setSelection(null);
+         workingSetSelectionDialog.open();
+      }
+      else if (workingSetComboItem != null)
       {
          workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
@@ -599,18 +517,16 @@ public class B2WizardPage extends WizardPage
          workingSetSelectionDialog.open();
 
       }
-      else
-      {
-         workingSetSelectionDialog.open();
-      }
+
+
    }
 
 
    private void setCategoriesChecked()
    {
-      for (int i = 0; i < TreeviewerInput.getCategories().size(); i++)
+      for (int i = 0; i < TreeViewerInput.getCategories().size(); i++)
       {
-         dirTreeViewer.setChecked(TreeviewerInput.getCategories().get(i), true);
+         dirTreeViewer.setChecked(TreeViewerInput.getCategories().get(i), true);
       }
 
 
@@ -618,18 +534,14 @@ public class B2WizardPage extends WizardPage
 
    private void setCategoriesUnchecked()
    {
-      for (int i = 0; i < TreeviewerInput.getCategories().size(); i++)
+      for (int i = 0; i < TreeViewerInput.getCategories().size(); i++)
       {
-         dirTreeViewer.setChecked(TreeviewerInput.getCategories().get(i), false);
+         dirTreeViewer.setChecked(TreeViewerInput.getCategories().get(i), false);
       }
    }
 
-   public Shell getShell()
+   public boolean getCheckButtonSelection()
    {
-      return dirShell;
-   }
-   
-   public boolean getCheckButtonSelection(){
       return checkButtonSelection;
    }
 

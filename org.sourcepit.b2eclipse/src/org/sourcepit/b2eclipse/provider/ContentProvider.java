@@ -10,17 +10,17 @@ package org.sourcepit.b2eclipse.provider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.sourcepit.b2eclipse.input.Category;
-import org.sourcepit.b2eclipse.input.TreeviewerInput;
+import org.sourcepit.b2eclipse.input.TreeViewerInput;
 
 public class ContentProvider implements ITreeContentProvider
 {
 
-   private TreeviewerInput input;
+   private TreeViewerInput inputData;
 
    @Override
    public Object[] getElements(Object inputElement)
    {
-      return input.getData().toArray();
+      return inputData.getData().toArray();
    }
 
 
@@ -29,7 +29,7 @@ public class ContentProvider implements ITreeContentProvider
    {
       if (parentElement instanceof Category)
       {
-         return ((Category)parentElement).getPlugins().toArray();
+         return ((Category) parentElement).getModules().toArray();
       }
       return null;
    }
@@ -51,17 +51,15 @@ public class ContentProvider implements ITreeContentProvider
    }
 
    @Override
-   public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
+   public void inputChanged(Viewer viewer, Object oldInputData, Object newInputData)
    {
-      this.input = (TreeviewerInput) newInput;
+      this.inputData = (TreeViewerInput) newInputData;
    }
 
    @Override
    public void dispose()
    {
    }
-
-  
 
 
 }

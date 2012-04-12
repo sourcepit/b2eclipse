@@ -12,18 +12,22 @@ import java.util.List;
 
 public class Category
 {
-   private String name;
-   private List<File> plugins = new ArrayList<File>();
-   
-   public String getName() {
-       return name;
+   private String categoryName;
+   private List<File> modules = new ArrayList<File>();
+
+   public String getName()
+   {
+      return categoryName;
    }
-   public void setName(String name) {
-       this.name = name;
+
+   public void setName(String name)
+   {
+      this.categoryName = name;
    }
-   
-   public List<File> getPlugins (){
-       return plugins;
+
+   public List<File> getModules()
+   {
+      return modules;
    }
 
 }

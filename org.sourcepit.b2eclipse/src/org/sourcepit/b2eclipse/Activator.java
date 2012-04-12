@@ -15,10 +15,10 @@ import org.osgi.framework.BundleContext;
 public class Activator extends AbstractUIPlugin
 {
    // The plug-in ID
-   public static final String PLUGIN_ID = "org.sourcepit.b2eclipse"; //$NON-NLS-1$
+   private static final String MODULE_ID = "org.sourcepit.b2eclipse"; //$NON-NLS-1$
 
    // The shared instance
-   private static Activator plugin;
+   private static Activator module;
 
    /**
     * The constructor
@@ -30,12 +30,12 @@ public class Activator extends AbstractUIPlugin
    public void start(BundleContext context) throws Exception
    {
       super.start(context);
-      plugin = this;
+      module = this;
    }
 
    public void stop(BundleContext context) throws Exception
    {
-      plugin = null;
+      module = null;
       super.stop(context);
    }
 
@@ -46,7 +46,7 @@ public class Activator extends AbstractUIPlugin
     */
    public static Activator getDefault()
    {
-      return plugin;
+      return module;
    }
 
    public static void error(Throwable t)
@@ -62,7 +62,7 @@ public class Activator extends AbstractUIPlugin
       }
       else
       {
-         log(new Status(IStatus.ERROR, PLUGIN_ID, msg, t));
+         log(new Status(IStatus.ERROR, MODULE_ID, msg, t));
       }
    }
 
