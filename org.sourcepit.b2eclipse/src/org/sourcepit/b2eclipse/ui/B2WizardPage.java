@@ -274,8 +274,10 @@ public class B2WizardPage extends WizardPage
             if (checkBtn.getSelection())
             {
                if (getDialogSettings().get(DIALOG_SETTINGS_KEY) != null)
+               {
                   workingSetCombo.add(getDialogSettings().get(DIALOG_SETTINGS_KEY));
-               workingSetCombo.setText(getDialogSettings().get(DIALOG_SETTINGS_KEY));
+                  workingSetCombo.setText(getDialogSettings().get(DIALOG_SETTINGS_KEY));
+               }
 
                checkButtonSelection = true;
                workingSetBtn.setEnabled(true);
@@ -460,8 +462,8 @@ public class B2WizardPage extends WizardPage
 
 
                workingSetCombo.add(getWorkingSet()[i].getName());
-               if(getDialogSettings() != null)
-                  getDialogSettings().put(DIALOG_SETTINGS_KEY,getWorkingSet()[i].getName());
+               if (getDialogSettings() != null)
+                  getDialogSettings().put(DIALOG_SETTINGS_KEY, getWorkingSet()[i].getName());
 
 
             }
@@ -488,8 +490,8 @@ public class B2WizardPage extends WizardPage
             }
             comboBoxItems = comboBoxItems.substring(0, comboBoxItems.length() - 1);
             workingSetCombo.add(comboBoxItems);
-            if(getDialogSettings() != null)
-               getDialogSettings().put(DIALOG_SETTINGS_KEY,comboBoxItems);
+            if (getDialogSettings() != null)
+               getDialogSettings().put(DIALOG_SETTINGS_KEY, comboBoxItems);
             workingSetCombo.setText(comboBoxItems);
             comboBoxItems = "";
          }
