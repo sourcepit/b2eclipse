@@ -72,14 +72,20 @@ public class B2WizardPage extends WizardPage
 
    public B2WizardPage(String name)
    {
+
+
       super(name);
+
       setTitle("Import Modules");
       setDescription("Please specify a project or directory to import. ");
+
+
    }
 
 
    public static B2WizardPage getInstance()
    {
+
       return B2WIZARDPAGE_INSTANCE;
    }
 
@@ -273,11 +279,7 @@ public class B2WizardPage extends WizardPage
          {
             if (checkBtn.getSelection())
             {
-               if (getDialogSettings().get(DIALOG_SETTINGS_KEY) != null)
-               {
-                  workingSetCombo.add(getDialogSettings().get(DIALOG_SETTINGS_KEY));
-                  workingSetCombo.setText(getDialogSettings().get(DIALOG_SETTINGS_KEY));
-               }
+
 
                checkButtonSelection = true;
                workingSetBtn.setEnabled(true);
@@ -424,7 +426,13 @@ public class B2WizardPage extends WizardPage
 
       setControl(modulePageWidgetContainer);
 
+
       setPageComplete(true);
+      if (getDialogSettings().get(DIALOG_SETTINGS_KEY) != null)
+      {
+         workingSetCombo.add(getDialogSettings().get(DIALOG_SETTINGS_KEY));
+         workingSetCombo.setText(getDialogSettings().get(DIALOG_SETTINGS_KEY));
+      }
 
 
    }
@@ -462,8 +470,8 @@ public class B2WizardPage extends WizardPage
 
 
                workingSetCombo.add(getWorkingSet()[i].getName());
-               if (getDialogSettings() != null)
-                  getDialogSettings().put(DIALOG_SETTINGS_KEY, getWorkingSet()[i].getName());
+
+               getDialogSettings().put(DIALOG_SETTINGS_KEY, getWorkingSet()[i].getName());
 
 
             }
@@ -490,8 +498,8 @@ public class B2WizardPage extends WizardPage
             }
             comboBoxItems = comboBoxItems.substring(0, comboBoxItems.length() - 1);
             workingSetCombo.add(comboBoxItems);
-            if (getDialogSettings() != null)
-               getDialogSettings().put(DIALOG_SETTINGS_KEY, comboBoxItems);
+
+            getDialogSettings().put(DIALOG_SETTINGS_KEY, comboBoxItems);
             workingSetCombo.setText(comboBoxItems);
             comboBoxItems = "";
          }
