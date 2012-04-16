@@ -60,6 +60,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    private IRunnableWithProgress runnableWithProgress;
    static final String DIALOG_SETTING_FILE = "workingSets.xml";
    private DialogSettings dialogSettings;
+   private File workingSetsXML;
 
 
    public B2Wizard()
@@ -67,18 +68,19 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       super();
       setWindowTitle("Import");
       // setDefaultPageImageDescriptor()); Header ändern
+
       modulePage = B2WizardPage.getInstance();
 
       dialogSettings = new DialogSettings("workingSets");
-      
-      File file = new File(DIALOG_SETTING_FILE);
 
-      if (!file.exists())
+      workingSetsXML = new File(DIALOG_SETTING_FILE);
+
+      if (!workingSetsXML.exists())
       {
          try
          {
-           
-            file.createNewFile();
+
+            workingSetsXML.createNewFile();
             dialogSettings.save(DIALOG_SETTING_FILE);
          }
          catch (IOException e)
@@ -124,7 +126,6 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
       try
       {
-         // Saves the dialog settings into the specified file.
          getDialogSettings().save(DIALOG_SETTING_FILE);
       }
       catch (IOException e1)

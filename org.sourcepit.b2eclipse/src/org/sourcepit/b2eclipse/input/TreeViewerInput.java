@@ -106,11 +106,6 @@ public class TreeViewerInput
       return projectFileList;
    }
 
-   /**
-    * falls andere Projekte ausgewählt werden, so werden die alten Einträge in der ArrayList verworfen
-    * 
-    * @return gibt leere Projektliste zurück
-    */
    public static ArrayList<File> clearArrayList()
    {
       projectFileList.clear();

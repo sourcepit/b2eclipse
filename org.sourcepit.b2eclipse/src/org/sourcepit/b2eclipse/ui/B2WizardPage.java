@@ -279,7 +279,10 @@ public class B2WizardPage extends WizardPage
          {
             if (checkBtn.getSelection())
             {
-
+               if (getWorkingSet() == null)
+               {
+                  checkComboItem();
+               }
 
                checkButtonSelection = true;
                workingSetBtn.setEnabled(true);
@@ -358,21 +361,7 @@ public class B2WizardPage extends WizardPage
       {
          public void widgetSelected(SelectionEvent e)
          {
-            if (workingSetCombo.getText().contains(","))
-            {
-               splitItems = workingSetCombo.getText().split(",");
-               workingSet = new IWorkingSet[splitItems.length];
-               for (int i = 0; i < splitItems.length; i++)
-               {
-                  workingSetComboItem = workingSetManager.getWorkingSet(splitItems[i]);
-                  workingSet[i] = workingSetComboItem;
-               }
-            }
-            else
-            {
-               workingSetComboItem = workingSetManager.getWorkingSet(workingSetCombo.getText());
-               workingSet = new IWorkingSet[] { workingSetComboItem };
-            }
+            checkComboItem();
          }
 
          public void widgetDefaultSelected(SelectionEvent e)
@@ -424,15 +413,16 @@ public class B2WizardPage extends WizardPage
 
       addListener();
 
-      setControl(modulePageWidgetContainer);
-
-
-      setPageComplete(true);
       if (getDialogSettings().get(DIALOG_SETTINGS_KEY) != null)
       {
          workingSetCombo.add(getDialogSettings().get(DIALOG_SETTINGS_KEY));
          workingSetCombo.setText(getDialogSettings().get(DIALOG_SETTINGS_KEY));
       }
+
+      setControl(modulePageWidgetContainer);
+
+
+      setPageComplete(true);
 
 
    }
@@ -496,12 +486,15 @@ public class B2WizardPage extends WizardPage
 
 
             }
-            comboBoxItems = comboBoxItems.substring(0, comboBoxItems.length() - 1);
-            workingSetCombo.add(comboBoxItems);
+            if (comboBoxItems.length() != 0)
+            {
+               comboBoxItems = comboBoxItems.substring(0, comboBoxItems.length() - 1);
+               workingSetCombo.add(comboBoxItems);
 
-            getDialogSettings().put(DIALOG_SETTINGS_KEY, comboBoxItems);
-            workingSetCombo.setText(comboBoxItems);
-            comboBoxItems = "";
+               getDialogSettings().put(DIALOG_SETTINGS_KEY, comboBoxItems);
+               workingSetCombo.setText(comboBoxItems);
+               comboBoxItems = "";
+            }
          }
 
 
@@ -511,26 +504,25 @@ public class B2WizardPage extends WizardPage
 
    private void selectWorkingSetSelectionDialog()
    {
-      if (workingSetCombo.getText().trim().isEmpty())
+      if (getWorkingSet() == null)
+      {
+         checkComboItem();
+         workingSetSelectionDialog.setSelection(getWorkingSet());
+         workingSetSelectionDialog.open();
+      }
+      else if (workingSetCombo.getText().trim().isEmpty())
       {
          workingSetSelectionDialog.setSelection(null);
          workingSetSelectionDialog.open();
       }
-      else if (workingSetComboItem != null)
+      else if (workingSetComboItem != null || getWorkingSet() != null)
       {
          workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
-      }
-      else if (getWorkingSet() != null)
-      {
-         workingSetSelectionDialog.setSelection(getWorkingSet());
-         workingSetSelectionDialog.open();
-
       }
 
 
    }
-
 
    private void setCategoriesChecked()
    {
@@ -553,6 +545,26 @@ public class B2WizardPage extends WizardPage
    public boolean getCheckButtonSelection()
    {
       return checkButtonSelection;
+   }
+
+   public void checkComboItem()
+   {
+      if (workingSetCombo.getText().contains(","))
+      {
+         splitItems = workingSetCombo.getText().split(",");
+         workingSet = new IWorkingSet[splitItems.length];
+         for (int i = 0; i < splitItems.length; i++)
+         {
+            workingSetComboItem = workingSetManager.getWorkingSet(splitItems[i]);
+            workingSet[i] = workingSetComboItem;
+         }
+      }
+      else
+      {
+         workingSetComboItem = workingSetManager.getWorkingSet(workingSetCombo.getText());
+         workingSet = new IWorkingSet[] { workingSetComboItem };
+      }
+
    }
 
 

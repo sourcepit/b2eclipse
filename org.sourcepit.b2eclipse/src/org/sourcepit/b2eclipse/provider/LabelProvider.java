@@ -28,7 +28,7 @@ public class LabelProvider extends StyledCellLabelProvider
    private Category category;
 
    /**
-    * Ordner icons im Treeviewer
+    * specifiy the settings of the TreeViewer
     */
 
    @Override
