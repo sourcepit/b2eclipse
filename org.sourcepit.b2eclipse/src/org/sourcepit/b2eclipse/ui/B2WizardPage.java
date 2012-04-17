@@ -54,18 +54,12 @@ public class B2WizardPage extends WizardPage
    private Shell dirShell;
    private Composite modulePageWidgetContainer;
    private CheckboxTreeViewer dirTreeViewer;
-   private GridData gridData, gridData2, gridData3;
    private Combo workingSetCombo;
    private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
    private IWorkingSet[] workingSet;
    private IWorkingSetSelectionDialog workingSetSelectionDialog;
    private IWorkingSet workingSetComboItem;
    private String directoryName, comboBoxItems = "";
-   private String[] splitItems;
-   private Object[] getCheckedElements;
-   private List<File> getSelectedProjects;
-   private DirectoryDialog directoryDialog;
-   private ElementTreeSelectionDialog elementTreeSelectionDialog;
    private boolean checkButtonSelection = false;
    private IPath projectPath;
    private TreeViewerInput treeViewerInput;
@@ -91,8 +85,8 @@ public class B2WizardPage extends WizardPage
     */
    public List<File> getSelectedProjects()
    {
-      getCheckedElements = dirTreeViewer.getCheckedElements();
-      getSelectedProjects = new ArrayList<File>();
+      Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
+      List<File> getSelectedProjects = new ArrayList<File>();
 
       for (int i = 0; i < getCheckedElements.length; i++)
       {
@@ -112,15 +106,15 @@ public class B2WizardPage extends WizardPage
     */
    private void addWidgets()
    {
-      gridData = new GridData();
+      GridData gridData = new GridData();
       gridData.horizontalAlignment = SWT.FILL;
 
-      gridData2 = new GridData();
+      GridData gridData2 = new GridData();
       gridData2.horizontalAlignment = SWT.FILL;
       gridData2.widthHint = 90;
       gridData2.verticalAlignment = SWT.TOP;
 
-      gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
+      GridData gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
       gridData3.widthHint = 500;
       gridData3.heightHint = 300;
 
@@ -189,7 +183,7 @@ public class B2WizardPage extends WizardPage
          {
             TreeViewerInput.clearArrayList();
 
-            directoryDialog = new DirectoryDialog(dirShell, SWT.OPEN);
+            DirectoryDialog directoryDialog = new DirectoryDialog(dirShell, SWT.OPEN);
             directoryDialog.setText("Directory Selection...");
             directoryName = directoryDialog.open();
             if (directoryName == null)
@@ -210,8 +204,8 @@ public class B2WizardPage extends WizardPage
          public void handleEvent(Event event)
          {
             TreeViewerInput.clearArrayList();
-            elementTreeSelectionDialog = new ElementTreeSelectionDialog(dirShell, new WorkbenchLabelProvider(),
-               new BaseWorkbenchContentProvider());
+            ElementTreeSelectionDialog elementTreeSelectionDialog = new ElementTreeSelectionDialog(dirShell,
+               new WorkbenchLabelProvider(), new BaseWorkbenchContentProvider());
             elementTreeSelectionDialog.setTitle("Project Selection");
             elementTreeSelectionDialog.setMessage("Select a project:");
             elementTreeSelectionDialog.setInput(ResourcesPlugin.getWorkspace().getRoot());
@@ -299,13 +293,13 @@ public class B2WizardPage extends WizardPage
          @Override
          public void handleEvent(Event event)
          {
+
             workingSetSelectionDialog = workingSetManager.createWorkingSetSelectionDialog(dirShell, true);
             if (dirTreeViewer.getCheckedElements().length != 0)
             {
                selectWorkingSetSelectionDialog();
             }
             workingSet = workingSetSelectionDialog.getSelection();
-
 
             addItemToCombo();
          }
@@ -411,6 +405,7 @@ public class B2WizardPage extends WizardPage
 
       addListener();
 
+
       for (int i = 0; i < getDialogSettings().getSections().length; i++)
       {
          if (getDialogSettings().getSections()[i].getName() != null)
@@ -421,7 +416,9 @@ public class B2WizardPage extends WizardPage
             workingSetCombo.setText(getDialogSettings().getSection(getDialogSettings().getSections()[i].getName()).get(
                WORKING_SET_KEY));
 
+
          }
+
 
       }
 
@@ -560,7 +557,7 @@ public class B2WizardPage extends WizardPage
    {
       if (workingSetCombo.getText().contains(","))
       {
-         splitItems = workingSetCombo.getText().split(",");
+         String[] splitItems = workingSetCombo.getText().split(",");
          workingSet = new IWorkingSet[splitItems.length];
          for (int i = 0; i < splitItems.length; i++)
          {

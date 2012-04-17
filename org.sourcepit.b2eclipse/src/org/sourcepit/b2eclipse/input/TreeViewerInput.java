@@ -14,11 +14,9 @@ import java.util.List;
 public class TreeViewerInput
 {
 
-   private File[] elementList;
    private File[] projects;
    private static ArrayList<File> projectFileList = new ArrayList<File>();
    private static List<Category> categories;
-   private Category categoryModules, categoryTests, categoryDocs;
 
    public TreeViewerInput()
    {
@@ -43,15 +41,16 @@ public class TreeViewerInput
    public List<Category> getData()
    {
       categories = new ArrayList<Category>();
-      categoryModules = new Category();
+      
+      Category categoryModules = new Category();
       categoryModules.setName("Plugins");
       categories.add(categoryModules);
 
-      categoryTests = new Category();
+      Category categoryTests = new Category();
       categoryTests.setName("Tests");
       categories.add(categoryTests);
 
-      categoryDocs = new Category();
+      Category categoryDocs = new Category();
       categoryDocs.setName("Docs");
       categories.add(categoryDocs);
 
@@ -79,7 +78,7 @@ public class TreeViewerInput
    {
 
 
-      elementList = ((File) inputElement).listFiles();
+      File[] elementList = ((File) inputElement).listFiles();
 
       if (elementList != null)
       {

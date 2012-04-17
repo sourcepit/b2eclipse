@@ -49,7 +49,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
    private B2WizardPage modulePage;
    private List<File> projectList;
-   static final String DIALOG_SETTING_FILE = "workingSets.xml";
+   private static final String DIALOG_SETTING_FILE = "workingSets.xml";
 
 
    public B2Wizard()
@@ -148,7 +148,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
             finally
             {
                monitor.done();
-            
+
             }
 
          }
