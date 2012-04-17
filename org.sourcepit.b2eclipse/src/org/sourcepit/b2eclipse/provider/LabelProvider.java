@@ -21,11 +21,6 @@ import org.sourcepit.b2eclipse.input.Category;
  */
 public class LabelProvider extends StyledCellLabelProvider
 {
-   private File module;
-   private String cutString;
-   private Object element;
-   private StyledString label;
-   private Category category;
 
    /**
     * specifiy the settings of the TreeViewer
@@ -34,20 +29,20 @@ public class LabelProvider extends StyledCellLabelProvider
    @Override
    public void update(ViewerCell cell)
    {
-      element = cell.getElement();
-      label = new StyledString();
+      final Object element = cell.getElement();
+      final StyledString label = new StyledString();
 
       if (element instanceof Category)
       {
-         category = (Category) element;
+         final Category category = (Category) element;
          label.append(category.getName());
          cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
          label.append(" ( " + category.getModules().size() + " ) ", StyledString.COUNTER_STYLER);
       }
       else
       {
-         module = (File) element;
-         cutString = module.getParent();
+         final File module = (File) element;
+         final String cutString = module.getParent();
          label.append(cutString.substring(cutString.lastIndexOf("\\")).replace("\\", "")
             .concat("  (" + cutString + ")"));
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()

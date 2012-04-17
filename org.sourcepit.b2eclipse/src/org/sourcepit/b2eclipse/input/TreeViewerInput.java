@@ -19,7 +19,6 @@ public class TreeViewerInput
    private static ArrayList<File> projectFileList = new ArrayList<File>();
    private static List<Category> categories;
    private Category categoryModules, categoryTests, categoryDocs;
-   private static final TreeViewerInput TreeviewerInput_INSTANCE = new TreeViewerInput();
 
    public TreeViewerInput()
    {
@@ -40,11 +39,6 @@ public class TreeViewerInput
    }
 
 
-   public static TreeViewerInput getInstance()
-   {
-      return TreeviewerInput_INSTANCE;
-   }
-
 
    public List<Category> getData()
    {
@@ -63,15 +57,15 @@ public class TreeViewerInput
 
       for (int i = 0; i < projects.length; i++)
       {
-         if (projects[i].getParent().endsWith(".module"))
+         if (! projects[i].getParent().endsWith(".tests") && ! projects[i].getParent().endsWith(".doc"))
          {
             categoryModules.getModules().add(projects[i]);
          }
-         else if (projects[i].getParent().endsWith(".tests"))
+         if (projects[i].getParent().endsWith(".tests"))
          {
             categoryTests.getModules().add(projects[i]);
          }
-         else if (projects[i].getParent().endsWith(".doc"))
+         if (projects[i].getParent().endsWith(".doc"))
          {
             categoryDocs.getModules().add(projects[i]);
          }

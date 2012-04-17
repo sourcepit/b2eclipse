@@ -11,7 +11,7 @@ public class WizardPageOneTest
    @Before
    public void setUp() throws Exception
    {
-      wizardPageOne = B2WizardPage.getInstance();
+      wizardPageOne = new B2WizardPage("Module");
       
       
    }

@@ -47,20 +47,9 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 {
 
 
-   private static IPath projectPath;
    private B2WizardPage modulePage;
    private List<File> projectList;
-   private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-   private IPath projectFile;
-   private IProjectDescription projectDescription;
-   private IProject project;
-   private Object firstElement;
-   private IResource selectedProject;
-   private ProgressMonitorDialog progressMonitorDialog;
-   private IRunnableWithProgress runnableWithProgress;
    static final String DIALOG_SETTING_FILE = "workingSets.xml";
-   private DialogSettings dialogSettings;
-   private File workingSetsXML;
 
 
    public B2Wizard()
@@ -69,11 +58,11 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       setWindowTitle("Import");
       // setDefaultPageImageDescriptor()); Header ändern
 
-      modulePage = B2WizardPage.getInstance();
+      modulePage = new B2WizardPage("Module");
 
-      dialogSettings = new DialogSettings("workingSets");
+      final DialogSettings dialogSettings = new DialogSettings("workingSets");
 
-      workingSetsXML = new File(DIALOG_SETTING_FILE);
+      final File workingSetsXML = new File(DIALOG_SETTING_FILE);
 
       if (!workingSetsXML.exists())
       {
@@ -85,7 +74,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
          }
          catch (IOException e)
          {
-            e.printStackTrace();
+            Activator.error(e);
          }
       }
 
@@ -95,7 +84,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
       catch (IOException e)
       {
-         e.printStackTrace();
+         Activator.error(e);
       }
 
       setDialogSettings(dialogSettings);
@@ -110,7 +99,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
     */
    public boolean performCancel()
    {
-      boolean message = MessageDialog.openConfirm(getShell(), "Confirm Close", "Are you sure you want to close?");
+      final boolean message = MessageDialog.openConfirm(getShell(), "Confirm Close", "Are you sure you want to close?");
       if (message)
          return true;
       return false;
@@ -123,19 +112,18 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    @Override
    public boolean performFinish()
    {
-
       try
       {
          getDialogSettings().save(DIALOG_SETTING_FILE);
       }
       catch (IOException e1)
       {
-         e1.printStackTrace();
+         Activator.error(e1);
       }
 
       projectList = modulePage.getSelectedProjects();
 
-      runnableWithProgress = new IRunnableWithProgress()
+      final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
       {
 
          @Override
@@ -143,25 +131,37 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
          {
 
             monitor.beginTask("Creating projects", projectList.size());
-
-            for (int i = 0; i < projectList.size(); i++)
+            try
             {
-               if (monitor.isCanceled())
-                  return;
-               Thread.sleep(250);
-               monitor.subTask("Working on " + projectList.get(i).getParent());
-               createProjects(i);
-               monitor.worked(1);
+
+               for (int i = 0; i < projectList.size(); i++)
+               {
+                  if (monitor.isCanceled())
+                     return;
+                  Thread.sleep(250);
+                  monitor.subTask("Working on " + projectList.get(i).getParent());
+                  createProjects(i);
+                  monitor.worked(1);
+               }
             }
-            monitor.done();
+
+            finally
+            {
+               monitor.done();
+            
+            }
+
          }
+
       };
 
 
-      progressMonitorDialog = new ProgressMonitorDialog(Display.getCurrent().getActiveShell());
+      final ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(Display.getCurrent()
+         .getActiveShell());
       try
       {
          progressMonitorDialog.run(true, true, runnableWithProgress);
+         return true;
       }
       catch (InvocationTargetException e)
       {
@@ -172,9 +172,8 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
          Activator.error(e);
       }
 
-      return true;
+      return false;
    }
-
 
    /**
     * By clicking project in the package explorer firstElement gets the absolute path of the selected project
@@ -189,15 +188,15 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       {
 
 
-         firstElement = selection.getFirstElement();
+         final Object firstElement = selection.getFirstElement();
 
 
          if (firstElement instanceof IAdaptable)
          {
-            selectedProject = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
+            final IResource selectedProject = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
             if (selectedProject != null)
             {
-               projectPath = selectedProject.getProject().getLocation();
+               modulePage.setPath(selectedProject.getProject().getLocation());
             }
          }
       }
@@ -228,19 +227,15 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    }
 
 
-   public static IPath getPath()
-   {
-      return projectPath;
-   }
-
    private void createProjects(int projectsListPosition)
    {
 
       try
       {
-         projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
-         projectDescription = workspace.loadProjectDescription(projectFile);
-         project = workspace.getRoot().getProject(projectDescription.getName());
+         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+         final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
+         final IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
+         final IProject project = workspace.getRoot().getProject(projectDescription.getName());
          JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
 
          if (modulePage.getCheckButtonSelection() && modulePage.getWorkingSet() != null)
@@ -254,6 +249,5 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
 
    }
-
 
 }

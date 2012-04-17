@@ -15,12 +15,11 @@ import org.sourcepit.b2eclipse.input.TreeViewerInput;
 public class ContentProvider implements ITreeContentProvider
 {
 
-   private TreeViewerInput inputData;
 
    @Override
    public Object[] getElements(Object inputElement)
    {
-      return inputData.getData().toArray();
+      return ((TreeViewerInput)inputElement).getData().toArray();
    }
 
 
@@ -53,7 +52,6 @@ public class ContentProvider implements ITreeContentProvider
    @Override
    public void inputChanged(Viewer viewer, Object oldInputData, Object newInputData)
    {
-      this.inputData = (TreeViewerInput) newInputData;
    }
 
    @Override

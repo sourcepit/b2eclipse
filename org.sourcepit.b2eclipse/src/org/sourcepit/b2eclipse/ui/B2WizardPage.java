@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
@@ -65,9 +66,10 @@ public class B2WizardPage extends WizardPage
    private List<File> getSelectedProjects;
    private DirectoryDialog directoryDialog;
    private ElementTreeSelectionDialog elementTreeSelectionDialog;
-   private static final B2WizardPage B2WIZARDPAGE_INSTANCE = new B2WizardPage("Module");
    private boolean checkButtonSelection = false;
-   private static final String DIALOG_SETTINGS_KEY = "workingSets";
+   private IPath projectPath;
+   private TreeViewerInput treeViewerInput;
+   private static final String WORKING_SET_KEY = "WS";
 
 
    public B2WizardPage(String name)
@@ -80,13 +82,6 @@ public class B2WizardPage extends WizardPage
       setDescription("Please specify a project or directory to import. ");
 
 
-   }
-
-
-   public static B2WizardPage getInstance()
-   {
-
-      return B2WIZARDPAGE_INSTANCE;
    }
 
 
@@ -324,10 +319,10 @@ public class B2WizardPage extends WizardPage
          {
             setCategoriesChecked();
 
-            for (int i = 0; i < TreeViewerInput.getInstance().getProjectFileList().size(); i++)
+            for (int i = 0; i < treeViewerInput.getProjectFileList().size(); i++)
             {
 
-               dirTreeViewer.setSubtreeChecked(TreeViewerInput.getInstance().getProjectFileList().get(i), true);
+               dirTreeViewer.setSubtreeChecked(treeViewerInput.getProjectFileList().get(i), true);
 
             }
 
@@ -345,10 +340,10 @@ public class B2WizardPage extends WizardPage
          {
             setCategoriesUnchecked();
 
-            for (int i = 0; i < TreeViewerInput.getInstance().getProjectFileList().size(); i++)
+            for (int i = 0; i < treeViewerInput.getProjectFileList().size(); i++)
             {
 
-               dirTreeViewer.setSubtreeChecked(TreeViewerInput.getInstance().getProjectFileList().get(i), false);
+               dirTreeViewer.setSubtreeChecked(treeViewerInput.getProjectFileList().get(i), false);
 
             }
 
@@ -400,10 +395,11 @@ public class B2WizardPage extends WizardPage
 
       addWidgets();
 
-      if (B2Wizard.getPath() != null)
+
+      if (getPath() != null)
       {
-         dirTxt.setText(String.valueOf(B2Wizard.getPath()));
-         dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(B2Wizard.getPath()))));
+         dirTxt.setText(String.valueOf(getPath()));
+         dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(getPath()))));
 
 
       }
@@ -411,12 +407,22 @@ public class B2WizardPage extends WizardPage
 
       dirShell = parent.getShell();
 
+      treeViewerInput = new TreeViewerInput();
+
       addListener();
 
-      if (getDialogSettings().get(DIALOG_SETTINGS_KEY) != null)
+      for (int i = 0; i < getDialogSettings().getSections().length; i++)
       {
-         workingSetCombo.add(getDialogSettings().get(DIALOG_SETTINGS_KEY));
-         workingSetCombo.setText(getDialogSettings().get(DIALOG_SETTINGS_KEY));
+         if (getDialogSettings().getSections()[i].getName() != null)
+         {
+
+            workingSetCombo.add(getDialogSettings().getSection(getDialogSettings().getSections()[i].getName()).get(
+               WORKING_SET_KEY));
+            workingSetCombo.setText(getDialogSettings().getSection(getDialogSettings().getSections()[i].getName()).get(
+               WORKING_SET_KEY));
+
+         }
+
       }
 
       setControl(modulePageWidgetContainer);
@@ -461,7 +467,9 @@ public class B2WizardPage extends WizardPage
 
                workingSetCombo.add(getWorkingSet()[i].getName());
 
-               getDialogSettings().put(DIALOG_SETTINGS_KEY, getWorkingSet()[i].getName());
+               getDialogSettings().addNewSection(getWorkingSet()[i].getName());
+               getDialogSettings().getSection(getWorkingSet()[i].getName()).put(WORKING_SET_KEY,
+                  getWorkingSet()[i].getName());
 
 
             }
@@ -491,7 +499,8 @@ public class B2WizardPage extends WizardPage
                comboBoxItems = comboBoxItems.substring(0, comboBoxItems.length() - 1);
                workingSetCombo.add(comboBoxItems);
 
-               getDialogSettings().put(DIALOG_SETTINGS_KEY, comboBoxItems);
+               getDialogSettings().addNewSection(comboBoxItems);
+               getDialogSettings().getSection(comboBoxItems).put(WORKING_SET_KEY, comboBoxItems);
                workingSetCombo.setText(comboBoxItems);
                comboBoxItems = "";
             }
@@ -565,6 +574,16 @@ public class B2WizardPage extends WizardPage
          workingSet = new IWorkingSet[] { workingSetComboItem };
       }
 
+   }
+
+   public void setPath(IPath projectPath)
+   {
+      this.projectPath = projectPath;
+   }
+
+   private IPath getPath()
+   {
+      return projectPath;
    }
 
 
