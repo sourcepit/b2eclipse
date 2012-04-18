@@ -17,3 +17,4 @@ Export-Package: org.sourcepit.b2eclipse.input,
  org.sourcepit.b2eclipse.provider,
  org.sourcepit.b2eclipse.ui
 Bundle-Activator: org.sourcepit.b2eclipse.Activator
+Bundle-ActivationPolicy: lazy

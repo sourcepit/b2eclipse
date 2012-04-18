@@ -16,6 +16,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -50,6 +51,8 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    private B2WizardPage modulePage;
    private List<File> projectList;
    private static final String DIALOG_SETTING_FILE = "workingSets.xml";
+   private File workingSetsXML;
+   private DialogSettings dialogSettings;
 
 
    public B2Wizard()
@@ -59,10 +62,11 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       // setDefaultPageImageDescriptor()); Header ändern
 
       modulePage = new B2WizardPage("Module");
+      setNeedsProgressMonitor(true);
+      dialogSettings = new DialogSettings("workingSets");
 
-      final DialogSettings dialogSettings = new DialogSettings("workingSets");
-
-      final File workingSetsXML = new File(DIALOG_SETTING_FILE);
+      workingSetsXML = new File(DIALOG_SETTING_FILE);
+      modulePage.setWorkingSetXML(workingSetsXML);
 
       if (!workingSetsXML.exists())
       {
@@ -71,6 +75,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
             workingSetsXML.createNewFile();
             dialogSettings.save(DIALOG_SETTING_FILE);
+
          }
          catch (IOException e)
          {
@@ -125,42 +130,49 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
       final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
       {
-
          @Override
-         public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException
+         public void run(IProgressMonitor monitor) throws InvocationTargetException
          {
-
-            monitor.beginTask("Creating projects", projectList.size());
             try
             {
-
-               for (int i = 0; i < projectList.size(); i++)
+               ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable()
                {
-                  if (monitor.isCanceled())
-                     return;
-                  Thread.sleep(250);
-                  monitor.subTask("Working on " + projectList.get(i).getParent());
-                  createProjects(i);
-                  monitor.worked(1);
-               }
+                  @Override
+                  public void run(IProgressMonitor monitor) throws CoreException
+                  {
+                     monitor.beginTask("Creating projects", projectList.size());
+                     try
+                     {
+                        for (int i = 0; i < projectList.size(); i++)
+                        {
+                           if (monitor.isCanceled())
+                           {
+                              return;
+                           }
+                           monitor.subTask("Working on " + projectList.get(i).getParent());
+                           createProjects(i);
+                           monitor.worked(1);
+                        }
+                     }
+                     finally
+                     {
+                        monitor.done();
+                     }
+                  }
+               }, monitor);
             }
-
-            finally
+            catch (CoreException e)
             {
-               monitor.done();
-
+               throw new InvocationTargetException(e);
             }
-
          }
-
       };
 
 
-      final ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(Display.getCurrent()
-         .getActiveShell());
+
       try
       {
-         progressMonitorDialog.run(true, true, runnableWithProgress);
+         getContainer().run(true, true, runnableWithProgress);
          return true;
       }
       catch (InvocationTargetException e)
