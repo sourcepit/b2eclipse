@@ -197,7 +197,6 @@ public class B2WizardPage extends WizardPage
    {
       dirBtn.addListener(SWT.Selection, new Listener()
       {
-         @Override
          public void handleEvent(Event event)
          {
             TreeViewerInput.clearArrayList();
@@ -219,7 +218,6 @@ public class B2WizardPage extends WizardPage
 
       workspaceBtn.addListener(SWT.Selection, new Listener()
       {
-         @Override
          public void handleEvent(Event event)
          {
             TreeViewerInput.clearArrayList();
@@ -241,11 +239,8 @@ public class B2WizardPage extends WizardPage
 
       rBtn1.addListener(SWT.Selection, new Listener()
       {
-
-         @Override
          public void handleEvent(Event event)
          {
-
             if (rBtn1.isEnabled())
             {
                dirTxt.setEnabled(true);
@@ -253,16 +248,11 @@ public class B2WizardPage extends WizardPage
                workspaceTxt.setEnabled(false);
                workspaceBtn.setEnabled(false);
             }
-
          }
-
-
       });
 
       rBtn2.addListener(SWT.Selection, new Listener()
       {
-
-         @Override
          public void handleEvent(Event event)
          {
 
@@ -273,10 +263,7 @@ public class B2WizardPage extends WizardPage
                dirTxt.setEnabled(false);
                dirBtn.setEnabled(false);
             }
-
          }
-
-
       });
 
 
@@ -309,7 +296,6 @@ public class B2WizardPage extends WizardPage
 
       workingSetBtn.addListener(SWT.Selection, new Listener()
       {
-         @Override
          public void handleEvent(Event event)
          {
 
@@ -328,43 +314,27 @@ public class B2WizardPage extends WizardPage
 
       selectAllBtn.addListener(SWT.Selection, new Listener()
       {
-
-         @Override
          public void handleEvent(Event event)
          {
             setCategoriesChecked();
 
             for (File projectFile : treeViewerInput.getProjectFileList())
             {
-
                dirTreeViewer.setSubtreeChecked(projectFile, true);
-
             }
-
          }
-
-
       });
 
       deselectAllBtn.addListener(SWT.Selection, new Listener()
       {
-
-
-         @Override
          public void handleEvent(Event event)
          {
             setCategoriesUnchecked();
-
             for (File projectFile : treeViewerInput.getProjectFileList())
             {
-
                dirTreeViewer.setSubtreeChecked(projectFile, false);
-
             }
-
          }
-
-
       });
 
       workingSetCombo.addSelectionListener(new SelectionListener()
@@ -382,8 +352,6 @@ public class B2WizardPage extends WizardPage
       // if a category is checked in the tree, check all its children
       dirTreeViewer.addCheckStateListener(new ICheckStateListener()
       {
-
-         @Override
          public void checkStateChanged(CheckStateChangedEvent event)
          {
             if (event.getChecked())
@@ -394,7 +362,6 @@ public class B2WizardPage extends WizardPage
             {
                dirTreeViewer.setSubtreeChecked(event.getElement(), false);
             }
-
          }
       });
 
@@ -519,7 +486,7 @@ public class B2WizardPage extends WizardPage
          workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
       }
-      else if (workingSetCombo.getText().trim().isEmpty())
+      else if (workingSetCombo.getText().trim().length() == 0)
       {
          workingSetSelectionDialog.setSelection(null);
          workingSetSelectionDialog.open();

@@ -14,16 +14,11 @@ import org.sourcepit.b2eclipse.input.TreeViewerInput;
 
 public class ContentProvider implements ITreeContentProvider
 {
-
-
-   @Override
    public Object[] getElements(Object inputElement)
    {
-      return ((TreeViewerInput)inputElement).getData().toArray();
+      return ((TreeViewerInput) inputElement).getData().toArray();
    }
 
-
-   @Override
    public Object[] getChildren(Object parentElement)
    {
       if (parentElement instanceof Category)
@@ -33,13 +28,11 @@ public class ContentProvider implements ITreeContentProvider
       return null;
    }
 
-   @Override
    public Object getParent(Object element)
    {
       return null;
    }
 
-   @Override
    public boolean hasChildren(Object element)
    {
       if (element instanceof Category)
@@ -49,15 +42,12 @@ public class ContentProvider implements ITreeContentProvider
       return false;
    }
 
-   @Override
    public void inputChanged(Viewer viewer, Object oldInputData, Object newInputData)
    {
    }
 
-   @Override
    public void dispose()
    {
    }
-
 
 }

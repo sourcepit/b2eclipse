@@ -26,12 +26,10 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.dialogs.DialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbench;
@@ -130,14 +128,12 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
       final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
       {
-         @Override
          public void run(IProgressMonitor monitor) throws InvocationTargetException
          {
             try
             {
                ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable()
                {
-                  @Override
                   public void run(IProgressMonitor monitor) throws CoreException
                   {
                      monitor.beginTask("Creating projects", projectList.size());
@@ -191,7 +187,6 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
     * By clicking project in the package explorer firstElement gets the absolute path of the selected project
     * {@inheritDoc}
     */
-   @Override
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
       workbench.getActiveWorkbenchWindow().getSelectionService().addSelectionListener(this);
@@ -215,8 +210,6 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
    }
 
-
-   @Override
    public void selectionChanged(IWorkbenchPart part, ISelection selection)
    {
 
