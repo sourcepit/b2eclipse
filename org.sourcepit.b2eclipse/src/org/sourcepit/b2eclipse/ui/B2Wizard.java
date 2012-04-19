@@ -57,7 +57,8 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    {
       super();
       setWindowTitle("Import");
-      // setDefaultPageImageDescriptor()); Header ändern
+      // setDefaultPageImageDescriptor()); Header Ã„ndern
+
 
       modulePage = new B2WizardPage("Module");
       setNeedsProgressMonitor(true);
@@ -77,7 +78,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
          }
          catch (IOException e)
          {
-            Activator.error(e);
+            throw new IllegalStateException(e);
          }
       }
 
@@ -87,7 +88,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
       catch (IOException e)
       {
-         Activator.error(e);
+         throw new IllegalStateException(e);
       }
 
       setDialogSettings(dialogSettings);
@@ -117,12 +118,18 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    {
       try
       {
-         getDialogSettings().save(DIALOG_SETTING_FILE);
+         return doPerformFinish();
       }
-      catch (IOException e1)
+      catch (RuntimeException e)
       {
-         Activator.error(e1);
+         Activator.error(e);
       }
+      return false;
+   }
+
+   private boolean doPerformFinish()
+   {
+      saveDialogSettings();
 
       projectList = modulePage.getSelectedProjects();
 
@@ -164,23 +171,37 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
          }
       };
 
+      runWithProgress(runnableWithProgress);
 
+      return true;
+   }
 
+   private void runWithProgress(final IRunnableWithProgress runnableWithProgress)
+   {
       try
       {
          getContainer().run(true, true, runnableWithProgress);
-         return true;
       }
       catch (InvocationTargetException e)
       {
-         Activator.error(e);
+         throw new IllegalStateException(e);
       }
       catch (InterruptedException e)
       {
-         Activator.error(e);
+         throw new IllegalStateException(e);
       }
+   }
 
-      return false;
+   private void saveDialogSettings()
+   {
+      try
+      {
+         getDialogSettings().save(DIALOG_SETTING_FILE);
+      }
+      catch (IOException e1)
+      {
+         throw new IllegalStateException(e1);
+      }
    }
 
    /**
@@ -250,7 +271,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
       catch (CoreException e)
       {
-         Activator.error(e);
+         throw new IllegalStateException(e);
       }
 
    }

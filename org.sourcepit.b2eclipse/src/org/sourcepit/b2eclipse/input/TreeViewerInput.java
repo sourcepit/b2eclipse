@@ -85,7 +85,7 @@ public class TreeViewerInput
 
          for (File file : elementList)
          {
-            if (file.isDirectory())
+            if (file.isDirectory() && !(file.getName().startsWith(".")))
             {
                getProjects(file);
             }
