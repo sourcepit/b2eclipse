@@ -11,6 +11,7 @@
 
 	<properties>
 		<tycho.version>0.14.1</tycho.version>
+		<b2.version>0.1.0-alpha-3</b2.version>
 	</properties>
 
 	<repositories>
@@ -38,7 +39,7 @@
 			<extension>
 				<groupId>org.sourcepit.b2</groupId>
 				<artifactId>b2-maven-plugin</artifactId>
-				<version>0.1.0-alpha-2</version>
+				<version>${b2.version}</version>
 			</extension>
 		</extensions>
 		<pluginManagement>
