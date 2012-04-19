@@ -15,7 +15,7 @@ public class TreeViewerInput
 {
 
    private File[] projects;
-   private static ArrayList<File> projectFileList = new ArrayList<File>();
+   private ArrayList<File> projectFileList = new ArrayList<File>();
    private static List<Category> categories;
 
    public TreeViewerInput()
@@ -35,7 +35,6 @@ public class TreeViewerInput
 
       }
    }
-
 
 
    public List<Category> getData()
@@ -77,7 +76,6 @@ public class TreeViewerInput
    private ArrayList<File> getProjects(Object inputElement)
    {
 
-
       File[] elementList = ((File) inputElement).listFiles();
 
       if (elementList != null)
@@ -85,7 +83,7 @@ public class TreeViewerInput
 
          for (File file : elementList)
          {
-            if (file.isDirectory() && !(file.getName().startsWith(".")))
+            if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
             {
                getProjects(file);
             }
@@ -99,11 +97,9 @@ public class TreeViewerInput
       return projectFileList;
    }
 
-   public static ArrayList<File> clearArrayList()
+   public void clearArrayList()
    {
       projectFileList.clear();
-
-      return projectFileList;
    }
 
    public ArrayList<File> getProjectFileList()
@@ -111,9 +107,8 @@ public class TreeViewerInput
       return projectFileList;
    }
 
-   public static List<Category> getCategories()
+   public List<Category> getCategories()
    {
-
       return categories;
    }
 

@@ -79,10 +79,9 @@ public class B2WizardPage extends WizardPage
    private IWorkingSet workingSetComboItem;
    private String directoryName, comboBoxItems = "";
    private boolean checkButtonSelection = false;
-   private IPath projectPath, selectionPath;
+   private IPath projectPath;
    private File workingSetXMLFile;
    private TreeViewerInput treeViewerInput;
-
 
    public B2WizardPage(String name)
    {
@@ -96,28 +95,38 @@ public class B2WizardPage extends WizardPage
 
    }
 
-
    /**
-    * 
-    * @return the selected projects in TreeViewer
+    * Create specific controls for the wizard page.
     */
-   public List<File> getSelectedProjects()
+   public void createControl(Composite parent)
    {
-      Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
-      List<File> getSelectedProjects = new ArrayList<File>();
+      modulePageWidgetContainer = new Composite(parent, SWT.NONE);
+      modulePageWidgetContainer.setLayout(new GridLayout(3, false));
 
-      for (Object checkedElement : getCheckedElements)
+      addWidgets();
+
+
+      if (getPath() != null)
       {
-         if (TreeViewerInput.getCategories().contains(checkedElement))
-         {
-            continue;
-         }
-         getSelectedProjects.add(new File(checkedElement.toString()));
+         dirTxt.setText(String.valueOf(getPath()));
+         dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(getPath()))));
       }
 
-      return getSelectedProjects;
-   }
 
+      dirShell = parent.getShell();
+
+      treeViewerInput = new TreeViewerInput();
+
+      addListener();
+
+
+      setControl(modulePageWidgetContainer);
+
+
+      setPageComplete(true);
+      checkSection();
+
+   }
 
    /**
     * add Widgets on Wizard Page
@@ -159,7 +168,6 @@ public class B2WizardPage extends WizardPage
       workspaceBtn.setEnabled(false);
       workspaceBtn.setLayoutData(gridData2);
 
-
       dirTreeViewer = new CheckboxTreeViewer(modulePageWidgetContainer);
       dirTreeViewer.setContentProvider(new ContentProvider());
       dirTreeViewer.setLabelProvider(new LabelProvider());
@@ -188,7 +196,6 @@ public class B2WizardPage extends WizardPage
       workingSetBtn.setLayoutData(gridData);
    }
 
-
    /**
     * add Listener to the specific widgets
     */
@@ -198,7 +205,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            TreeViewerInput.clearArrayList();
+            clearArrayList();
 
             DirectoryDialog directoryDialog = new DirectoryDialog(dirShell, SWT.OPEN);
             directoryDialog.setText("Directory Selection...");
@@ -219,7 +226,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            TreeViewerInput.clearArrayList();
+            clearArrayList();
             ElementTreeSelectionDialog elementTreeSelectionDialog = new ElementTreeSelectionDialog(dirShell,
                new WorkbenchLabelProvider(), new BaseWorkbenchContentProvider());
             elementTreeSelectionDialog.setTitle("Project Selection");
@@ -281,7 +288,7 @@ public class B2WizardPage extends WizardPage
             {
                if (getWorkingSet() == null)
                {
-                  checkComboItem();
+                  addComboItemToWorkingSet();
                }
 
                checkButtonSelection = true;
@@ -357,7 +364,7 @@ public class B2WizardPage extends WizardPage
       {
          public void widgetSelected(SelectionEvent e)
          {
-            checkComboItem();
+            addComboItemToWorkingSet();
          }
 
          public void widgetDefaultSelected(SelectionEvent e)
@@ -384,50 +391,6 @@ public class B2WizardPage extends WizardPage
 
    }
 
-   /**
-    * Create specific controls for the wizard page.
-    */
-   public void createControl(Composite parent)
-   {
-      modulePageWidgetContainer = new Composite(parent, SWT.NONE);
-      modulePageWidgetContainer.setLayout(new GridLayout(3, false));
-
-      addWidgets();
-
-
-      if (getPath() != null)
-      {
-         dirTxt.setText(String.valueOf(getPath()));
-         dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(getPath()))));
-      }
-
-
-      dirShell = parent.getShell();
-
-      treeViewerInput = new TreeViewerInput();
-
-      addListener();
-
-
-      setControl(modulePageWidgetContainer);
-
-
-      setPageComplete(true);
-      checkWorkingSetXML();
-
-   }
-
-   public IWorkingSetManager getWorkingSetManager()
-   {
-      return workingSetManager;
-
-   }
-
-   public IWorkingSet[] getWorkingSet()
-   {
-      return workingSet;
-   }
-
    private void addItemToCombo()
    {
       if (getWorkingSet() != null)
@@ -451,7 +414,6 @@ public class B2WizardPage extends WizardPage
                workingSetCombo.add(workingSet.getName());
 
                getDialogSettings().addNewSection(workingSet.getName());
-               // getDialogSettings().getSection(workingSet.getName()).put(WORKING_SET_KEY, workingSet.getName());
 
 
             }
@@ -482,7 +444,7 @@ public class B2WizardPage extends WizardPage
                workingSetCombo.add(comboBoxItems);
 
                getDialogSettings().addNewSection(comboBoxItems);
-               // getDialogSettings().getSection(comboBoxItems).put(WORKING_SET_KEY, comboBoxItems);
+
                workingSetCombo.setText(comboBoxItems);
                comboBoxItems = "";
             }
@@ -493,52 +455,7 @@ public class B2WizardPage extends WizardPage
 
    }
 
-   private void selectWorkingSetSelectionDialog()
-   {
-      if (getWorkingSet() == null)
-      {
-         checkComboItem();
-         workingSetSelectionDialog.setSelection(getWorkingSet());
-         workingSetSelectionDialog.open();
-      }
-      else if (workingSetCombo.getText().trim().isEmpty())
-      {
-         workingSetSelectionDialog.setSelection(null);
-         workingSetSelectionDialog.open();
-      }
-      else if (workingSetComboItem != null || getWorkingSet() != null)
-      {
-         workingSetSelectionDialog.setSelection(getWorkingSet());
-         workingSetSelectionDialog.open();
-      }
-
-
-   }
-
-   private void setCategoriesChecked()
-   {
-      for (int i = 0; i < TreeViewerInput.getCategories().size(); i++)
-      {
-         dirTreeViewer.setChecked(TreeViewerInput.getCategories().get(i), true);
-      }
-
-
-   }
-
-   private void setCategoriesUnchecked()
-   {
-      for (int i = 0; i < TreeViewerInput.getCategories().size(); i++)
-      {
-         dirTreeViewer.setChecked(TreeViewerInput.getCategories().get(i), false);
-      }
-   }
-
-   public boolean getCheckButtonSelection()
-   {
-      return checkButtonSelection;
-   }
-
-   public void checkComboItem()
+   public void addComboItemToWorkingSet()
    {
       if (workingSetCombo.getText().contains(","))
       {
@@ -558,43 +475,47 @@ public class B2WizardPage extends WizardPage
 
    }
 
-   public void checkSectionComma()
+   private void selectWorkingSetSelectionDialog()
    {
-      int counter = 0;
-      for (IDialogSettings dialogSetting : getDialogSettings().getSections())
+      if (getWorkingSet() == null)
       {
-         if (getDialogSettings().getSection(dialogSetting.getName()).getName().contains(","))
-         {
-            String[] splitItems = getDialogSettings().getSection(dialogSetting.getName()).getName().split(",");
-            for (String item : splitItems)
-            {
-
-               for (IWorkingSet workingSet : workingSetManager.getWorkingSets())
-               {
-
-                  if (item.equals(workingSet.getName()))
-                  {
-                     counter++;
-
-                  }
-               }
-            }
-            if (counter == 0 || counter == 1)
-            {
-
-               removeWorkingSetXMLSection(getDialogSettings().getSection(dialogSetting.getName()).getName());
-               counter = 0;
-            }
-            else
-            {
-               workingSetCombo.add(getDialogSettings().getSection(dialogSetting.getName()).getName());
-               workingSetCombo.setText(getDialogSettings().getSection(dialogSetting.getName()).getName());
-            }
-
-         }
-
+         addComboItemToWorkingSet();
+         workingSetSelectionDialog.setSelection(getWorkingSet());
+         workingSetSelectionDialog.open();
+      }
+      else if (workingSetCombo.getText().trim().isEmpty())
+      {
+         workingSetSelectionDialog.setSelection(null);
+         workingSetSelectionDialog.open();
+      }
+      else if (workingSetComboItem != null || getWorkingSet() != null)
+      {
+         workingSetSelectionDialog.setSelection(getWorkingSet());
+         workingSetSelectionDialog.open();
       }
 
+
+   }
+
+   /**
+    * 
+    * @return the selected projects in TreeViewer
+    */
+   public List<File> getSelectedProjects()
+   {
+      Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
+      List<File> getSelectedProjects = new ArrayList<File>();
+
+      for (Object checkedElement : getCheckedElements)
+      {
+         if (treeViewerInput.getCategories().contains(checkedElement))
+         {
+            continue;
+         }
+         getSelectedProjects.add(new File(checkedElement.toString()));
+      }
+
+      return getSelectedProjects;
    }
 
    public void setPath(IPath projectPath)
@@ -615,6 +536,45 @@ public class B2WizardPage extends WizardPage
    public File getWorkingSetXML()
    {
       return workingSetXMLFile;
+   }
+
+   public IWorkingSetManager getWorkingSetManager()
+   {
+      return workingSetManager;
+
+   }
+
+   public IWorkingSet[] getWorkingSet()
+   {
+      return workingSet;
+   }
+
+   private void setCategoriesChecked()
+   {
+      for (int i = 0; i < treeViewerInput.getCategories().size(); i++)
+      {
+         dirTreeViewer.setChecked(treeViewerInput.getCategories().get(i), true);
+      }
+
+
+   }
+
+   private void setCategoriesUnchecked()
+   {
+      for (int i = 0; i < treeViewerInput.getCategories().size(); i++)
+      {
+         dirTreeViewer.setChecked(treeViewerInput.getCategories().get(i), false);
+      }
+   }
+
+   public boolean getCheckButtonSelection()
+   {
+      return checkButtonSelection;
+   }
+
+   public void clearArrayList()
+   {
+      treeViewerInput.clearArrayList();
    }
 
    private void checkWorkingSetCombo()
@@ -679,7 +639,7 @@ public class B2WizardPage extends WizardPage
       }
    }
 
-   private void checkWorkingSetXML()
+   private void checkSection()
    {
 
       checkSectionComma();
@@ -714,7 +674,7 @@ public class B2WizardPage extends WizardPage
                {
 
 
-                  removeWorkingSetXMLSection(getDialogSettings().getSection(dialogSetting.getName()).getName());
+                  removeSection(getDialogSettings().getSection(dialogSetting.getName()).getName());
                }
 
             }
@@ -724,87 +684,122 @@ public class B2WizardPage extends WizardPage
       }
    }
 
-   private void removeWorkingSetXMLSection(String section)
+   public void checkSectionComma()
+   {
+      int counter = 0;
+      for (IDialogSettings dialogSetting : getDialogSettings().getSections())
+      {
+         if (getDialogSettings().getSection(dialogSetting.getName()).getName().contains(","))
+         {
+            String[] splitItems = getDialogSettings().getSection(dialogSetting.getName()).getName().split(",");
+            for (String item : splitItems)
+            {
+
+               for (IWorkingSet workingSet : workingSetManager.getWorkingSets())
+               {
+
+                  if (item.equals(workingSet.getName()))
+                  {
+                     counter++;
+
+                  }
+               }
+            }
+            if (counter == 0 || counter == 1)
+            {
+
+               removeSection(getDialogSettings().getSection(dialogSetting.getName()).getName());
+               counter = 0;
+            }
+            else
+            {
+               workingSetCombo.add(getDialogSettings().getSection(dialogSetting.getName()).getName());
+               workingSetCombo.setText(getDialogSettings().getSection(dialogSetting.getName()).getName());
+            }
+
+         }
+
+      }
+
+   }
+
+   private void removeSection(String sectionName)
    {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+
 
       try
       {
          DocumentBuilder builder = factory.newDocumentBuilder();
          Document doc = builder.parse(getWorkingSetXML());
-         deleteSection(doc, section);
-         saveXMLChanges(doc);
 
+         NodeList nodes = doc.getElementsByTagName("section");
+
+         for (int i = 0; i < nodes.getLength(); i++)
+         {
+
+            Element rmSection = (Element) nodes.item(i);
+
+            if (rmSection.getAttribute("name").equals(sectionName))
+            {
+               rmSection.getParentNode().removeChild(rmSection);
+            }
+
+         }
+
+         saveXMLChanges(doc);
       }
       catch (ParserConfigurationException e)
       {
-         throw new IllegalStateException(e);
+         throw new IllegalArgumentException(e);
       }
       catch (SAXException e)
       {
-         throw new IllegalStateException(e);
+         throw new IllegalArgumentException(e);
       }
       catch (IOException e)
       {
-         throw new IllegalStateException(e);
+         throw new IllegalArgumentException(e);
       }
       catch (TransformerException e)
       {
-         throw new IllegalStateException(e);
+         throw new IllegalArgumentException(e);
       }
 
+
    }
-
-   private void deleteSection(Document doc, String sectionName)
-   {
-      NodeList nodes = doc.getElementsByTagName("section");
-
-      for (int i = 0; i < nodes.getLength(); i++)
-      {
-
-         Element section = (Element) nodes.item(i);
-
-         if (section.getAttribute("name").equals(sectionName))
-         {
-            section.getParentNode().removeChild(section);
-         }
-
-      }
-   }
-
 
    private void saveXMLChanges(Document doc) throws TransformerException, IOException
    {
       Transformer transformer = TransformerFactory.newInstance().newTransformer();
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-      StreamResult result = new StreamResult(new StringWriter());
-      DOMSource source = new DOMSource(doc);
-      transformer.transform(source, result);
+      StreamResult strmResult = new StreamResult(new StringWriter());
+      DOMSource domSource = new DOMSource(doc);
+      transformer.transform(domSource, strmResult);
 
-      String xmlString = result.getWriter().toString();
-      // System.out.println(xmlString);
+      String xmlData = strmResult.getWriter().toString();
 
-      byte buf[] = xmlString.getBytes();
+      byte data[] = xmlData.getBytes("UTF-8");
 
-      FileWriter f0 = null;
+      FileWriter fileWriter = null;
       try
       {
-         f0 = new FileWriter(getWorkingSetXML().getName());
-         for (int i = 0; i < buf.length; i++)
+         fileWriter = new FileWriter(getWorkingSetXML().getName());
+         for (int i = 0; i < data.length; i++)
          {
-            f0.write(buf[i]);
+            fileWriter.write(data[i]);
          }
-         buf = null;
-         // getDialogSettings().save(f0);
+         data = null;
+
       }
       finally
       {
-         if (f0 != null)
+         if (fileWriter != null)
          {
             try
             {
-               f0.close();
+               fileWriter.close();
             }
             catch (IOException e)
             {

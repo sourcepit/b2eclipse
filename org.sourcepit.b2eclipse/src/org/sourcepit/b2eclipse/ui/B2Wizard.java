@@ -36,7 +36,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.Activator;
-import org.sourcepit.b2eclipse.input.TreeViewerInput;
 
 /**
  * @author Marco Grupe
@@ -44,14 +43,11 @@ import org.sourcepit.b2eclipse.input.TreeViewerInput;
 
 public class B2Wizard extends Wizard implements IImportWizard, ISelectionListener
 {
-
-
    private B2WizardPage modulePage;
    private List<File> projectList;
    private static final String DIALOG_SETTING_FILE = "workingSets.xml";
    private File workingSetsXML;
    private DialogSettings dialogSettings;
-
 
    public B2Wizard()
    {
@@ -247,7 +243,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
     */
    public void dispose()
    {
-      TreeViewerInput.clearArrayList();
+      modulePage.clearArrayList();
       PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().removeSelectionListener(this);
       super.dispose();
    }
