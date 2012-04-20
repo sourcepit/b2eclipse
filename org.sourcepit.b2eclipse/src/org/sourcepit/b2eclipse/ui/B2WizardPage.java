@@ -484,7 +484,7 @@ public class B2WizardPage extends WizardPage
          workingSetSelectionDialog.setSelection(getWorkingSet());
          workingSetSelectionDialog.open();
       }
-      else if (workingSetCombo.getText().trim().isEmpty())
+      else if (workingSetCombo.getText().trim().length() == 0)
       {
          workingSetSelectionDialog.setSelection(null);
          workingSetSelectionDialog.open();
