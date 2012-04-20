@@ -55,7 +55,8 @@ public class LabelProvider extends StyledCellLabelProvider implements IColorProv
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()
             .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
          cell.setForeground(getForeground(cutString));
-         cell.setFont(getFont(element));
+         cell.setFont(getFont(element)); 
+         
       }
       cell.setText(label.toString());
       cell.setStyleRanges(label.getStyleRanges());
@@ -65,19 +66,19 @@ public class LabelProvider extends StyledCellLabelProvider implements IColorProv
 
    public Color getForeground(Object element)
    {
+      
+      
       return Display.getCurrent().getSystemColor(SWT.COLOR_GRAY);
 
    }
 
    public Color getBackground(Object element)
    {
-      // TODO: git_user_name Auto-generated method stub
       return null;
    }
 
    public Font getFont(Object element)
    {
-
       return new Font(null, "Arial", 8, SWT.BOLD);
    }
 

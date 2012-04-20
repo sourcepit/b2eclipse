@@ -16,7 +16,8 @@ public class TreeViewerInput
 
    private File[] projects;
    private ArrayList<File> projectFileList = new ArrayList<File>();
-   private static List<Category> categories;
+   private ArrayList<String> dirList = new ArrayList<String>();
+   private List<Category> categories;
 
    public TreeViewerInput()
    {
@@ -25,7 +26,17 @@ public class TreeViewerInput
    public TreeViewerInput(Object inputElement)
    {
 
-      getProjects(inputElement);
+      File[] elementList = ((File) inputElement).listFiles();
+
+      if (elementList != null)
+      {
+
+
+         getProjects(inputElement);
+
+
+      }
+
 
       projects = new File[projectFileList.size()];
       for (int y = 0; y < projects.length; y++)
@@ -40,7 +51,7 @@ public class TreeViewerInput
    public List<Category> getData()
    {
       categories = new ArrayList<Category>();
-      
+
       Category categoryModules = new Category();
       categoryModules.setName("Plugins");
       categories.add(categoryModules);
@@ -55,7 +66,7 @@ public class TreeViewerInput
 
       for (int i = 0; i < projects.length; i++)
       {
-         if (! projects[i].getParent().endsWith(".tests") && ! projects[i].getParent().endsWith(".doc"))
+         if (!projects[i].getParent().endsWith(".tests") && !projects[i].getParent().endsWith(".doc"))
          {
             categoryModules.getModules().add(projects[i]);
          }
@@ -77,23 +88,45 @@ public class TreeViewerInput
    {
 
       File[] elementList = ((File) inputElement).listFiles();
+      getDirList().clear();
 
-      if (elementList != null)
+      for (File i : elementList)
       {
-
-         for (File file : elementList)
-         {
-            if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
-            {
-               getProjects(file);
-            }
-            else if (file.getName().endsWith(".project"))
-            {
-               projectFileList.add(file.getAbsoluteFile());
-            }
-
-         }
+         setDirList(i.getName());
       }
+
+      if (dirList.contains("module.xml") && !(dirList.contains(".project")))
+      {
+         doModuleSearch(elementList);
+      }
+      else if (dirList.contains("module.xml") && dirList.contains(".project"))
+      {
+         doModuleAndProjectSearch(elementList);
+      }
+
+      else if (!(dirList.contains("module.xml")) && dirList.contains(".project"))
+      {
+         doProjectSearch(elementList);
+      }
+
+      else if (!(dirList.contains("module.xml")) && !(dirList.contains(".project")))
+      {
+         doSearch(elementList);
+      }
+      
+//      for (File file : elementList)
+//      {
+//         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
+//         {
+//            getProjects(file);
+//         }
+//         else if (file.getName().endsWith(".project"))
+//         {
+//            projectFileList.add(file.getAbsoluteFile());
+//         }
+//
+//      }
+
       return projectFileList;
    }
 
@@ -110,6 +143,61 @@ public class TreeViewerInput
    public List<Category> getCategories()
    {
       return categories;
+   }
+
+   private ArrayList<String> getDirList()
+   {
+      return dirList;
+   }
+
+   private void setDirList(String file)
+   {
+      dirList.add(file);
+   }
+
+   private void doModuleSearch(File[] elementList)
+   {
+
+      for (File file : elementList)
+      {
+         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
+         {
+            getProjects(file);
+         }
+      }
+   }
+
+   private void doProjectSearch(File[] elementList)
+   {
+      for (File file : elementList)
+      {
+         if (file.getName().equals(".project"))
+         {
+            projectFileList.add(file.getAbsoluteFile());
+         }
+      }
+   }
+
+   private void doModuleAndProjectSearch(File[] elementList)
+   {
+      for (File file : elementList)
+      {
+         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
+         {
+            getProjects(file);
+         }
+      }
+   }
+
+   private void doSearch(File[] elementList)
+   {
+      for (File file : elementList)
+      {
+         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
+         {
+            getProjects(file);
+         }
+      }
    }
 
 }

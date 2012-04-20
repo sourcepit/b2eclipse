@@ -53,6 +53,7 @@ import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.dialogs.IWorkingSetSelectionDialog;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.sourcepit.b2eclipse.input.Category;
 import org.sourcepit.b2eclipse.input.TreeViewerInput;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
@@ -328,12 +329,12 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
+            
             setCategoriesChecked();
-
-            for (File projectFile : treeViewerInput.getProjectFileList())
+            for (int i = 0; i < getTreeViewerInput().getProjectFileList().size(); i++)
             {
 
-               dirTreeViewer.setSubtreeChecked(projectFile, true);
+               dirTreeViewer.setSubtreeChecked(getTreeViewerInput().getProjectFileList().get(i), true);
 
             }
 
@@ -348,10 +349,10 @@ public class B2WizardPage extends WizardPage
          {
             setCategoriesUnchecked();
 
-            for (File projectFile : treeViewerInput.getProjectFileList())
+            for (int i = 0; i < getTreeViewerInput().getProjectFileList().size(); i++)
             {
 
-               dirTreeViewer.setSubtreeChecked(projectFile, false);
+               dirTreeViewer.setSubtreeChecked(getTreeViewerInput().getProjectFileList().get(i), false);
 
             }
 
@@ -508,7 +509,7 @@ public class B2WizardPage extends WizardPage
 
       for (Object checkedElement : getCheckedElements)
       {
-         if (treeViewerInput.getCategories().contains(checkedElement))
+         if (getTreeViewerInput().getCategories().contains(checkedElement))
          {
             continue;
          }
@@ -551,9 +552,10 @@ public class B2WizardPage extends WizardPage
 
    private void setCategoriesChecked()
    {
-      for (int i = 0; i < treeViewerInput.getCategories().size(); i++)
+      
+      for (Category category : getTreeViewerInput().getCategories())
       {
-         dirTreeViewer.setChecked(treeViewerInput.getCategories().get(i), true);
+         dirTreeViewer.setChecked(category, true);
       }
 
 
@@ -561,9 +563,9 @@ public class B2WizardPage extends WizardPage
 
    private void setCategoriesUnchecked()
    {
-      for (int i = 0; i < treeViewerInput.getCategories().size(); i++)
+      for (Category category : getTreeViewerInput().getCategories())
       {
-         dirTreeViewer.setChecked(treeViewerInput.getCategories().get(i), false);
+         dirTreeViewer.setChecked(category, false);
       }
    }
 
@@ -574,6 +576,7 @@ public class B2WizardPage extends WizardPage
 
    public void clearArrayList()
    {
+    
       treeViewerInput.clearArrayList();
    }
 
@@ -619,9 +622,9 @@ public class B2WizardPage extends WizardPage
             for (String item : splitItems)
             {
 
-               for (int y = 0; y < workingSetManager.getWorkingSets().length; y++)
+               for (IWorkingSet workingSet : workingSetManager.getWorkingSets())
                {
-                  if (item.equals(workingSetManager.getWorkingSets()[y].getName()))
+                  if (item.equals(workingSet.getName()))
                   {
                      counter++;
 
@@ -780,17 +783,17 @@ public class B2WizardPage extends WizardPage
 
       String xmlData = strmResult.getWriter().toString();
 
-      byte data[] = xmlData.getBytes("UTF-8");
+      byte xmlContent[] = xmlData.getBytes("UTF-8");
 
       FileWriter fileWriter = null;
       try
       {
          fileWriter = new FileWriter(getWorkingSetXML().getName());
-         for (int i = 0; i < data.length; i++)
+         for (byte data : xmlContent)
          {
-            fileWriter.write(data[i]);
+            fileWriter.write(data);
          }
-         data = null;
+         xmlContent = null;
 
       }
       finally
@@ -808,5 +811,9 @@ public class B2WizardPage extends WizardPage
       }
    }
 
+   public TreeViewerInput getTreeViewerInput(){
+      treeViewerInput = (TreeViewerInput) dirTreeViewer.getInput();
+      return treeViewerInput;
+   }
 
 }
