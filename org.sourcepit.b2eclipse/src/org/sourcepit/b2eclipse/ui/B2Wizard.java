@@ -217,10 +217,19 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
          if (firstElement instanceof IAdaptable)
          {
-            final IResource selectedProject = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
-            if (selectedProject != null)
+            final IResource selectedResource = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
+            if (selectedResource != null)
             {
-               modulePage.setPath(selectedProject.getProject().getLocation());
+               final IPath location;
+               if (selectedResource.getType() == IResource.FILE)
+               {
+                  location = selectedResource.getParent().getLocation();
+               }
+               else
+               {
+                  location = selectedResource.getLocation();
+               }
+               modulePage.setPath(location);
             }
          }
       }
