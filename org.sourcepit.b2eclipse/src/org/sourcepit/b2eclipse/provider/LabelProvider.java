@@ -44,15 +44,14 @@ public class LabelProvider extends StyledCellLabelProvider
       {
          final File projectDir = (File) element;
 
-         final IPath prijectDirPath = new Path(projectDir.getParent());
+         final IPath projectDirPath = new Path(projectDir.getParent());
 
-         final String projectName = prijectDirPath.lastSegment();
+         final String projectName = projectDirPath.lastSegment();
          label.append(projectName);
 
-         final IPath pathToProject = prijectDirPath.removeLastSegments(1);
-         label.append(" (", StyledString.DECORATIONS_STYLER);
-         label.append(pathToProject.toOSString(), StyledString.DECORATIONS_STYLER);
-         label.append(")", StyledString.DECORATIONS_STYLER);
+         final IPath pathToProject = projectDirPath.removeLastSegments(1);
+         label.append("  (" + pathToProject.toOSString() + ")", StyledString.DECORATIONS_STYLER);
+
 
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()
             .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));

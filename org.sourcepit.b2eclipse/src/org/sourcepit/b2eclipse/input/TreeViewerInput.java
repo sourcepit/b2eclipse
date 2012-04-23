@@ -66,15 +66,19 @@ public class TreeViewerInput
 
       for (int i = 0; i < projects.length; i++)
       {
-         if (!projects[i].getParent().endsWith(".tests") && !projects[i].getParent().endsWith(".doc"))
+         if (!projects[i].getParent().endsWith(".tests")
+            && !new File(projects[i].getParent()).getParent().endsWith("tests")
+            && !projects[i].getParent().endsWith(".doc")
+            && !new File(projects[i].getParent()).getParent().endsWith("doc"))
          {
             categoryModules.getModules().add(projects[i]);
          }
-         if (projects[i].getParent().endsWith(".tests"))
+         if (projects[i].getParent().endsWith(".tests")
+            || new File(projects[i].getParent()).getParent().endsWith("tests"))
          {
             categoryTests.getModules().add(projects[i]);
          }
-         if (projects[i].getParent().endsWith(".doc"))
+         if (projects[i].getParent().endsWith(".doc") || new File(projects[i].getParent()).getParent().endsWith("doc"))
          {
             categoryDocs.getModules().add(projects[i]);
          }

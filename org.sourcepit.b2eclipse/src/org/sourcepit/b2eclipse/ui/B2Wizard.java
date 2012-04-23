@@ -25,8 +25,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.dialogs.DialogSettings;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -53,7 +53,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    {
       super();
       setWindowTitle("Import");
-      // setDefaultPageImageDescriptor()); Header Ändern
+      setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(B2WizardPage.class, "ProjectFolder.gif"));
 
 
       modulePage = new B2WizardPage("Module");
@@ -92,17 +92,6 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       addPage(modulePage);
 
 
-   }
-
-   /**
-    * While closing the wizard a message dialog opens to confirm {@inheritDoc}
-    */
-   public boolean performCancel()
-   {
-      final boolean message = MessageDialog.openConfirm(getShell(), "Confirm Close", "Are you sure you want to close?");
-      if (message)
-         return true;
-      return false;
    }
 
 

@@ -5,7 +5,7 @@
          point="org.eclipse.ui.importWizards">
       <wizard
             class="org.sourcepit.b2eclipse.ui.B2Wizard"
-            icon="icon/activity_act_003.gif"
+            icon="src/org/sourcepit/b2eclipse/ui/activity_act_003.gif"
             id="de.visualrules.b2eclipse.ui.ImportWizard"
             name="Import Modules">
       </wizard>

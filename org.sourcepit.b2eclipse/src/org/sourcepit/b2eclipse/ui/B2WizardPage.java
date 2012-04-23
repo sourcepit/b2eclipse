@@ -329,7 +329,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            
+
             setCategoriesChecked();
             for (int i = 0; i < getTreeViewerInput().getProjectFileList().size(); i++)
             {
@@ -552,7 +552,7 @@ public class B2WizardPage extends WizardPage
 
    private void setCategoriesChecked()
    {
-      
+
       for (Category category : getTreeViewerInput().getCategories())
       {
          dirTreeViewer.setChecked(category, true);
@@ -576,7 +576,7 @@ public class B2WizardPage extends WizardPage
 
    public void clearArrayList()
    {
-    
+
       treeViewerInput.clearArrayList();
    }
 
@@ -621,7 +621,6 @@ public class B2WizardPage extends WizardPage
             String[] splitItems = wsitem.split(",");
             for (String item : splitItems)
             {
-
                for (IWorkingSet workingSet : workingSetManager.getWorkingSets())
                {
                   if (item.equals(workingSet.getName()))
@@ -632,12 +631,14 @@ public class B2WizardPage extends WizardPage
                   }
                }
             }
-            if (counter == 0 || counter == 1)
+            if (splitItems.length != counter)
             {
-
+               System.out.println(splitItems.length + "      " + counter);
                workingSetCombo.remove(wsitem);
+               
             }
             counter = 0;
+
          }
       }
    }
@@ -708,18 +709,18 @@ public class B2WizardPage extends WizardPage
                   }
                }
             }
-            if (counter == 0 || counter == 1)
+            if (splitItems.length != counter)
             {
 
                removeSection(getDialogSettings().getSection(dialogSetting.getName()).getName());
-               counter = 0;
+               
             }
             else
             {
                workingSetCombo.add(getDialogSettings().getSection(dialogSetting.getName()).getName());
                workingSetCombo.setText(getDialogSettings().getSection(dialogSetting.getName()).getName());
             }
-
+            counter = 0;
          }
 
       }
@@ -811,7 +812,8 @@ public class B2WizardPage extends WizardPage
       }
    }
 
-   public TreeViewerInput getTreeViewerInput(){
+   public TreeViewerInput getTreeViewerInput()
+   {
       treeViewerInput = (TreeViewerInput) dirTreeViewer.getInput();
       return treeViewerInput;
    }
