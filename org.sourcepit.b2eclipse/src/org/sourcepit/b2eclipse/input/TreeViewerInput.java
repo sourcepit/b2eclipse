@@ -95,13 +95,11 @@ public class TreeViewerInput
          setDirList(i.getName());
       }
 
-      if (dirList.contains("module.xml") && !(dirList.contains(".project")))
+      if ((dirList.contains("module.xml") && !(dirList.contains(".project")))
+         || (dirList.contains("module.xml") && dirList.contains(".project"))
+         || (!(dirList.contains("module.xml")) && !(dirList.contains(".project"))))
       {
          doModuleSearch(elementList);
-      }
-      else if (dirList.contains("module.xml") && dirList.contains(".project"))
-      {
-         doModuleAndProjectSearch(elementList);
       }
 
       else if (!(dirList.contains("module.xml")) && dirList.contains(".project"))
@@ -109,23 +107,6 @@ public class TreeViewerInput
          doProjectSearch(elementList);
       }
 
-      else if (!(dirList.contains("module.xml")) && !(dirList.contains(".project")))
-      {
-         doSearch(elementList);
-      }
-      
-//      for (File file : elementList)
-//      {
-//         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
-//         {
-//            getProjects(file);
-//         }
-//         else if (file.getName().endsWith(".project"))
-//         {
-//            projectFileList.add(file.getAbsoluteFile());
-//         }
-//
-//      }
 
       return projectFileList;
    }
@@ -178,26 +159,5 @@ public class TreeViewerInput
       }
    }
 
-   private void doModuleAndProjectSearch(File[] elementList)
-   {
-      for (File file : elementList)
-      {
-         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
-         {
-            getProjects(file);
-         }
-      }
-   }
-
-   private void doSearch(File[] elementList)
-   {
-      for (File file : elementList)
-      {
-         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
-         {
-            getProjects(file);
-         }
-      }
-   }
 
 }
