@@ -21,8 +21,9 @@
 
 	<repositories>
 		<repository>
+			<!-- repo to resolve parent pom from -->
 			<id>srcpit-public</id>
-			<url>${srcpit.nexus.url}/content/groups/public/</url>
+			<url>http://nexus.sourcepit.org/content/groups/public/</url>
 		</repository>
 		<repository>
 			<id>indigo</id>
