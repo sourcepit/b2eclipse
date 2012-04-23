@@ -54,8 +54,8 @@ public class LabelProvider extends StyledCellLabelProvider implements IColorProv
             .concat("  (" + cutString + ")"));
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()
             .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
-         cell.setForeground(getForeground(cutString));
-         cell.setFont(getFont(element)); 
+//         cell.setForeground(getForeground(cutString));
+//         cell.setFont(getFont(element)); 
          
       }
       cell.setText(label.toString());
