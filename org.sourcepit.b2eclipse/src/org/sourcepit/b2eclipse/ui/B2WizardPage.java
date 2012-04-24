@@ -398,7 +398,7 @@ public class B2WizardPage extends WizardPage
       {
          if (getWorkingSet().length == 1)
          {
-            for (IWorkingSet workingSet : getWorkingSet())
+            for (final IWorkingSet workingSet : getWorkingSet())
             {
 
 
@@ -422,7 +422,7 @@ public class B2WizardPage extends WizardPage
          }
          else
          {
-            for (IWorkingSet workingSet : getWorkingSet())
+            for (final IWorkingSet workingSet : getWorkingSet())
             {
 
 
@@ -507,7 +507,7 @@ public class B2WizardPage extends WizardPage
       Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
       List<File> getSelectedProjects = new ArrayList<File>();
 
-      for (Object checkedElement : getCheckedElements)
+      for (final Object checkedElement : getCheckedElements)
       {
          if (getTreeViewerInput().getCategories().contains(checkedElement))
          {
@@ -553,7 +553,7 @@ public class B2WizardPage extends WizardPage
    private void setCategoriesChecked()
    {
 
-      for (Category category : getTreeViewerInput().getCategories())
+      for (final Category category : getTreeViewerInput().getCategories())
       {
          dirTreeViewer.setChecked(category, true);
       }
@@ -563,7 +563,7 @@ public class B2WizardPage extends WizardPage
 
    private void setCategoriesUnchecked()
    {
-      for (Category category : getTreeViewerInput().getCategories())
+      for (final Category category : getTreeViewerInput().getCategories())
       {
          dirTreeViewer.setChecked(category, false);
       }
@@ -583,7 +583,7 @@ public class B2WizardPage extends WizardPage
    private void checkWorkingSetCombo()
    {
       checkWorkingSetComboComma();
-      for (String item : workingSetCombo.getItems())
+      for (final String item : workingSetCombo.getItems())
       {
          for (int y = 0; y < workingSetManager.getWorkingSets().length; y++)
          {
@@ -614,14 +614,14 @@ public class B2WizardPage extends WizardPage
    private void checkWorkingSetComboComma()
    {
       int counter = 0;
-      for (String wsitem : workingSetCombo.getItems())
+      for (final String wsitem : workingSetCombo.getItems())
       {
          if (wsitem.contains(","))
          {
             String[] splitItems = wsitem.split(",");
-            for (String item : splitItems)
+            for (final String item : splitItems)
             {
-               for (IWorkingSet workingSet : workingSetManager.getWorkingSets())
+               for (final IWorkingSet workingSet : workingSetManager.getWorkingSets())
                {
                   if (item.equals(workingSet.getName()))
                   {
@@ -648,7 +648,7 @@ public class B2WizardPage extends WizardPage
 
       checkSectionComma();
 
-      for (IDialogSettings dialogSetting : getDialogSettings().getSections())
+      for (final IDialogSettings dialogSetting : getDialogSettings().getSections())
       {
          for (int y = 0; y < workingSetManager.getWorkingSets().length; y++)
          {
@@ -691,15 +691,15 @@ public class B2WizardPage extends WizardPage
    public void checkSectionComma()
    {
       int counter = 0;
-      for (IDialogSettings dialogSetting : getDialogSettings().getSections())
+      for (final IDialogSettings dialogSetting : getDialogSettings().getSections())
       {
          if (getDialogSettings().getSection(dialogSetting.getName()).getName().contains(","))
          {
             String[] splitItems = getDialogSettings().getSection(dialogSetting.getName()).getName().split(",");
-            for (String item : splitItems)
+            for (final String item : splitItems)
             {
 
-               for (IWorkingSet workingSet : workingSetManager.getWorkingSets())
+               for (final IWorkingSet workingSet : workingSetManager.getWorkingSets())
                {
 
                   if (item.equals(workingSet.getName()))
@@ -790,7 +790,7 @@ public class B2WizardPage extends WizardPage
       try
       {
          fileWriter = new FileWriter(getWorkingSetXML().getName());
-         for (byte data : xmlContent)
+         for (final byte data : xmlContent)
          {
             fileWriter.write(data);
          }
