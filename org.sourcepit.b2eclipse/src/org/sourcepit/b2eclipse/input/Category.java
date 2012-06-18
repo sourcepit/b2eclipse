@@ -22,7 +22,7 @@ public class Category
 
    public void setName(String name)
    {
-      if (name.trim().isEmpty())
+      if ("".equals(name))
       {
          throw new IllegalArgumentException();
       }
