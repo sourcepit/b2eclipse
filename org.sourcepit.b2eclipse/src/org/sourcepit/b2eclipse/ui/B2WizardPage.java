@@ -505,7 +505,7 @@ public class B2WizardPage extends WizardPage
    public List<File> getSelectedProjects()
    {
       Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
-      List<File> getSelectedProjects = new ArrayList<File>();
+      ArrayList<File> getSelectedProjects = new ArrayList<File>();
 
       for (final Object checkedElement : getCheckedElements)
       {
@@ -515,13 +515,21 @@ public class B2WizardPage extends WizardPage
          }
          getSelectedProjects.add(new File(checkedElement.toString()));
       }
-
+      getSelectedProjects.trimToSize();
       return getSelectedProjects;
    }
 
    public void setPath(IPath projectPath)
    {
-      this.projectPath = projectPath;
+      if (projectPath == null)
+      {
+         throw new IllegalArgumentException();
+      }
+      else
+      {
+         this.projectPath = projectPath;
+      }
+
    }
 
    private IPath getPath()
@@ -531,7 +539,16 @@ public class B2WizardPage extends WizardPage
 
    public void setWorkingSetXML(File workingSetXMLFile)
    {
-      this.workingSetXMLFile = workingSetXMLFile;
+
+      if (workingSetXMLFile == null)
+      {
+         throw new IllegalArgumentException();
+      }
+      else
+      {
+         this.workingSetXMLFile = workingSetXMLFile;
+      }
+
    }
 
    public File getWorkingSetXML()
@@ -635,7 +652,7 @@ public class B2WizardPage extends WizardPage
             {
                System.out.println(splitItems.length + "      " + counter);
                workingSetCombo.remove(wsitem);
-               
+
             }
             counter = 0;
 
@@ -713,7 +730,7 @@ public class B2WizardPage extends WizardPage
             {
 
                removeSection(getDialogSettings().getSection(dialogSetting.getName()).getName());
-               
+
             }
             else
             {
@@ -797,17 +814,25 @@ public class B2WizardPage extends WizardPage
          xmlContent = null;
 
       }
+      catch (IOException e)
+      {
+      }
       finally
       {
-         if (fileWriter != null)
+         closeWriter(fileWriter);
+      }
+   }
+
+   private void closeWriter(FileWriter writer)
+   {
+      if (writer != null)
+      {
+         try
          {
-            try
-            {
-               fileWriter.close();
-            }
-            catch (IOException e)
-            {
-            }
+            writer.close();
+         }
+         catch (IOException e)
+         {
          }
       }
    }

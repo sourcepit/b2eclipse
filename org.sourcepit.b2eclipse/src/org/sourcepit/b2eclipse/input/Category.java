@@ -22,7 +22,15 @@ public class Category
 
    public void setName(String name)
    {
-      this.categoryName = name;
+      if (name.trim().isEmpty())
+      {
+         throw new IllegalArgumentException();
+      }
+      else
+      {
+         this.categoryName = name;
+      }
+
    }
 
    public List<File> getModules()
