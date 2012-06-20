@@ -55,7 +55,6 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       setWindowTitle("Import");
       setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(B2WizardPage.class, "ProjectFolder.gif"));
 
-
       modulePage = new B2WizardPage("Module");
       setNeedsProgressMonitor(true);
       dialogSettings = new DialogSettings("workingSets");

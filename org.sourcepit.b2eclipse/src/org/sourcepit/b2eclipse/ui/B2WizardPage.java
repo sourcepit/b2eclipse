@@ -78,7 +78,7 @@ public class B2WizardPage extends WizardPage
    private IWorkingSet[] workingSet;
    private IWorkingSetSelectionDialog workingSetSelectionDialog;
    private IWorkingSet workingSetComboItem;
-   private String directoryName, comboBoxItems = "";
+   private String directoryName, comboBoxItems = ""; //$NON-NLS-1$
    private boolean checkButtonSelection = false;
    private IPath projectPath;
    private File workingSetXMLFile;
@@ -90,8 +90,8 @@ public class B2WizardPage extends WizardPage
 
       super(name);
 
-      setTitle("Import Modules");
-      setDescription("Please specify a project or directory to import. ");
+      setTitle(Messages.B2WizardPage_1);
+      setDescription(Messages.B2WizardPage_2);
 
 
    }
@@ -147,25 +147,25 @@ public class B2WizardPage extends WizardPage
       gridData3.heightHint = 300;
 
       rBtn1 = new Button(modulePageWidgetContainer, SWT.RADIO);
-      rBtn1.setText("Select root directory:");
+      rBtn1.setText(Messages.B2WizardPage_3);
       rBtn1.setSelection(true);
 
       dirTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
       dirTxt.setLayoutData(gridData);
 
       dirBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      dirBtn.setText("Browse...");
+      dirBtn.setText(Messages.B2WizardPage_4);
       dirBtn.setLayoutData(gridData2);
 
       rBtn2 = new Button(modulePageWidgetContainer, SWT.RADIO);
-      rBtn2.setText("Select workspace project:");
+      rBtn2.setText(Messages.B2WizardPage_5);
 
       workspaceTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
       workspaceTxt.setLayoutData(gridData);
       workspaceTxt.setEnabled(false);
 
       workspaceBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      workspaceBtn.setText("Browse...");
+      workspaceBtn.setText(Messages.B2WizardPage_6);
       workspaceBtn.setEnabled(false);
       workspaceBtn.setLayoutData(gridData2);
 
@@ -175,15 +175,15 @@ public class B2WizardPage extends WizardPage
       dirTreeViewer.getTree().setLayoutData(gridData3);
 
       selectAllBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      selectAllBtn.setText("Select All");
+      selectAllBtn.setText(Messages.B2WizardPage_7);
       selectAllBtn.setLayoutData(gridData2);
 
       deselectAllBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      deselectAllBtn.setText("Deselect All");
+      deselectAllBtn.setText(Messages.B2WizardPage_8);
       deselectAllBtn.setLayoutData(gridData2);
 
       checkBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
-      checkBtn.setText("Select Working Set:");
+      checkBtn.setText(Messages.B2WizardPage_9);
       checkBtn.setLayoutData(gridData);
 
       workingSetCombo = new Combo(modulePageWidgetContainer, SWT.DROP_DOWN | SWT.READ_ONLY | SWT.HORIZONTAL
@@ -192,7 +192,7 @@ public class B2WizardPage extends WizardPage
       workingSetCombo.setLayoutData(gridData);
 
       workingSetBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-      workingSetBtn.setText("Select...");
+      workingSetBtn.setText(Messages.B2WizardPage_10);
       workingSetBtn.setEnabled(false);
       workingSetBtn.setLayoutData(gridData);
    }
@@ -209,12 +209,12 @@ public class B2WizardPage extends WizardPage
             clearArrayList();
 
             DirectoryDialog directoryDialog = new DirectoryDialog(dirShell, SWT.OPEN);
-            directoryDialog.setText("Directory Selection...");
+            directoryDialog.setText(Messages.B2WizardPage_11);
             directoryName = directoryDialog.open();
             if (directoryName == null)
                return;
             dirTxt.setText(directoryName);
-            workspaceTxt.setText("");
+            workspaceTxt.setText(""); //$NON-NLS-1$
 
             dirTreeViewer.setInput(new TreeViewerInput(new File(directoryName)));
 
@@ -230,15 +230,15 @@ public class B2WizardPage extends WizardPage
             clearArrayList();
             ElementTreeSelectionDialog elementTreeSelectionDialog = new ElementTreeSelectionDialog(dirShell,
                new WorkbenchLabelProvider(), new BaseWorkbenchContentProvider());
-            elementTreeSelectionDialog.setTitle("Project Selection");
-            elementTreeSelectionDialog.setMessage("Select a project:");
+            elementTreeSelectionDialog.setTitle(Messages.B2WizardPage_13);
+            elementTreeSelectionDialog.setMessage(Messages.B2WizardPage_14);
             elementTreeSelectionDialog.setInput(ResourcesPlugin.getWorkspace().getRoot());
             elementTreeSelectionDialog.open();
             if (elementTreeSelectionDialog.getFirstResult() != null)
             {
                directoryName = String.valueOf(((IResource) elementTreeSelectionDialog.getFirstResult()).getLocation());
                workspaceTxt.setText(directoryName);
-               dirTxt.setText("");
+               dirTxt.setText(""); //$NON-NLS-1$
                dirTreeViewer.setInput(new TreeViewerInput(new File(directoryName)));
             }
          }
@@ -435,7 +435,7 @@ public class B2WizardPage extends WizardPage
 
                }
 
-               comboBoxItems = comboBoxItems.concat(workingSet.getName().concat(","));
+               comboBoxItems = comboBoxItems.concat(workingSet.getName().concat(",")); //$NON-NLS-1$
 
 
             }
@@ -447,7 +447,7 @@ public class B2WizardPage extends WizardPage
                getDialogSettings().addNewSection(comboBoxItems);
 
                workingSetCombo.setText(comboBoxItems);
-               comboBoxItems = "";
+               comboBoxItems = ""; //$NON-NLS-1$
             }
          }
 
@@ -458,9 +458,9 @@ public class B2WizardPage extends WizardPage
 
    public void addComboItemToWorkingSet()
    {
-      if (workingSetCombo.getText().contains(","))
+      if (workingSetCombo.getText().contains(",")) //$NON-NLS-1$
       {
-         String[] splitItems = workingSetCombo.getText().split(",");
+         String[] splitItems = workingSetCombo.getText().split(","); //$NON-NLS-1$
          workingSet = new IWorkingSet[splitItems.length];
          for (int i = 0; i < splitItems.length; i++)
          {
@@ -569,10 +569,12 @@ public class B2WizardPage extends WizardPage
 
    private void setCategoriesChecked()
    {
-
-      for (final Category category : getTreeViewerInput().getCategories())
+      if (getTreeViewerInput().getCategories() != null)
       {
-         dirTreeViewer.setChecked(category, true);
+         for (final Category category : getTreeViewerInput().getCategories())
+         {
+            dirTreeViewer.setChecked(category, true);
+         }
       }
 
 
@@ -604,7 +606,7 @@ public class B2WizardPage extends WizardPage
       {
          for (int y = 0; y < workingSetManager.getWorkingSets().length; y++)
          {
-            if (item.contains(",") && item.contains(workingSetManager.getWorkingSets()[y].getName()))
+            if (item.contains(",") && item.contains(workingSetManager.getWorkingSets()[y].getName())) //$NON-NLS-1$
             {
                break;
             }
@@ -633,9 +635,9 @@ public class B2WizardPage extends WizardPage
       int counter = 0;
       for (final String wsitem : workingSetCombo.getItems())
       {
-         if (wsitem.contains(","))
+         if (wsitem.contains(",")) //$NON-NLS-1$
          {
-            String[] splitItems = wsitem.split(",");
+            String[] splitItems = wsitem.split(","); //$NON-NLS-1$
             for (final String item : splitItems)
             {
                for (final IWorkingSet workingSet : workingSetManager.getWorkingSets())
@@ -650,7 +652,7 @@ public class B2WizardPage extends WizardPage
             }
             if (splitItems.length != counter)
             {
-               System.out.println(splitItems.length + "      " + counter);
+               System.out.println(splitItems.length + "      " + counter); //$NON-NLS-1$
                workingSetCombo.remove(wsitem);
 
             }
@@ -670,7 +672,7 @@ public class B2WizardPage extends WizardPage
          for (int y = 0; y < workingSetManager.getWorkingSets().length; y++)
          {
 
-            if (getDialogSettings().getSection(dialogSetting.getName()).getName().contains(",")
+            if (getDialogSettings().getSection(dialogSetting.getName()).getName().contains(",") //$NON-NLS-1$
                && getDialogSettings().getSection(dialogSetting.getName()).getName()
                   .contains(workingSetManager.getWorkingSets()[y].getName()))
             {
@@ -710,9 +712,9 @@ public class B2WizardPage extends WizardPage
       int counter = 0;
       for (final IDialogSettings dialogSetting : getDialogSettings().getSections())
       {
-         if (getDialogSettings().getSection(dialogSetting.getName()).getName().contains(","))
+         if (getDialogSettings().getSection(dialogSetting.getName()).getName().contains(",")) //$NON-NLS-1$
          {
-            String[] splitItems = getDialogSettings().getSection(dialogSetting.getName()).getName().split(",");
+            String[] splitItems = getDialogSettings().getSection(dialogSetting.getName()).getName().split(","); //$NON-NLS-1$
             for (final String item : splitItems)
             {
 
@@ -754,14 +756,14 @@ public class B2WizardPage extends WizardPage
          DocumentBuilder builder = factory.newDocumentBuilder();
          Document doc = builder.parse(getWorkingSetXML());
 
-         NodeList nodes = doc.getElementsByTagName("section");
+         NodeList nodes = doc.getElementsByTagName("section"); //$NON-NLS-1$
 
          for (int i = 0; i < nodes.getLength(); i++)
          {
 
             Element rmSection = (Element) nodes.item(i);
 
-            if (rmSection.getAttribute("name").equals(sectionName))
+            if (rmSection.getAttribute("name").equals(sectionName)) //$NON-NLS-1$
             {
                rmSection.getParentNode().removeChild(rmSection);
             }
@@ -793,7 +795,7 @@ public class B2WizardPage extends WizardPage
    private void saveXMLChanges(Document doc) throws TransformerException, IOException
    {
       Transformer transformer = TransformerFactory.newInstance().newTransformer();
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes"); //$NON-NLS-1$
 
       StreamResult strmResult = new StreamResult(new StringWriter());
       DOMSource domSource = new DOMSource(doc);
@@ -801,7 +803,7 @@ public class B2WizardPage extends WizardPage
 
       String xmlData = strmResult.getWriter().toString();
 
-      byte xmlContent[] = xmlData.getBytes("UTF-8");
+      byte xmlContent[] = xmlData.getBytes("UTF-8"); //$NON-NLS-1$
 
       FileWriter fileWriter = null;
       try
