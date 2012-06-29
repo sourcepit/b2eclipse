@@ -17,7 +17,7 @@
             id="org.sourcepit.b2eclipse.checkOut"
             objectClass="org.eclipse.team.svn.ui.repository.model.RepositoryFolder">
          <action
-                  class="org.sourcepit.b2eclipse.Open"
+                  class="org.sourcepit.b2eclipse.action.B2Checkout"
                   menubarPath="checkoutGroup"
                   id="de.visualrules.b2eclipse.ui.checkout"
                label="Check out as b2 Project...">

@@ -4,18 +4,19 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-package org.sourcepit.b2eclipse;
+package org.sourcepit.b2eclipse.action;
 
 import java.io.File;
 
-import org.eclipse.core.commands.AbstractHandler;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -34,108 +35,26 @@ import org.eclipse.team.svn.core.utility.ProgressMonitorUtility;
 import org.eclipse.team.svn.ui.action.remote.CheckoutAction;
 import org.eclipse.team.svn.ui.repository.model.RepositoryResource;
 import org.eclipse.ui.IActionDelegate2;
-import org.eclipse.ui.IObjectActionDelegate;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
 
-public class Open extends AbstractHandler
-   implements
-      IObjectActionDelegate,
-      IViewActionDelegate,
-      IWorkbenchWindowActionDelegate,
-      IActionDelegate2
+public class B2Checkout implements IViewActionDelegate, IActionDelegate2
 {
 
    private Shell shell;
    private IRepositoryResource selectedResource;
    private IProject project;
-
+   private IWorkspace workspace;
    private CheckoutAction checkoutAction;
 
-   public Open()
+   public B2Checkout()
    {
       checkoutAction = new CheckoutAction();
    }
 
-   //
-   // public void selectionChanged(IAction action, ISelection selection)
-   // {
-   //
-   // }
-   //
-   // public void init(IViewPart view)
-   // {
-   // super.init(view);
-   // workbench = view.getViewSite().getWorkbenchWindow().getWorkbench();
-   // shell = view.getViewSite().getShell();
-   //
-   // }
-   //
-   //
-   // @Override
-   // protected void execute(IAction action) throws InvocationTargetException, InterruptedException
-   // {
-   // super.execute(action);
-   // RepositoryFolder folder = null;
-   // String label = folder.getLabel();
-   // IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(label);
-   // B2Wizard wizard = new B2Wizard();
-   // wizard.init(workbench, new StructuredSelection(project));
-   // WizardDialog dialog = new WizardDialog(shell, wizard);
-   // dialog.open();
-   // }
-
    public void run(IAction action)
    {
-
-      // checkoutAction.run(action);
-      // createOperation((IRepositoryContainer)selectedResource, new File("D:/TestOrdner"));
-      createProject();
-      try
-      {
-         checkoutProject(project.getLocation().toFile(), new NullProgressMonitor());
-
-      }
-      catch (CoreException e)
-      {
-         // TODO: git_user_name Auto-generated catch block
-         e.printStackTrace();
-      }
-      catch (InterruptedException e)
-      {
-         // TODO: git_user_name Auto-generated catch block
-         e.printStackTrace();
-      }
-
-      openWizard();
-   }
-
-   public Object execute(ExecutionEvent event) throws ExecutionException
-   {
-      // Object result = checkoutAction.execute(event);
-      Object result = null;
-      createProject();
-      try
-      {
-         checkoutProject(project.getLocation().toFile(), new NullProgressMonitor());
-
-      }
-      catch (CoreException e)
-      {
-         // TODO: git_user_name Auto-generated catch block
-         e.printStackTrace();
-      }
-      catch (InterruptedException e)
-      {
-         // TODO: git_user_name Auto-generated catch block
-         e.printStackTrace();
-      }
-      openWizard();
-      return result;
    }
 
    public void init(IAction action)
@@ -145,40 +64,27 @@ public class Open extends AbstractHandler
 
    public void runWithEvent(IAction action, Event event)
    {
-      // createOperation((IRepositoryContainer)selectedResource, new File("D:/TestOrdner"));
-      // checkoutAction.runWithEvent(action, event);
-      createProject();
+      createProjects();
       try
       {
-         checkoutProject(project.getLocation().toFile(), new NullProgressMonitor());
+         checkout(project.getLocation().toFile(), new NullProgressMonitor());
+         workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE, null);
 
       }
       catch (CoreException e)
       {
-         // TODO: git_user_name Auto-generated catch block
-         e.printStackTrace();
+         throw new IllegalStateException(e);
       }
       catch (InterruptedException e)
       {
-         // TODO: git_user_name Auto-generated catch block
-         e.printStackTrace();
+         throw new IllegalStateException(e);
       }
       openWizard();
    }
 
-   public void init(IWorkbenchWindow window)
-   {
-      checkoutAction.init(window);
-   }
-
-   public void setActivePart(IAction action, IWorkbenchPart targetPart)
-   {
-      checkoutAction.setActivePart(action, targetPart);
-   }
 
    public void selectionChanged(IAction action, ISelection selection)
    {
-      // checkoutAction.selectionChanged(action, selection);
       IStructuredSelection se = (IStructuredSelection) selection;
       if (selection instanceof IStructuredSelection)
       {
@@ -186,7 +92,6 @@ public class Open extends AbstractHandler
          if (element instanceof RepositoryResource)
          {
             selectedResource = ((RepositoryResource) element).getRepositoryResource();
-            System.out.println("Pfad:" + selectedResource.getUrl());
          }
       }
 
@@ -220,7 +125,7 @@ public class Open extends AbstractHandler
       return op;
    }
 
-   public void checkoutProject(File location, IProgressMonitor monitor) throws CoreException, InterruptedException
+   public void checkout(File location, IProgressMonitor monitor) throws CoreException, InterruptedException
    {
 
       IRepositoryContainer container = (IRepositoryContainer) selectedResource;
@@ -233,11 +138,26 @@ public class Open extends AbstractHandler
          return;
    }
 
-   public void createProject()
+
+   public void createProjects()
    {
-      
+      workspace = ResourcesPlugin.getWorkspace();
+      project = workspace.getRoot().getProject(selectedResource.getName());
+
+      try
+      {
+         JavaCapabilityConfigurationPage.createProject(project, workspace.getRoot().getLocationURI(), null);
+      }
+      catch (CoreException e)
+      {
+         throw new IllegalStateException(e);
+      }
+
 
    }
 
+   public void dispose()
+   {
+   }
 
 }
