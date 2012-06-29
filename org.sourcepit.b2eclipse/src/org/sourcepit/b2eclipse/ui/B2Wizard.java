@@ -54,7 +54,6 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       super();
       setWindowTitle("Import");
       setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(B2WizardPage.class, "ProjectFolder.gif"));
-
       modulePage = new B2WizardPage("Module");
       setNeedsProgressMonitor(true);
       dialogSettings = new DialogSettings("workingSets");
@@ -110,6 +109,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
       return false;
    }
+  
 
    private boolean doPerformFinish()
    {
@@ -268,5 +268,6 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
 
    }
+
 
 }

@@ -12,8 +12,6 @@ public class WizardPageOneTest
    public void setUp() throws Exception
    {
       wizardPageOne = new B2WizardPage("Module");
-      
-      
    }
 
    @After

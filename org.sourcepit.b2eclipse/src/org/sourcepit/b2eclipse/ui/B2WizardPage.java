@@ -89,7 +89,6 @@ public class B2WizardPage extends WizardPage
 
 
       super(name);
-
       setTitle(Messages.B2WizardPage_1);
       setDescription(Messages.B2WizardPage_2);
 
@@ -132,7 +131,7 @@ public class B2WizardPage extends WizardPage
    /**
     * add Widgets on Wizard Page
     */
-   private void addWidgets()
+   public void addWidgets()
    {
       GridData gridData = new GridData();
       gridData.horizontalAlignment = SWT.FILL;
@@ -145,6 +144,7 @@ public class B2WizardPage extends WizardPage
       GridData gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
       gridData3.widthHint = 500;
       gridData3.heightHint = 300;
+
 
       rBtn1 = new Button(modulePageWidgetContainer, SWT.RADIO);
       rBtn1.setText(Messages.B2WizardPage_3);
@@ -168,6 +168,7 @@ public class B2WizardPage extends WizardPage
       workspaceBtn.setText(Messages.B2WizardPage_6);
       workspaceBtn.setEnabled(false);
       workspaceBtn.setLayoutData(gridData2);
+
 
       dirTreeViewer = new CheckboxTreeViewer(modulePageWidgetContainer);
       dirTreeViewer.setContentProvider(new ContentProvider());
@@ -607,8 +608,8 @@ public class B2WizardPage extends WizardPage
 
    public void clearArrayList()
    {
-
-      treeViewerInput.clearArrayList();
+      if (treeViewerInput != null)
+         treeViewerInput.clearArrayList();
    }
 
    private void checkWorkingSetCombo()
@@ -856,5 +857,6 @@ public class B2WizardPage extends WizardPage
       treeViewerInput = (TreeViewerInput) dirTreeViewer.getInput();
       return treeViewerInput;
    }
+
 
 }
