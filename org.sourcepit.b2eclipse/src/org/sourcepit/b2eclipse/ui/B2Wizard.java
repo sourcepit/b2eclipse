@@ -244,6 +244,10 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().removeSelectionListener(this);
       super.dispose();
    }
+   
+   public B2WizardPage getB2WizardPage(){
+	   return modulePage;
+   }
 
 
    private void createProjects(int projectsListPosition)

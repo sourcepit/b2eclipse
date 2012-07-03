@@ -6,7 +6,7 @@
       <wizard
             class="org.sourcepit.b2eclipse.ui.B2Wizard"
             icon="src/org/sourcepit/b2eclipse/ui/activity_act_003.gif"
-            id="de.visualrules.b2eclipse.ui.ImportWizard"
+            id="ImportWizard"
             name="Import Modules">
       </wizard>
    </extension>
@@ -14,23 +14,14 @@
             point="org.eclipse.ui.popupMenus">
       <objectContribution
             adaptable="false"
-            id="org.sourcepit.b2eclipse.checkOut"
+            id="org.sourcepit.b2eclipse.SVNcheckout"
             objectClass="org.eclipse.team.svn.ui.repository.model.RepositoryFolder">
          <action
-                  class="org.sourcepit.b2eclipse.action.B2Checkout"
+                  class="org.sourcepit.b2eclipse.action.B2SVNCheckout"
                   menubarPath="checkoutGroup"
-                  id="de.visualrules.b2eclipse.ui.checkout"
+                  id="SVNcheckoutAction"
                label="Check out as b2 Project...">
          </action>         
       </objectContribution>
-      
             </extension>
- <extension
-       point="org.eclipse.ui.preferencePages">
-    <page
-          class="org.sourcepit.b2eclipse.ui.B2WizardPage"
-          id="org.sourcepit.b2eclipse.ui.b2eclipsePP"
-          name="DirectoryDialog">
-    </page>
- </extension>
 </plugin>
