@@ -4,7 +4,7 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-package org.sourcepit.b2eclipse.action;
+package org.sourcepit.b2eclipse.checkout;
 
 import java.io.File;
 
@@ -34,12 +34,10 @@ import org.eclipse.team.svn.core.utility.ILoggedOperationFactory;
 import org.eclipse.team.svn.core.utility.ProgressMonitorUtility;
 import org.eclipse.team.svn.ui.action.remote.CheckoutAction;
 import org.eclipse.team.svn.ui.repository.model.RepositoryResource;
-import org.eclipse.ui.IActionDelegate2;
-import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
 
-public class B2SVNCheckout implements IViewActionDelegate, IActionDelegate2 {
+public class B2SVNCheckout implements ICheckout {
 
 	private Shell shell;
 	private IRepositoryResource selectedResource;
