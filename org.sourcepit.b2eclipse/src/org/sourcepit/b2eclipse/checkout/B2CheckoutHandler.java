@@ -8,6 +8,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 public abstract class B2CheckoutHandler extends AbstractHandler {
@@ -20,6 +21,11 @@ public abstract class B2CheckoutHandler extends AbstractHandler {
 	            return ((IStructuredSelection)selection).toList();
 	        else
 	            return Collections.emptyList();
+	    }
+	
+	   public Shell getShell(ExecutionEvent event)
+	    {
+	        return HandlerUtil.getActiveShell(event);
 	    }
 
 }
