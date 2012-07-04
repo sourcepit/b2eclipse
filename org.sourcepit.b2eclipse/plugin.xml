@@ -5,9 +5,9 @@
          point="org.eclipse.ui.importWizards">
       <wizard
             class="org.sourcepit.b2eclipse.ui.B2Wizard"
-            icon="src/org/sourcepit/b2eclipse/ui/activity_act_003.gif"
+            icon="src/org/sourcepit/b2eclipse/ui/b2.gif"
             id="ImportWizard"
-            name="Import Modules">
+            name="Check out b2 Project/s...">
       </wizard>
    </extension>
    <extension
@@ -20,7 +20,8 @@
                   class="org.sourcepit.b2eclipse.checkout.B2SVNCheckout"
                   menubarPath="checkoutGroup"
                   id="SVNcheckoutAction"
-               label="Check out as b2 Project...">
+                  icon="src/org/sourcepit/b2eclipse/ui/b2.gif"
+               label="Check out b2 Project/s...">
          </action>         
       </objectContribution>
             </extension>
@@ -36,8 +37,8 @@
             locationURI="popup:org.eclipse.egit.ui.RepositoriesView">
         <command
                commandId="org.sourcepit.b2eclipse.ui.B2Wizard"
-               icon="icons/obj16/import_prj.gif"
-               label="Check out as b2 Project..."
+               icon="src/org/sourcepit/b2eclipse/ui/b2.gif"
+               label="Check out b2 Project/s..."
                style="push">
             <visibleWhen
                   checkEnabled="false">
