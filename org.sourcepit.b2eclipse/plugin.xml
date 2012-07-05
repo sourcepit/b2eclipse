@@ -27,8 +27,9 @@
             </extension>
             <extension point="org.eclipse.ui.commands">
         <command
+        	name="B2Git"
             defaultHandler="org.sourcepit.b2eclipse.checkout.B2GitCheckout"
-            id="org.sourcepit.b2eclipse.ui.B2Wizard">
+            id="org.sourcepit.b2eclipse.ui.B2Git">
       </command>
 </extension>
              <extension
@@ -36,7 +37,7 @@
          <menuContribution
             locationURI="popup:org.eclipse.egit.ui.RepositoriesView">
         <command
-               commandId="org.sourcepit.b2eclipse.ui.B2Wizard"
+               commandId="org.sourcepit.b2eclipse.ui.B2Git"
                icon="src/org/sourcepit/b2eclipse/ui/b2.gif"
                label="Check out b2 Project/s..."
                style="push">
@@ -61,4 +62,10 @@
          </command>
          </menuContribution>
          </extension>
+         <extension point="org.eclipse.ui.bindings">
+<key
+  sequence="C"
+  commandId="org.sourcepit.b2eclipse.ui.B2Git"
+  schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+</extension>
 </plugin>

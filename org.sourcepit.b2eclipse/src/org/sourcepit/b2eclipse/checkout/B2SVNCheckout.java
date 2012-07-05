@@ -34,10 +34,12 @@ import org.eclipse.team.svn.core.utility.ILoggedOperationFactory;
 import org.eclipse.team.svn.core.utility.ProgressMonitorUtility;
 import org.eclipse.team.svn.ui.action.remote.CheckoutAction;
 import org.eclipse.team.svn.ui.repository.model.RepositoryResource;
+import org.eclipse.ui.IActionDelegate2;
+import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
 
-public class B2SVNCheckout implements ICheckout {
+public class B2SVNCheckout implements IViewActionDelegate, IActionDelegate2 {
 
 	private Shell shell;
 	private IRepositoryResource selectedResource;
@@ -52,7 +54,6 @@ public class B2SVNCheckout implements ICheckout {
 	public void run(IAction action) {
 	}
 
-	@SuppressWarnings("restriction")
 	public void init(IAction action) {
 		checkoutAction.init(action);
 	}
@@ -84,7 +85,6 @@ public class B2SVNCheckout implements ICheckout {
 
 	}
 
-	@SuppressWarnings("restriction")
 	public void init(IViewPart view) {
 		checkoutAction.init(view);
 		shell = view.getViewSite().getShell();

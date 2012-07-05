@@ -19,7 +19,7 @@ public class B2GitCheckout extends B2CheckoutHandler {
 	}
 
 	public Object execute(ExecutionEvent arg0) throws ExecutionException {
-		RepositoryTreeNode node = (RepositoryTreeNode) getSelectedNodes(arg0)
+		RepositoryTreeNode<?> node = (RepositoryTreeNode<?>) getSelectedNodes(arg0)
 				.get(0);
 
 		if (node.getType() == RepositoryTreeNodeType.WORKINGDIR)

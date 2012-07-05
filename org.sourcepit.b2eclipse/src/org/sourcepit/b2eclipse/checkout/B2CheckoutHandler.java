@@ -13,7 +13,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 public abstract class B2CheckoutHandler extends AbstractHandler {
 
-	public List getSelectedNodes(ExecutionEvent event)
+	public List<?> getSelectedNodes(ExecutionEvent event)
 	        throws ExecutionException
 	    {
 	        ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
