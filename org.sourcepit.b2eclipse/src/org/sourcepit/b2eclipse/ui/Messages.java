@@ -11,6 +11,10 @@ import org.eclipse.osgi.util.NLS;
 public class Messages extends NLS
 {
    private static final String BUNDLE_NAME = "org.sourcepit.b2eclipse.ui.messages"; //$NON-NLS-1$
+   public static String B2Wizard_1;
+   public static String B2Wizard_2;
+   public static String B2Wizard_3;
+   public static String B2Wizard_4;
    public static String B2WizardPage_1;
    public static String B2WizardPage_10;
    public static String B2WizardPage_11;

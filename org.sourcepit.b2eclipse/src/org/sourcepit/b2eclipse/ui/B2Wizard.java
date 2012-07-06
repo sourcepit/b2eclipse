@@ -52,9 +52,9 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    public B2Wizard()
    {
       super();
-      setWindowTitle("Import");
+      setWindowTitle(Messages.B2Wizard_1);
       setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(B2WizardPage.class, "ProjectFolder.gif"));
-      modulePage = new B2WizardPage("Module");
+      modulePage = new B2WizardPage(Messages.B2Wizard_2);
       setNeedsProgressMonitor(true);
       dialogSettings = new DialogSettings("workingSets");
 
@@ -127,7 +127,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
                {
                   public void run(IProgressMonitor monitor) throws CoreException
                   {
-                     monitor.beginTask("Creating projects", projectList.size());
+                     monitor.beginTask(Messages.B2Wizard_3, projectList.size());
                      try
                      {
                         for (int i = 0; i < projectList.size(); i++)
@@ -136,7 +136,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
                            {
                               return;
                            }
-                           monitor.subTask("Working on " + projectList.get(i).getParent());
+                           monitor.subTask(Messages.B2Wizard_4 + " " + projectList.get(i).getParent());
                            createProjects(i);
                            monitor.worked(1);
                         }
