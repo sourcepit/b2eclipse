@@ -74,9 +74,9 @@ public class B2SVNCheckout implements IViewActionDelegate, IActionDelegate2 {
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
-		IStructuredSelection se = (IStructuredSelection) selection;
+		IStructuredSelection ss = (IStructuredSelection) selection;
 		if (selection instanceof IStructuredSelection) {
-			Object element = se.getFirstElement();
+			Object element = ss.getFirstElement();
 			if (element instanceof RepositoryResource) {
 				selectedResource = ((RepositoryResource) element)
 						.getRepositoryResource();

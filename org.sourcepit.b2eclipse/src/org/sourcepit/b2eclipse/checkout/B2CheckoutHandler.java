@@ -14,18 +14,16 @@ import org.eclipse.ui.handlers.HandlerUtil;
 public abstract class B2CheckoutHandler extends AbstractHandler {
 
 	public List<?> getSelectedNodes(ExecutionEvent event)
-	        throws ExecutionException
-	    {
-	        ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
-	        if(selection instanceof IStructuredSelection)
-	            return ((IStructuredSelection)selection).toList();
-	        else
-	            return Collections.emptyList();
-	    }
-	
-	   public Shell getShell(ExecutionEvent event)
-	    {
-	        return HandlerUtil.getActiveShell(event);
-	    }
+			throws ExecutionException {
+		ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
+		if (selection instanceof IStructuredSelection)
+			return ((IStructuredSelection) selection).toList();
+		else
+			return Collections.emptyList();
+	}
+
+	public Shell getShell(ExecutionEvent event) {
+		return HandlerUtil.getActiveShell(event);
+	}
 
 }

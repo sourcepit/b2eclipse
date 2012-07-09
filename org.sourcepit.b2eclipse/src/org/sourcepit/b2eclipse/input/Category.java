@@ -10,32 +10,25 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Category
-{
-   private String categoryName;
-   private List<File> modules = new ArrayList<File>();
+public class Category {
+	private String categoryName;
+	private List<File> modules = new ArrayList<File>();
 
-   public String getName()
-   {
-      return categoryName;
-   }
+	public String getName() {
+		return categoryName;
+	}
 
-   public void setName(String name)
-   {
-      if ("".equals(name))
-      {
-         throw new IllegalArgumentException();
-      }
-      else
-      {
-         this.categoryName = name;
-      }
+	public void setName(String name) {
+		if ("".equals(name)) {
+			throw new IllegalArgumentException();
+		} else {
+			this.categoryName = name;
+		}
 
-   }
+	}
 
-   public List<File> getModules()
-   {
-      return modules;
-   }
+	public List<File> getModules() {
+		return modules;
+	}
 
 }

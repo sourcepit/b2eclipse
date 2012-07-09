@@ -14,17 +14,13 @@ import org.sourcepit.b2eclipse.ui.B2Wizard;
 public class B2GitCheckout extends B2CheckoutHandler {
 	private String path;
 
-	public B2GitCheckout() {
-
-	}
-
 	public Object execute(ExecutionEvent arg0) throws ExecutionException {
-		RepositoryTreeNode<?> node = (RepositoryTreeNode<?>) getSelectedNodes(arg0)
-				.get(0);
+		RepositoryTreeNode<?> node = (RepositoryTreeNode<?>) getSelectedNodes(
+				arg0).get(0);
 
 		if (node.getType() == RepositoryTreeNodeType.WORKINGDIR)
 			path = node.getRepository().getWorkTree().toString();
-		else if(node.getType() == RepositoryTreeNodeType.FOLDER)
+		else if (node.getType() == RepositoryTreeNodeType.FOLDER)
 			path = ((File) ((FolderNode) node).getObject()).getPath()
 					.toString();
 		else

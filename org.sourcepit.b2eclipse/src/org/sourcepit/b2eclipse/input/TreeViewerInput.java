@@ -10,158 +10,133 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+public class TreeViewerInput {
 
-public class TreeViewerInput
-{
+	private File[] projects;
+	private ArrayList<File> projectFileList = new ArrayList<File>();
+	private ArrayList<String> dirList = new ArrayList<String>();
+	private List<Category> categories;
 
-   private File[] projects;
-   private ArrayList<File> projectFileList = new ArrayList<File>();
-   private ArrayList<String> dirList = new ArrayList<String>();
-   private List<Category> categories;
+	public TreeViewerInput() {
+	};
 
-   public TreeViewerInput()
-   {
-   };
+	public TreeViewerInput(Object inputElement) {
 
-   public TreeViewerInput(Object inputElement)
-   {
+		File[] elementList = ((File) inputElement).listFiles();
 
-      File[] elementList = ((File) inputElement).listFiles();
+		if (elementList != null) {
 
-      if (elementList != null)
-      {
+			getProjects(inputElement);
 
+		}
 
-         getProjects(inputElement);
+		projects = new File[projectFileList.size()];
+		for (int y = 0; y < projects.length; y++) {
+			projects[y] = projectFileList.get(y);
 
+		}
+	}
 
-      }
+	public List<Category> getData() {
+		categories = new ArrayList<Category>();
 
+		Category categoryModules = new Category();
+		categoryModules.setName("Plugins");
+		categories.add(categoryModules);
 
-      projects = new File[projectFileList.size()];
-      for (int y = 0; y < projects.length; y++)
-      {
-         projects[y] = projectFileList.get(y);
+		Category categoryTests = new Category();
+		categoryTests.setName("Tests");
+		categories.add(categoryTests);
 
+		Category categoryDocs = new Category();
+		categoryDocs.setName("Docs");
+		categories.add(categoryDocs);
 
-      }
-   }
+		for (int i = 0; i < projects.length; i++) {
+			if (!projects[i].getParent().endsWith(".tests")
+					&& !new File(projects[i].getParent()).getParent().endsWith(
+							"tests")
+					&& !projects[i].getParent().endsWith(".doc")
+					&& !new File(projects[i].getParent()).getParent().endsWith(
+							"doc")) {
+				categoryModules.getModules().add(projects[i]);
+			}
+			if (projects[i].getParent().endsWith(".tests")
+					|| new File(projects[i].getParent()).getParent().endsWith(
+							"tests")) {
+				categoryTests.getModules().add(projects[i]);
+			}
+			if (projects[i].getParent().endsWith(".doc")
+					|| new File(projects[i].getParent()).getParent().endsWith(
+							"doc")) {
+				categoryDocs.getModules().add(projects[i]);
+			}
+		}
 
+		return categories;
+	}
 
-   public List<Category> getData()
-   {
-      categories = new ArrayList<Category>();
+	private ArrayList<File> getProjects(Object inputElement) {
 
-      Category categoryModules = new Category();
-      categoryModules.setName("Plugins");
-      categories.add(categoryModules);
+		File[] elementList = ((File) inputElement).listFiles();
+		getDirList().clear();
 
-      Category categoryTests = new Category();
-      categoryTests.setName("Tests");
-      categories.add(categoryTests);
+		for (File i : elementList) {
+			setDirList(i.getName());
+		}
 
-      Category categoryDocs = new Category();
-      categoryDocs.setName("Docs");
-      categories.add(categoryDocs);
+		if ((dirList.contains("module.xml") && !(dirList.contains(".project")))
+				|| (dirList.contains("module.xml") && dirList
+						.contains(".project"))
+				|| (!(dirList.contains("module.xml")) && !(dirList
+						.contains(".project")))) {
+			doModuleSearch(elementList);
+		}
 
-      for (int i = 0; i < projects.length; i++)
-      {
-         if (!projects[i].getParent().endsWith(".tests")
-            && !new File(projects[i].getParent()).getParent().endsWith("tests")
-            && !projects[i].getParent().endsWith(".doc")
-            && !new File(projects[i].getParent()).getParent().endsWith("doc"))
-         {
-            categoryModules.getModules().add(projects[i]);
-         }
-         if (projects[i].getParent().endsWith(".tests")
-            || new File(projects[i].getParent()).getParent().endsWith("tests"))
-         {
-            categoryTests.getModules().add(projects[i]);
-         }
-         if (projects[i].getParent().endsWith(".doc") || new File(projects[i].getParent()).getParent().endsWith("doc"))
-         {
-            categoryDocs.getModules().add(projects[i]);
-         }
-      }
+		else if (!(dirList.contains("module.xml"))
+				&& dirList.contains(".project")) {
+			doProjectSearch(elementList);
+		}
 
+		return projectFileList;
+	}
 
-      return categories;
-   }
+	public void clearArrayList() {
+		projectFileList.clear();
+	}
 
-   private ArrayList<File> getProjects(Object inputElement)
-   {
+	public ArrayList<File> getProjectFileList() {
+		return projectFileList;
+	}
 
-      File[] elementList = ((File) inputElement).listFiles();
-      getDirList().clear();
+	public List<Category> getCategories() {
+		return categories;
+	}
 
-      for (File i : elementList)
-      {
-         setDirList(i.getName());
-      }
+	private ArrayList<String> getDirList() {
+		return dirList;
+	}
 
-      if ((dirList.contains("module.xml") && !(dirList.contains(".project")))
-         || (dirList.contains("module.xml") && dirList.contains(".project"))
-         || (!(dirList.contains("module.xml")) && !(dirList.contains(".project"))))
-      {
-         doModuleSearch(elementList);
-      }
+	private void setDirList(String file) {
+		dirList.add(file);
+	}
 
-      else if (!(dirList.contains("module.xml")) && dirList.contains(".project"))
-      {
-         doProjectSearch(elementList);
-      }
+	private void doModuleSearch(File[] elementList) {
 
+		for (File file : elementList) {
+			if (file.isDirectory() && !(file.getName().startsWith("."))
+					&& !(file.getName().equals("target"))) {
+				getProjects(file);
+			}
+		}
+	}
 
-      return projectFileList;
-   }
-
-   public void clearArrayList()
-   {
-      projectFileList.clear();
-   }
-
-   public ArrayList<File> getProjectFileList()
-   {
-      return projectFileList;
-   }
-
-   public List<Category> getCategories()
-   {
-      return categories;
-   }
-
-   private ArrayList<String> getDirList()
-   {
-      return dirList;
-   }
-
-   private void setDirList(String file)
-   {
-      dirList.add(file);
-   }
-
-   private void doModuleSearch(File[] elementList)
-   {
-
-      for (File file : elementList)
-      {
-         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
-         {
-            getProjects(file);
-         }
-      }
-   }
-
-   private void doProjectSearch(File[] elementList)
-   {
-      for (File file : elementList)
-      {
-         if (file.getName().equals(".project"))
-         {
-            projectFileList.add(file.getAbsoluteFile());
-         }
-      }
-   }
-
+	private void doProjectSearch(File[] elementList) {
+		for (File file : elementList) {
+			if (file.getName().equals(".project")) {
+				projectFileList.add(file.getAbsoluteFile());
+			}
+		}
+	}
 
 }

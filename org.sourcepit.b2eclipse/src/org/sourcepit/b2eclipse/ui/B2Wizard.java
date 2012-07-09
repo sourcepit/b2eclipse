@@ -6,7 +6,6 @@
 
 package org.sourcepit.b2eclipse.ui;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -41,237 +40,198 @@ import org.sourcepit.b2eclipse.Activator;
  * @author Marco Grupe
  */
 
-public class B2Wizard extends Wizard implements IImportWizard, ISelectionListener
-{
-   private B2WizardPage modulePage;
-   private List<File> projectList;
-   private static final String DIALOG_SETTING_FILE = "workingSets.xml";
-   private File workingSetsXML;
-   private DialogSettings dialogSettings;
+public class B2Wizard extends Wizard implements IImportWizard,
+		ISelectionListener {
+	private B2WizardPage modulePage;
+	private List<File> projectList;
+	private static final String DIALOG_SETTING_FILE = "workingSets.xml";
+	private File workingSetsXML;
+	private DialogSettings dialogSettings;
 
-   public B2Wizard()
-   {
-      super();
-      setWindowTitle(Messages.B2Wizard_1);
-      setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(B2WizardPage.class, "ProjectFolder.gif"));
-      modulePage = new B2WizardPage(Messages.B2Wizard_2);
-      setNeedsProgressMonitor(true);
-      dialogSettings = new DialogSettings("workingSets");
+	public B2Wizard() {
+		super();
+		setWindowTitle(Messages.B2Wizard_1);
+		setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(
+				B2WizardPage.class, "ProjectFolder.gif"));
+		modulePage = new B2WizardPage(Messages.B2Wizard_2);
+		setNeedsProgressMonitor(true);
+		dialogSettings = new DialogSettings("workingSets");
 
-      workingSetsXML = new File(DIALOG_SETTING_FILE);
-      modulePage.setWorkingSetXML(workingSetsXML);
+		workingSetsXML = new File(DIALOG_SETTING_FILE);
+		modulePage.setWorkingSetXML(workingSetsXML);
 
-      if (!workingSetsXML.exists())
-      {
-         try
-         {
+		if (!workingSetsXML.exists()) {
+			try {
 
-            workingSetsXML.createNewFile();
-            dialogSettings.save(DIALOG_SETTING_FILE);
+				workingSetsXML.createNewFile();
+				dialogSettings.save(DIALOG_SETTING_FILE);
 
-         }
-         catch (IOException e)
-         {
-            throw new IllegalStateException(e);
-         }
-      }
+			} catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
+		}
 
-      try
-      {
-         dialogSettings.load(DIALOG_SETTING_FILE);
-      }
-      catch (IOException e)
-      {
-         throw new IllegalStateException(e);
-      }
+		try {
+			dialogSettings.load(DIALOG_SETTING_FILE);
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
 
-      setDialogSettings(dialogSettings);
+		setDialogSettings(dialogSettings);
 
-      addPage(modulePage);
+		addPage(modulePage);
 
+	}
 
-   }
+	/**
+	 * After pressing the finish button the selected projects will be create
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean performFinish() {
+		try {
+			return doPerformFinish();
+		} catch (RuntimeException e) {
+			Activator.error(e);
+		}
+		return false;
+	}
 
+	private boolean doPerformFinish() {
+		saveDialogSettings();
 
-   /**
-    * After pressing the finish button the selected projects will be create {@inheritDoc}
-    */
-   @Override
-   public boolean performFinish()
-   {
-      try
-      {
-         return doPerformFinish();
-      }
-      catch (RuntimeException e)
-      {
-         Activator.error(e);
-      }
-      return false;
-   }
-  
+		projectList = modulePage.getSelectedProjects();
 
-   private boolean doPerformFinish()
-   {
-      saveDialogSettings();
+		final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress() {
+			public void run(IProgressMonitor monitor)
+					throws InvocationTargetException {
+				try {
+					ResourcesPlugin.getWorkspace().run(
+							new IWorkspaceRunnable() {
+								public void run(IProgressMonitor monitor)
+										throws CoreException {
+									monitor.beginTask(Messages.B2Wizard_3,
+											projectList.size());
+									try {
+										for (int i = 0; i < projectList.size(); i++) {
+											if (monitor.isCanceled()) {
+												return;
+											}
+											monitor.subTask(Messages.B2Wizard_4
+													+ " "
+													+ projectList.get(i)
+															.getParent());
+											createProjects(i);
+											monitor.worked(1);
+										}
+									} finally {
+										monitor.done();
+									}
+								}
+							}, monitor);
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
+				}
+			}
+		};
 
-      projectList = modulePage.getSelectedProjects();
+		runWithProgress(runnableWithProgress);
 
-      final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
-      {
-         public void run(IProgressMonitor monitor) throws InvocationTargetException
-         {
-            try
-            {
-               ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable()
-               {
-                  public void run(IProgressMonitor monitor) throws CoreException
-                  {
-                     monitor.beginTask(Messages.B2Wizard_3, projectList.size());
-                     try
-                     {
-                        for (int i = 0; i < projectList.size(); i++)
-                        {
-                           if (monitor.isCanceled())
-                           {
-                              return;
-                           }
-                           monitor.subTask(Messages.B2Wizard_4 + " " + projectList.get(i).getParent());
-                           createProjects(i);
-                           monitor.worked(1);
-                        }
-                     }
-                     finally
-                     {
-                        monitor.done();
-                     }
-                  }
-               }, monitor);
-            }
-            catch (CoreException e)
-            {
-               throw new InvocationTargetException(e);
-            }
-         }
-      };
+		return true;
+	}
 
-      runWithProgress(runnableWithProgress);
+	private void runWithProgress(
+			final IRunnableWithProgress runnableWithProgress) {
+		try {
+			getContainer().run(true, true, runnableWithProgress);
+		} catch (InvocationTargetException e) {
+			throw new IllegalStateException(e);
+		} catch (InterruptedException e) {
+			throw new IllegalStateException(e);
+		}
+	}
 
-      return true;
-   }
+	private void saveDialogSettings() {
+		try {
+			getDialogSettings().save(DIALOG_SETTING_FILE);
+		} catch (IOException e1) {
+			throw new IllegalStateException(e1);
+		}
+	}
 
-   private void runWithProgress(final IRunnableWithProgress runnableWithProgress)
-   {
-      try
-      {
-         getContainer().run(true, true, runnableWithProgress);
-      }
-      catch (InvocationTargetException e)
-      {
-         throw new IllegalStateException(e);
-      }
-      catch (InterruptedException e)
-      {
-         throw new IllegalStateException(e);
-      }
-   }
+	/**
+	 * By clicking project in the package explorer firstElement gets the
+	 * absolute path of the selected project {@inheritDoc}
+	 */
+	public void init(IWorkbench workbench, IStructuredSelection selection) {
+		workbench.getActiveWorkbenchWindow().getSelectionService()
+				.addSelectionListener(this);
 
-   private void saveDialogSettings()
-   {
-      try
-      {
-         getDialogSettings().save(DIALOG_SETTING_FILE);
-      }
-      catch (IOException e1)
-      {
-         throw new IllegalStateException(e1);
-      }
-   }
+		if (selection instanceof IStructuredSelection) {
 
-   /**
-    * By clicking project in the package explorer firstElement gets the absolute path of the selected project
-    * {@inheritDoc}
-    */
-   public void init(IWorkbench workbench, IStructuredSelection selection)
-   {
-      workbench.getActiveWorkbenchWindow().getSelectionService().addSelectionListener(this);
+			final Object firstElement = selection.getFirstElement();
 
-      if (selection instanceof IStructuredSelection)
-      {
+			if (firstElement instanceof IAdaptable) {
+				final IResource selectedResource = (IResource) ((IAdaptable) firstElement)
+						.getAdapter(IResource.class);
+				if (selectedResource != null) {
+					final IPath location;
+					if (selectedResource.getType() == IResource.FILE) {
+						location = selectedResource.getParent().getLocation();
+					} else {
+						location = selectedResource.getLocation();
+					}
+					modulePage.setPath(location);
+				}
+			}
+		}
 
+	}
 
-         final Object firstElement = selection.getFirstElement();
+	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
 
+		if (part != B2Wizard.this) {
+			init(PlatformUI.getWorkbench(), (IStructuredSelection) selection);
+		}
 
-         if (firstElement instanceof IAdaptable)
-         {
-            final IResource selectedResource = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
-            if (selectedResource != null)
-            {
-               final IPath location;
-               if (selectedResource.getType() == IResource.FILE)
-               {
-                  location = selectedResource.getParent().getLocation();
-               }
-               else
-               {
-                  location = selectedResource.getLocation();
-               }
-               modulePage.setPath(location);
-            }
-         }
-      }
+	}
 
-   }
+	/**
+	 * disposes the SelectionListener
+	 */
+	public void dispose() {
+		modulePage.clearArrayList();
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow()
+				.getSelectionService().removeSelectionListener(this);
+		super.dispose();
+	}
 
-   public void selectionChanged(IWorkbenchPart part, ISelection selection)
-   {
+	public B2WizardPage getB2WizardPage() {
+		return modulePage;
+	}
 
-      if (part != B2Wizard.this)
-      {
-         init(PlatformUI.getWorkbench(), (IStructuredSelection) selection);
-      }
+	private void createProjects(int projectsListPosition) {
 
-   }
+		try {
+			final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			final IPath projectFile = new Path(String.valueOf(projectList
+					.get(projectsListPosition)));
+			final IProjectDescription projectDescription = workspace
+					.loadProjectDescription(projectFile);
+			final IProject project = workspace.getRoot().getProject(
+					projectDescription.getName());
+			JavaCapabilityConfigurationPage.createProject(project,
+					projectDescription.getLocationURI(), null);
 
+			if (modulePage.getCheckButtonSelection()
+					&& modulePage.getWorkingSet() != null) {
+				modulePage.getWorkingSetManager().addToWorkingSets(project,
+						modulePage.getWorkingSet());
+			}
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		}
 
-   /**
-    * disposes the SelectionListener
-    */
-   public void dispose()
-   {
-      modulePage.clearArrayList();
-      PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().removeSelectionListener(this);
-      super.dispose();
-   }
-   
-   public B2WizardPage getB2WizardPage(){
-	   return modulePage;
-   }
-
-
-   private void createProjects(int projectsListPosition)
-   {
-
-      try
-      {
-         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-         final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
-         final IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
-         final IProject project = workspace.getRoot().getProject(projectDescription.getName());
-         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-
-         if (modulePage.getCheckButtonSelection() && modulePage.getWorkingSet() != null)
-         {
-            modulePage.getWorkingSetManager().addToWorkingSets(project, modulePage.getWorkingSet());
-         }
-      }
-      catch (CoreException e)
-      {
-         throw new IllegalStateException(e);
-      }
-
-   }
-
+	}
 
 }
