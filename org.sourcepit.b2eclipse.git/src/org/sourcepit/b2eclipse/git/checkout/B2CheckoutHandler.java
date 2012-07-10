@@ -1,4 +1,4 @@
-package org.sourcepit.b2eclipse.checkout;
+package org.sourcepit.b2eclipse.git.checkout;
 
 import java.util.Collections;
 import java.util.List;

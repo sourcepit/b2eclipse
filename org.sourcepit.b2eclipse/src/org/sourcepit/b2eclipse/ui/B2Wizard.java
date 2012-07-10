@@ -121,7 +121,11 @@ public class B2Wizard extends Wizard implements IImportWizard,
 													+ " "
 													+ projectList.get(i)
 															.getParent());
-											createProjects(i);
+											if (modulePage
+													.getCopyModeCheckButtonSelection())
+												copyProjects(i);
+											else
+												createProjects(i);
 											monitor.worked(1);
 										}
 									} finally {
@@ -223,7 +227,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 			JavaCapabilityConfigurationPage.createProject(project,
 					projectDescription.getLocationURI(), null);
 
-			if (modulePage.getCheckButtonSelection()
+			if (modulePage.getWorkingSetCheckButtonSelection()
 					&& modulePage.getWorkingSet() != null) {
 				modulePage.getWorkingSetManager().addToWorkingSets(project,
 						modulePage.getWorkingSet());
@@ -232,6 +236,11 @@ public class B2Wizard extends Wizard implements IImportWizard,
 			throw new IllegalStateException(e);
 		}
 
+	}
+
+	private void copyProjects(int projectsListPosition) {
+
+		
 	}
 
 }

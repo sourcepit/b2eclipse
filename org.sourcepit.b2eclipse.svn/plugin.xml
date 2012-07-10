@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+            point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="false"
+            id="org.sourcepit.b2eclipse.SVNcheckout"
+            objectClass="org.eclipse.team.svn.ui.repository.model.RepositoryFolder">
+         <action
+                  class="org.sourcepit.b2eclipse.svn.checkout.B2SVNCheckout"
+                  menubarPath="checkoutGroup"
+                  id="SVNcheckoutAction"
+                  icon="src/org/sourcepit/b2eclipse/svn/b2.gif"
+               label="Check out b2 Project/s...">
+         </action>         
+      </objectContribution>
+            </extension>
+</plugin>

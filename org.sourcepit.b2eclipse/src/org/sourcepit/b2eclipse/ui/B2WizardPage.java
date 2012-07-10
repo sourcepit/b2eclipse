@@ -74,8 +74,9 @@ import org.xml.sax.SAXException;
 public class B2WizardPage extends WizardPage {
 
 	private Text dirTxt, workspaceTxt;
-	private Button dirBtn, workspaceBtn, rBtn1, rBtn2, checkBtn, workingSetBtn,
-			selectAllBtn, deselectAllBtn;
+	private Button dirBtn, workspaceBtn, dirrBtn, workspacerBtn,
+			workingSetcheckBtn, copyModecheckBtn, workingSetBtn, selectAllBtn,
+			deselectAllBtn;
 	private Shell dirShell;
 	private Composite modulePageWidgetContainer;
 	private CheckboxTreeViewer dirTreeViewer;
@@ -86,7 +87,8 @@ public class B2WizardPage extends WizardPage {
 	private IWorkingSetSelectionDialog workingSetSelectionDialog;
 	private IWorkingSet workingSetComboItem;
 	private String directoryName, comboBoxItems = ""; //$NON-NLS-1$
-	private boolean checkButtonSelection = false;
+	private boolean workingSetcheckButtonSelection = false,
+			copyModecheckButtonSelection = false;
 	private IPath projectPath;
 	private File workingSetXMLFile;
 	private TreeViewerInput treeViewerInput;
@@ -143,9 +145,9 @@ public class B2WizardPage extends WizardPage {
 		gridData3.widthHint = 500;
 		gridData3.heightHint = 300;
 
-		rBtn1 = new Button(modulePageWidgetContainer, SWT.RADIO);
-		rBtn1.setText(Messages.B2WizardPage_3);
-		rBtn1.setSelection(true);
+		dirrBtn = new Button(modulePageWidgetContainer, SWT.RADIO);
+		dirrBtn.setText(Messages.B2WizardPage_3);
+		dirrBtn.setSelection(true);
 
 		dirTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
 		dirTxt.setLayoutData(gridData);
@@ -154,8 +156,8 @@ public class B2WizardPage extends WizardPage {
 		dirBtn.setText(Messages.B2WizardPage_4);
 		dirBtn.setLayoutData(gridData2);
 
-		rBtn2 = new Button(modulePageWidgetContainer, SWT.RADIO);
-		rBtn2.setText(Messages.B2WizardPage_5);
+		workspacerBtn = new Button(modulePageWidgetContainer, SWT.RADIO);
+		workspacerBtn.setText(Messages.B2WizardPage_5);
 
 		workspaceTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
 		workspaceTxt.setLayoutData(gridData);
@@ -180,9 +182,9 @@ public class B2WizardPage extends WizardPage {
 		deselectAllBtn.setText(Messages.B2WizardPage_8);
 		deselectAllBtn.setLayoutData(gridData2);
 
-		checkBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
-		checkBtn.setText(Messages.B2WizardPage_9);
-		checkBtn.setLayoutData(gridData);
+		workingSetcheckBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
+		workingSetcheckBtn.setText(Messages.B2WizardPage_9);
+		workingSetcheckBtn.setLayoutData(gridData);
 
 		workingSetCombo = new Combo(modulePageWidgetContainer, SWT.DROP_DOWN
 				| SWT.READ_ONLY | SWT.HORIZONTAL | SWT.LEFT_TO_RIGHT);
@@ -193,6 +195,11 @@ public class B2WizardPage extends WizardPage {
 		workingSetBtn.setText(Messages.B2WizardPage_10);
 		workingSetBtn.setEnabled(false);
 		workingSetBtn.setLayoutData(gridData);
+
+		copyModecheckBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
+		copyModecheckBtn.setText(Messages.B2WizardPage_15);
+		copyModecheckBtn.setLayoutData(gridData);
+
 	}
 
 	/**
@@ -246,9 +253,9 @@ public class B2WizardPage extends WizardPage {
 			}
 		});
 
-		rBtn1.addListener(SWT.Selection, new Listener() {
+		dirrBtn.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				if (rBtn1.isEnabled()) {
+				if (dirrBtn.isEnabled()) {
 					dirTxt.setEnabled(true);
 					dirBtn.setEnabled(true);
 					workspaceTxt.setEnabled(false);
@@ -259,10 +266,10 @@ public class B2WizardPage extends WizardPage {
 
 		});
 
-		rBtn2.addListener(SWT.Selection, new Listener() {
+		workspacerBtn.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 
-				if (rBtn2.isEnabled()) {
+				if (workspacerBtn.isEnabled()) {
 					workspaceTxt.setEnabled(true);
 					workspaceBtn.setEnabled(true);
 					dirTxt.setEnabled(false);
@@ -273,22 +280,35 @@ public class B2WizardPage extends WizardPage {
 
 		});
 
-		checkBtn.addSelectionListener(new SelectionAdapter() {
+		workingSetcheckBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				if (checkBtn.getSelection()) {
+				if (workingSetcheckBtn.getSelection()) {
 					if (getWorkingSet() == null) {
 						addComboItemToWorkingSet();
 					}
 
-					checkButtonSelection = true;
+					workingSetcheckButtonSelection = true;
 					workingSetBtn.setEnabled(true);
 					workingSetCombo.setEnabled(true);
 
 				} else {
-					checkButtonSelection = true;
+					workingSetcheckButtonSelection = false;
 					workingSetBtn.setEnabled(false);
 					workingSetCombo.setEnabled(false);
+				}
+			}
+		});
+
+		copyModecheckBtn.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if (copyModecheckBtn.getSelection()) {
+
+					copyModecheckButtonSelection = true;
+
+				} else {
+					copyModecheckButtonSelection = false;
 				}
 			}
 		});
@@ -449,10 +469,12 @@ public class B2WizardPage extends WizardPage {
 					String[] files = (String[]) event.data;
 					File file = new File(files[0]);
 					if (file.isDirectory()) {
+						dirTxt.setText(file.getAbsolutePath());
 						dirTreeViewer.setInput(new TreeViewerInput(file));
 					} else {
-						MessageDialog.openInformation(new Shell(),
-								"Information", "Unsupported Type! Dropping directories are only allowed!");
+						MessageDialog
+								.openInformation(new Shell(), "Information",
+										"Unsupported Type! Dropping directories are only allowed!");
 					}
 
 				}
@@ -547,8 +569,12 @@ public class B2WizardPage extends WizardPage {
 		}
 	}
 
-	public boolean getCheckButtonSelection() {
-		return checkButtonSelection;
+	public boolean getWorkingSetCheckButtonSelection() {
+		return workingSetcheckButtonSelection;
+	}
+
+	public boolean getCopyModeCheckButtonSelection() {
+		return copyModecheckButtonSelection;
 	}
 
 	public void clearArrayList() {

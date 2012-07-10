@@ -15,10 +15,6 @@ public class Messages extends NLS {
 	public static String B2Wizard_3;
 	public static String B2Wizard_4;
 	public static String B2WizardPage_1;
-	public static String B2WizardPage_10;
-	public static String B2WizardPage_11;
-	public static String B2WizardPage_13;
-	public static String B2WizardPage_14;
 	public static String B2WizardPage_2;
 	public static String B2WizardPage_3;
 	public static String B2WizardPage_4;
@@ -27,6 +23,11 @@ public class Messages extends NLS {
 	public static String B2WizardPage_7;
 	public static String B2WizardPage_8;
 	public static String B2WizardPage_9;
+	public static String B2WizardPage_10;
+	public static String B2WizardPage_11;
+	public static String B2WizardPage_13;
+	public static String B2WizardPage_14;
+	public static String B2WizardPage_15;
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages(BUNDLE_NAME, Messages.class);

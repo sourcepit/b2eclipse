@@ -4,7 +4,7 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-package org.sourcepit.b2eclipse.checkout;
+package org.sourcepit.b2eclipse.svn.checkout;
 
 import java.io.File;
 
@@ -86,7 +86,7 @@ public class B2SVNCheckout implements IViewActionDelegate, IActionDelegate2 {
 	}
 
 	public void init(IViewPart view) {
-		checkoutAction.init(view);
+//		checkoutAction.init(view);
 		shell = view.getViewSite().getShell();
 
 	}
