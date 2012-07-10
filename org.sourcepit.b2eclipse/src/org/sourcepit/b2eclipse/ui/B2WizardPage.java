@@ -452,7 +452,7 @@ public class B2WizardPage extends WizardPage {
 						dirTreeViewer.setInput(new TreeViewerInput(file));
 					} else {
 						MessageDialog.openInformation(new Shell(),
-								"Information", "Unsupported Type");
+								"Information", "Unsupported Type! Dropping directories are only allowed!");
 					}
 
 				}
