@@ -16,7 +16,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -86,7 +85,7 @@ public class B2SVNCheckout implements IViewActionDelegate, IActionDelegate2 {
 	}
 
 	public void init(IViewPart view) {
-//		checkoutAction.init(view);
+		// checkoutAction.init(view);
 		shell = view.getViewSite().getShell();
 
 	}
@@ -134,8 +133,7 @@ public class B2SVNCheckout implements IViewActionDelegate, IActionDelegate2 {
 		project = workspace.getRoot().getProject(selectedResource.getName());
 
 		try {
-			JavaCapabilityConfigurationPage.createProject(project, workspace
-					.getRoot().getLocationURI(), null);
+			project.create(new NullProgressMonitor());
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}

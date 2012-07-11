@@ -22,6 +22,8 @@ import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.dialogs.DialogSettings;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -125,7 +127,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 													.getCopyModeCheckButtonSelection())
 												copyProjects(i);
 											else
-												createProjects(i);
+												linkProjects(i);
 											monitor.worked(1);
 										}
 									} finally {
@@ -214,7 +216,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 		return modulePage;
 	}
 
-	private void createProjects(int projectsListPosition) {
+	private void linkProjects(int projectsListPosition) {
 
 		try {
 			final IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -239,8 +241,33 @@ public class B2Wizard extends Wizard implements IImportWizard,
 	}
 
 	private void copyProjects(int projectsListPosition) {
+		try {
+			final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+			final IPath projectFile = new Path(String.valueOf(projectList
+					.get(projectsListPosition)));
+			final IProjectDescription projectDescription = workspace
+					.loadProjectDescription(projectFile);
+			final IProject project = workspace.getRoot().getProject(
+					projectDescription.getName());
+			JavaCapabilityConfigurationPage.createProject(project, workspace
+					.getRoot().getLocationURI(), null);
+			final JavaCapabilityConfigurationPage jcpage = new JavaCapabilityConfigurationPage();
+			IJavaProject ijava = JavaCore.create(project);
+			jcpage.init(ijava, null, null, false);
+			try {
+				jcpage.configureJavaProject(null);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
 
-		
+			if (modulePage.getWorkingSetCheckButtonSelection()
+					&& modulePage.getWorkingSet() != null) {
+				modulePage.getWorkingSetManager().addToWorkingSets(project,
+						modulePage.getWorkingSet());
+			}
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 }
