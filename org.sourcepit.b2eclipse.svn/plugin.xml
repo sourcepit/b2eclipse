@@ -1,19 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
-<plugin>
-   <extension
-            point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            adaptable="false"
-            id="org.sourcepit.b2eclipse.SVNcheckout"
-            objectClass="org.eclipse.team.svn.ui.repository.model.RepositoryFolder">
-         <action
-                  class="org.sourcepit.b2eclipse.svn.checkout.B2SVNCheckout"
-                  menubarPath="checkoutGroup"
-                  id="SVNcheckoutAction"
-                  icon="src/org/sourcepit/b2eclipse/svn/b2.gif"
-               label="Check out b2 Project/s...">
-         </action>         
-      </objectContribution>
-            </extension>
+<plugin>             
+<extension point="org.eclipse.ui.commands">
+        <command
+        	name="B2SVN"
+            defaultHandler="org.sourcepit.b2eclipse.svn.checkout.B2SVNCheckout"
+            id="org.sourcepit.b2eclipse.ui.B2SVN">
+      </command>
+</extension>
+             <extension
+         point="org.eclipse.ui.menus">
+         <menuContribution
+            locationURI="popup:org.eclipse.team.svn.ui.repository.RepositoriesView">
+        <command
+               commandId="org.sourcepit.b2eclipse.ui.B2SVN"
+               icon="src/org/sourcepit/b2eclipse/svn/b2.gif"
+               label="Check out b2 Project/s..."
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <and>
+                  <count
+                        value="1">
+                  </count>
+                  <iterate>
+                     <or>
+                        <instanceof
+                              value="org.eclipse.team.svn.ui.repository.model.RepositoryFolder">
+                        </instanceof>
+                     </or>
+                  </iterate>
+               </and>
+            </visibleWhen>
+         </command>
+         </menuContribution>
+         </extension>
 </plugin>

@@ -8,6 +8,9 @@ package org.sourcepit.b2eclipse.svn.checkout;
 
 import java.io.File;
 
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -16,11 +19,8 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.svn.core.operation.CompositeOperation;
 import org.eclipse.team.svn.core.operation.IActionOperation;
@@ -31,64 +31,18 @@ import org.eclipse.team.svn.core.resource.IRepositoryContainer;
 import org.eclipse.team.svn.core.resource.IRepositoryResource;
 import org.eclipse.team.svn.core.utility.ILoggedOperationFactory;
 import org.eclipse.team.svn.core.utility.ProgressMonitorUtility;
-import org.eclipse.team.svn.ui.action.remote.CheckoutAction;
-import org.eclipse.team.svn.ui.repository.model.RepositoryResource;
-import org.eclipse.ui.IActionDelegate2;
-import org.eclipse.ui.IViewActionDelegate;
-import org.eclipse.ui.IViewPart;
+import org.sourcepit.b2eclipse.handler.B2CheckoutHandler;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
 
-public class B2SVNCheckout implements IViewActionDelegate, IActionDelegate2 {
+/**
+ * @author Marco Grupe <marco.grupe@googlemail.com>
+ */
+public class B2SVNCheckout extends B2CheckoutHandler {
 
 	private Shell shell;
 	private IRepositoryResource selectedResource;
 	private IProject project;
-	private IWorkspace workspace;
-	private CheckoutAction checkoutAction;
-
-	public B2SVNCheckout() {
-		checkoutAction = new CheckoutAction();
-	}
-
-	public void run(IAction action) {
-	}
-
-	public void init(IAction action) {
-		checkoutAction.init(action);
-	}
-
-	public void runWithEvent(IAction action, Event event) {
-		createProjects();
-		try {
-			checkout(project.getLocation().toFile(), new NullProgressMonitor());
-			workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE,
-					new NullProgressMonitor());
-
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
-		} catch (InterruptedException e) {
-			throw new IllegalStateException(e);
-		}
-		openWizard();
-	}
-
-	public void selectionChanged(IAction action, ISelection selection) {
-		IStructuredSelection ss = (IStructuredSelection) selection;
-		if (selection instanceof IStructuredSelection) {
-			Object element = ss.getFirstElement();
-			if (element instanceof RepositoryResource) {
-				selectedResource = ((RepositoryResource) element)
-						.getRepositoryResource();
-			}
-		}
-
-	}
-
-	public void init(IViewPart view) {
-		// checkoutAction.init(view);
-		shell = view.getViewSite().getShell();
-
-	}
+	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
 	public void openWizard() {
 		B2Wizard wizard = new B2Wizard();
@@ -127,20 +81,39 @@ public class B2SVNCheckout implements IViewActionDelegate, IActionDelegate2 {
 			return;
 	}
 
-	public void createProjects() {
+	public void createProjects() throws CoreException, ResourceException {
 
-		workspace = ResourcesPlugin.getWorkspace();
 		project = workspace.getRoot().getProject(selectedResource.getName());
 
-		try {
-			project.create(new NullProgressMonitor());
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
-		}
+		project.create(new NullProgressMonitor());
 
 	}
 
 	public void dispose() {
+	}
+
+	@Override
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		shell = getShell(event);
+		selectedResource = (IRepositoryResource) getSelectedNode(event);
+
+		try {
+			createProjects();
+			checkout(project.getLocation().toFile(), new NullProgressMonitor());
+			workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE,
+					new NullProgressMonitor());
+			openWizard();
+
+		} catch (ResourceException e) {
+			MessageDialog.openInformation(new Shell(), "Resource",
+					"Resource already exists.");
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		} catch (InterruptedException e) {
+			throw new IllegalStateException(e);
+		}
+
+		return null;
 	}
 
 }

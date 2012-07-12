@@ -9,7 +9,9 @@ package org.sourcepit.b2eclipse.input;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
+/**
+ * @author Marco Grupe <marco.grupe@googlemail.com>
+ */
 public class Category {
 	private String categoryName;
 	private List<File> modules = new ArrayList<File>();

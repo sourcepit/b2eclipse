@@ -11,7 +11,9 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.sourcepit.b2eclipse.input.Category;
 import org.sourcepit.b2eclipse.input.TreeViewerInput;
-
+/**
+ * @author Marco Grupe <marco.grupe@googlemail.com>
+ */
 public class ContentProvider implements ITreeContentProvider
 {
    public Object[] getElements(Object inputElement)

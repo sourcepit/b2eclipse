@@ -9,14 +9,18 @@ import org.eclipse.egit.ui.internal.repository.tree.FolderNode;
 import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNode;
 import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNodeType;
 import org.eclipse.jface.wizard.WizardDialog;
+import org.sourcepit.b2eclipse.handler.B2CheckoutHandler;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
-
+/**
+ * @author Marco Grupe <marco.grupe@googlemail.com>
+ */
 public class B2GitCheckout extends B2CheckoutHandler {
-	private String path;
+	
 
 	public Object execute(ExecutionEvent arg0) throws ExecutionException {
-		RepositoryTreeNode<?> node = (RepositoryTreeNode<?>) getSelectedNodes(
-				arg0).get(0);
+		final String path;
+		RepositoryTreeNode<?> node = (RepositoryTreeNode<?>) getSelectedNode(
+				arg0);
 
 		if (node.getType() == RepositoryTreeNodeType.WORKINGDIR)
 			path = node.getRepository().getWorkTree().toString();

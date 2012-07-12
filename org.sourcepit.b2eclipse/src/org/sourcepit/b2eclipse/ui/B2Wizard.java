@@ -39,7 +39,7 @@ import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.Activator;
 
 /**
- * @author Marco Grupe
+ * @author Marco Grupe <marco.grupe@googlemail.com>
  */
 
 public class B2Wizard extends Wizard implements IImportWizard,
@@ -49,6 +49,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 	private static final String DIALOG_SETTING_FILE = "workingSets.xml";
 	private File workingSetsXML;
 	private DialogSettings dialogSettings;
+	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
 	public B2Wizard() {
 		super();
@@ -219,7 +220,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 	private void linkProjects(int projectsListPosition) {
 
 		try {
-			final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
 			final IPath projectFile = new Path(String.valueOf(projectList
 					.get(projectsListPosition)));
 			final IProjectDescription projectDescription = workspace
@@ -229,11 +230,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 			JavaCapabilityConfigurationPage.createProject(project,
 					projectDescription.getLocationURI(), null);
 
-			if (modulePage.getWorkingSetCheckButtonSelection()
-					&& modulePage.getWorkingSet() != null) {
-				modulePage.getWorkingSetManager().addToWorkingSets(project,
-						modulePage.getWorkingSet());
-			}
+			addProjectToWorkingSet(project);
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
@@ -242,7 +239,6 @@ public class B2Wizard extends Wizard implements IImportWizard,
 
 	private void copyProjects(int projectsListPosition) {
 		try {
-			final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 			final IPath projectFile = new Path(String.valueOf(projectList
 					.get(projectsListPosition)));
 			final IProjectDescription projectDescription = workspace
@@ -260,13 +256,17 @@ public class B2Wizard extends Wizard implements IImportWizard,
 				throw new IllegalStateException(e);
 			}
 
-			if (modulePage.getWorkingSetCheckButtonSelection()
-					&& modulePage.getWorkingSet() != null) {
-				modulePage.getWorkingSetManager().addToWorkingSets(project,
-						modulePage.getWorkingSet());
-			}
+			addProjectToWorkingSet(project);
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
+		}
+	}
+
+	private void addProjectToWorkingSet(IProject project) {
+		if (modulePage.getWorkingSetCheckButtonSelection()
+				&& modulePage.getWorkingSet() != null) {
+			modulePage.getWorkingSetManager().addToWorkingSets(project,
+					modulePage.getWorkingSet());
 		}
 	}
 

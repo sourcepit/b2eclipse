@@ -69,7 +69,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 /**
- * @author Marco Grupe
+ * @author Marco Grupe <marco.grupe@googlemail.com>
  */
 public class B2WizardPage extends WizardPage {
 
