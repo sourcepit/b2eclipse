@@ -42,6 +42,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -76,7 +77,7 @@ public class B2WizardPage extends WizardPage {
 	private Text dirTxt, workspaceTxt;
 	private Button dirBtn, workspaceBtn, dirrBtn, workspacerBtn,
 			workingSetcheckBtn, copyModecheckBtn, workingSetBtn, selectAllBtn,
-			deselectAllBtn;
+			deselectAllBtn, easyButton;
 	private Shell dirShell;
 	private Composite modulePageWidgetContainer;
 	private CheckboxTreeViewer dirTreeViewer;
@@ -141,7 +142,7 @@ public class B2WizardPage extends WizardPage {
 		gridData2.widthHint = 90;
 		gridData2.verticalAlignment = SWT.TOP;
 
-		GridData gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2);
+		GridData gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 3);
 		gridData3.widthHint = 500;
 		gridData3.heightHint = 300;
 
@@ -181,6 +182,11 @@ public class B2WizardPage extends WizardPage {
 		deselectAllBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
 		deselectAllBtn.setText(Messages.B2WizardPage_8);
 		deselectAllBtn.setLayoutData(gridData2);
+
+		easyButton = new Button(modulePageWidgetContainer, SWT.PUSH);
+		easyButton.setImage(new Image(modulePageWidgetContainer.getDisplay(),
+				getClass().getResourceAsStream("State1.png")));
+		easyButton.setLayoutData(gridData2);
 
 		workingSetcheckBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
 		workingSetcheckBtn.setText(Messages.B2WizardPage_9);
@@ -361,6 +367,36 @@ public class B2WizardPage extends WizardPage {
 					}
 
 				}
+			}
+
+		});
+
+		easyButton.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				easyButton.setImage(new Image(modulePageWidgetContainer
+						.getDisplay(), getClass().getResourceAsStream(
+						"State3.png")));
+			}
+
+		});
+		easyButton.addListener(SWT.MouseEnter, new Listener() {
+
+			public void handleEvent(Event event) {
+				easyButton.setImage(new Image(modulePageWidgetContainer
+						.getDisplay(), getClass().getResourceAsStream(
+						"State2.png")));
+
+			}
+
+		});
+
+		easyButton.addListener(SWT.MouseExit, new Listener() {
+
+			public void handleEvent(Event event) {
+				easyButton.setImage(new Image(modulePageWidgetContainer
+						.getDisplay(), getClass().getResourceAsStream(
+						"State1.png")));
+
 			}
 
 		});
