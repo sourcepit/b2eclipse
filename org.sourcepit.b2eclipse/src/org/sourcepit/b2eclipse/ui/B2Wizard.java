@@ -52,6 +52,8 @@ public class B2Wizard extends Wizard implements IImportWizard,
 	private File workingSetsXML;
 	private DialogSettings dialogSettings;
 	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+	private IProjectDescription projectDescription = null;
+	private IProject project = null;
 
 	public B2Wizard() {
 		super();
@@ -222,13 +224,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 	public void linkProjects(int projectsListPosition) {
 
 		try {
-
-			final IPath projectFile = new Path(String.valueOf(projectList
-					.get(projectsListPosition)));
-			final IProjectDescription projectDescription = workspace
-					.loadProjectDescription(projectFile);
-			final IProject project = workspace.getRoot().getProject(
-					projectDescription.getName());
+			createProjects(projectsListPosition);
 			JavaCapabilityConfigurationPage.createProject(project,
 					projectDescription.getLocationURI(), null);
 
@@ -241,12 +237,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 
 	private void copyProjects(int projectsListPosition) {
 		try {
-			final IPath projectFile = new Path(String.valueOf(projectList
-					.get(projectsListPosition)));
-			final IProjectDescription projectDescription = workspace
-					.loadProjectDescription(projectFile);
-			final IProject project = workspace.getRoot().getProject(
-					projectDescription.getName());
+			createProjects(projectsListPosition);
 			JavaCapabilityConfigurationPage.createProject(project, workspace
 					.getRoot().getLocationURI(), null);
 			final JavaCapabilityConfigurationPage jcpage = new JavaCapabilityConfigurationPage();
@@ -262,6 +253,13 @@ public class B2Wizard extends Wizard implements IImportWizard,
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
+	}
+
+	private void createProjects(int projectsListPosition) throws CoreException {
+		final IPath projectFile = new Path(String.valueOf(projectList
+				.get(projectsListPosition)));
+		projectDescription = workspace.loadProjectDescription(projectFile);
+		project = workspace.getRoot().getProject(projectDescription.getName());
 	}
 
 	private void addProjectToWorkingSet(IProject project, int filePosition) {
@@ -318,21 +316,21 @@ public class B2Wizard extends Wizard implements IImportWizard,
 
 	private IAdaptable[] getNewElements(String key, IProject project) {
 
-		IAdaptable[] oldState = modulePage.getWorkingSetManager()
+		IAdaptable[] oldElements = modulePage.getWorkingSetManager()
 				.getWorkingSet(key).getElements();
-		IAdaptable[] newState = new IAdaptable[oldState.length + 1];
+		IAdaptable[] newElements = new IAdaptable[oldElements.length + 1];
 
-		for (int i = 0; i < newState.length; i++) {
-			if (i == oldState.length) {
-				newState[i] = project;
+		for (int i = 0; i < newElements.length; i++) {
+			if (i == oldElements.length) {
+				newElements[i] = project;
 				break;
 			} else {
-				newState[i] = oldState[i];
+				newElements[i] = oldElements[i];
 			}
 
 		}
 
-		return newState;
+		return newElements;
 
 	}
 
