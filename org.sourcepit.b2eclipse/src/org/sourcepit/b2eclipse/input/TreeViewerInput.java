@@ -89,8 +89,6 @@ public class TreeViewerInput {
 		}
 
 		if ((dirList.contains("module.xml") && !(dirList.contains(".project")))
-				|| (dirList.contains("module.xml") && dirList
-						.contains(".project"))
 				|| (!(dirList.contains("module.xml")) && !(dirList
 						.contains(".project")))) {
 			doModuleSearch(elementList);

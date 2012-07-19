@@ -11,7 +11,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -75,24 +78,26 @@ import org.xml.sax.SAXException;
 public class B2WizardPage extends WizardPage {
 
 	private Text dirTxt, workspaceTxt;
-	private Button dirBtn, workspaceBtn, dirrBtn, workspacerBtn,
+	private Button dirBtn, workspaceBtn, dirRadioBtn, workspaceRadioBtn,
 			workingSetcheckBtn, copyModecheckBtn, workingSetBtn, selectAllBtn,
 			deselectAllBtn, easyButton;
-	private Shell dirShell;
+	private Shell dialogShell;
 	private Composite modulePageWidgetContainer;
 	private CheckboxTreeViewer dirTreeViewer;
 	private Combo workingSetCombo;
 	private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench()
 			.getWorkingSetManager();
-	private IWorkingSet[] workingSet;
+	private IWorkingSet[] workingSets;
 	private IWorkingSetSelectionDialog workingSetSelectionDialog;
 	private IWorkingSet workingSetComboItem;
 	private String directoryName, comboBoxItems = ""; //$NON-NLS-1$
 	private boolean workingSetcheckButtonSelection = false,
-			copyModecheckButtonSelection = false;
+			copyModecheckButtonSelection = false, easyButtonSelection = false;
 	private IPath projectPath;
 	private File workingSetXMLFile;
 	private TreeViewerInput treeViewerInput;
+	private ArrayList<String> fileList = new ArrayList<String>();
+	private Map<String, ArrayList<String>> moduleMap = new HashMap<String, ArrayList<String>>();
 
 	public B2WizardPage(String name) {
 
@@ -107,7 +112,7 @@ public class B2WizardPage extends WizardPage {
 	 */
 	public void createControl(Composite parent) {
 		modulePageWidgetContainer = new Composite(parent, SWT.NONE);
-		modulePageWidgetContainer.setLayout(new GridLayout(3, false));
+		modulePageWidgetContainer.setLayout(new GridLayout(3, false));;
 
 		addWidgets();
 
@@ -117,7 +122,7 @@ public class B2WizardPage extends WizardPage {
 					.valueOf(getPath()))));
 		}
 
-		dirShell = parent.getShell();
+		dialogShell = parent.getShell();
 
 		treeViewerInput = new TreeViewerInput();
 
@@ -146,9 +151,9 @@ public class B2WizardPage extends WizardPage {
 		gridData3.widthHint = 500;
 		gridData3.heightHint = 300;
 
-		dirrBtn = new Button(modulePageWidgetContainer, SWT.RADIO);
-		dirrBtn.setText(Messages.B2WizardPage_3);
-		dirrBtn.setSelection(true);
+		dirRadioBtn = new Button(modulePageWidgetContainer, SWT.RADIO);
+		dirRadioBtn.setText(Messages.B2WizardPage_3);
+		dirRadioBtn.setSelection(true);
 
 		dirTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
 		dirTxt.setLayoutData(gridData);
@@ -157,8 +162,8 @@ public class B2WizardPage extends WizardPage {
 		dirBtn.setText(Messages.B2WizardPage_4);
 		dirBtn.setLayoutData(gridData2);
 
-		workspacerBtn = new Button(modulePageWidgetContainer, SWT.RADIO);
-		workspacerBtn.setText(Messages.B2WizardPage_5);
+		workspaceRadioBtn = new Button(modulePageWidgetContainer, SWT.RADIO);
+		workspaceRadioBtn.setText(Messages.B2WizardPage_5);
 
 		workspaceTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
 		workspaceTxt.setLayoutData(gridData);
@@ -217,8 +222,8 @@ public class B2WizardPage extends WizardPage {
 				if (getTreeViewerInput() != null)
 					clearArrayList();
 
-				DirectoryDialog directoryDialog = new DirectoryDialog(dirShell,
-						SWT.OPEN);
+				DirectoryDialog directoryDialog = new DirectoryDialog(
+						dialogShell, SWT.OPEN);
 				directoryDialog.setText(Messages.B2WizardPage_11);
 				directoryName = directoryDialog.open();
 				if (directoryName == null)
@@ -240,7 +245,7 @@ public class B2WizardPage extends WizardPage {
 					clearArrayList();
 
 				ElementTreeSelectionDialog elementTreeSelectionDialog = new ElementTreeSelectionDialog(
-						dirShell, new WorkbenchLabelProvider(),
+						dialogShell, new WorkbenchLabelProvider(),
 						new BaseWorkbenchContentProvider());
 				elementTreeSelectionDialog.setTitle(Messages.B2WizardPage_13);
 				elementTreeSelectionDialog.setMessage(Messages.B2WizardPage_14);
@@ -259,9 +264,9 @@ public class B2WizardPage extends WizardPage {
 			}
 		});
 
-		dirrBtn.addListener(SWT.Selection, new Listener() {
+		dirRadioBtn.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				if (dirrBtn.isEnabled()) {
+				if (dirRadioBtn.isEnabled()) {
 					dirTxt.setEnabled(true);
 					dirBtn.setEnabled(true);
 					workspaceTxt.setEnabled(false);
@@ -272,10 +277,10 @@ public class B2WizardPage extends WizardPage {
 
 		});
 
-		workspacerBtn.addListener(SWT.Selection, new Listener() {
+		workspaceRadioBtn.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 
-				if (workspacerBtn.isEnabled()) {
+				if (workspaceRadioBtn.isEnabled()) {
 					workspaceTxt.setEnabled(true);
 					workspaceBtn.setEnabled(true);
 					dirTxt.setEnabled(false);
@@ -290,18 +295,20 @@ public class B2WizardPage extends WizardPage {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (workingSetcheckBtn.getSelection()) {
-					if (getWorkingSet() == null) {
+					if (getWorkingSets() == null) {
 						addComboItemToWorkingSet();
 					}
 
 					workingSetcheckButtonSelection = true;
 					workingSetBtn.setEnabled(true);
 					workingSetCombo.setEnabled(true);
+					easyButton.setEnabled(false);
 
 				} else {
 					workingSetcheckButtonSelection = false;
 					workingSetBtn.setEnabled(false);
 					workingSetCombo.setEnabled(false);
+					easyButton.setEnabled(true);
 				}
 			}
 		});
@@ -323,11 +330,11 @@ public class B2WizardPage extends WizardPage {
 			public void handleEvent(Event event) {
 
 				workingSetSelectionDialog = workingSetManager
-						.createWorkingSetSelectionDialog(dirShell, true);
+						.createWorkingSetSelectionDialog(dialogShell, true);
 				if (dirTreeViewer.getCheckedElements().length != 0) {
 					selectWorkingSetSelectionDialog();
 				}
-				workingSet = workingSetSelectionDialog.getSelection();
+				workingSets = workingSetSelectionDialog.getSelection();
 
 				addItemToCombo();
 				checkWorkingSetCombo();
@@ -376,6 +383,39 @@ public class B2WizardPage extends WizardPage {
 				easyButton.setImage(new Image(modulePageWidgetContainer
 						.getDisplay(), getClass().getResourceAsStream(
 						"State3.png")));
+
+				easyButtonSelection = true;
+
+				List<File> list = getSelectedProjects();
+				for (File file : list) {
+					String result = doParentSearch(file);
+
+					if (moduleMap.containsKey(result)) {
+
+						ArrayList<String> b = moduleMap.get(result);
+						b.add(file.getAbsolutePath());
+						moduleMap.put(result, b);
+
+					} else {
+						ArrayList<String> dummyList = new ArrayList<String>();
+						dummyList.add(file.getAbsolutePath());
+						moduleMap.put(result, dummyList);
+					}
+
+				}
+
+				Iterator<String> it = moduleMap.keySet().iterator();
+				while (it.hasNext()) {
+					String aKey = it.next();
+					ArrayList<String> b = moduleMap.get(aKey);
+					System.out.println("Key: " + aKey + " Value: " + b);
+				}
+
+				if (((B2Wizard) getWizard()).performFinish() == true) {
+
+					((B2Wizard) getWizard()).getShell().close();
+				}
+
 			}
 
 		});
@@ -424,10 +464,10 @@ public class B2WizardPage extends WizardPage {
 
 	}
 
-	private void addItemToCombo() {
-		if (getWorkingSet() != null) {
-			if (getWorkingSet().length == 1) {
-				for (final IWorkingSet workingSet : getWorkingSet()) {
+	public void addItemToCombo() {
+		if (getWorkingSets() != null) {
+			if (getWorkingSets().length == 1) {
+				for (final IWorkingSet workingSet : getWorkingSets()) {
 
 					for (int y = 0; y < workingSetCombo.getItemCount(); y++) {
 						if (workingSetCombo.getItem(y).equals(
@@ -442,9 +482,9 @@ public class B2WizardPage extends WizardPage {
 					getDialogSettings().addNewSection(workingSet.getName());
 
 				}
-				workingSetCombo.setText(getWorkingSet()[0].getName());
+				workingSetCombo.setText(getWorkingSets()[0].getName());
 			} else {
-				for (final IWorkingSet workingSet : getWorkingSet()) {
+				for (final IWorkingSet workingSet : getWorkingSets()) {
 
 					for (int y = 0; y < workingSetCombo.getItemCount(); y++) {
 						if (workingSetCombo.getItem(y).equals(comboBoxItems)) {
@@ -477,16 +517,16 @@ public class B2WizardPage extends WizardPage {
 		if (workingSetCombo.getText().contains(",")) //$NON-NLS-1$
 		{
 			String[] splitItems = workingSetCombo.getText().split(","); //$NON-NLS-1$
-			workingSet = new IWorkingSet[splitItems.length];
+			workingSets = new IWorkingSet[splitItems.length];
 			for (int i = 0; i < splitItems.length; i++) {
 				workingSetComboItem = workingSetManager
 						.getWorkingSet(splitItems[i]);
-				workingSet[i] = workingSetComboItem;
+				workingSets[i] = workingSetComboItem;
 			}
 		} else {
 			workingSetComboItem = workingSetManager
 					.getWorkingSet(workingSetCombo.getText());
-			workingSet = new IWorkingSet[] { workingSetComboItem };
+			workingSets = new IWorkingSet[] { workingSetComboItem };
 		}
 
 	}
@@ -520,15 +560,15 @@ public class B2WizardPage extends WizardPage {
 	}
 
 	private void selectWorkingSetSelectionDialog() {
-		if (getWorkingSet() == null) {
+		if (getWorkingSets() == null) {
 			addComboItemToWorkingSet();
-			workingSetSelectionDialog.setSelection(getWorkingSet());
+			workingSetSelectionDialog.setSelection(getWorkingSets());
 			workingSetSelectionDialog.open();
 		} else if (workingSetCombo.getText().trim().length() == 0) {
 			workingSetSelectionDialog.setSelection(null);
 			workingSetSelectionDialog.open();
-		} else if (workingSetComboItem != null || getWorkingSet() != null) {
-			workingSetSelectionDialog.setSelection(getWorkingSet());
+		} else if (workingSetComboItem != null || getWorkingSets() != null) {
+			workingSetSelectionDialog.setSelection(getWorkingSets());
 			workingSetSelectionDialog.open();
 		}
 
@@ -584,8 +624,8 @@ public class B2WizardPage extends WizardPage {
 
 	}
 
-	public IWorkingSet[] getWorkingSet() {
-		return workingSet;
+	public IWorkingSet[] getWorkingSets() {
+		return workingSets;
 	}
 
 	private void setCategoriesChecked() {
@@ -607,6 +647,10 @@ public class B2WizardPage extends WizardPage {
 
 	public boolean getWorkingSetCheckButtonSelection() {
 		return workingSetcheckButtonSelection;
+	}
+
+	public boolean getEasyButtonSelection() {
+		return easyButtonSelection;
 	}
 
 	public boolean getCopyModeCheckButtonSelection() {
@@ -658,7 +702,6 @@ public class B2WizardPage extends WizardPage {
 					}
 				}
 				if (splitItems.length != counter) {
-					System.out.println(splitItems.length + "      " + counter); //$NON-NLS-1$
 					workingSetCombo.remove(wsitem);
 
 				}
@@ -830,6 +873,37 @@ public class B2WizardPage extends WizardPage {
 
 	public CheckboxTreeViewer getTreeViewer() {
 		return dirTreeViewer;
+	}
+
+	private String doParentSearch(File file) {
+		File[] elementList = file.getParentFile().listFiles();
+		getFileList().clear();
+
+		for (File i : elementList) {
+			setFileList(i.getName());
+		}
+
+		if (fileList.contains("module.xml")) {
+			for (File element : elementList) {
+				if (element.getName().equals("module.xml")) {
+					return element.getParentFile().getName();
+				}
+			}
+		}
+		return doParentSearch(file.getParentFile());
+
+	}
+
+	public Map<String, ArrayList<String>> getModuleMap() {
+		return moduleMap;
+	}
+
+	private ArrayList<String> getFileList() {
+		return fileList;
+	}
+
+	private void setFileList(String file) {
+		fileList.add(file);
 	}
 
 }

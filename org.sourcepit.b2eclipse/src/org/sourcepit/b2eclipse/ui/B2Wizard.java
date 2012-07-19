@@ -9,6 +9,8 @@ package org.sourcepit.b2eclipse.ui;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -217,7 +219,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 		return modulePage;
 	}
 
-	private void linkProjects(int projectsListPosition) {
+	public void linkProjects(int projectsListPosition) {
 
 		try {
 
@@ -230,7 +232,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 			JavaCapabilityConfigurationPage.createProject(project,
 					projectDescription.getLocationURI(), null);
 
-			addProjectToWorkingSet(project);
+			addProjectToWorkingSet(project, projectsListPosition);
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
@@ -256,18 +258,82 @@ public class B2Wizard extends Wizard implements IImportWizard,
 				throw new IllegalStateException(e);
 			}
 
-			addProjectToWorkingSet(project);
+			addProjectToWorkingSet(project, projectsListPosition);
 		} catch (CoreException e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
-	private void addProjectToWorkingSet(IProject project) {
+	private void addProjectToWorkingSet(IProject project, int filePosition) {
 		if (modulePage.getWorkingSetCheckButtonSelection()
-				&& modulePage.getWorkingSet() != null) {
+				&& modulePage.getWorkingSets() != null) {
 			modulePage.getWorkingSetManager().addToWorkingSets(project,
-					modulePage.getWorkingSet());
+					modulePage.getWorkingSets());
+
+		} else if (!modulePage.getWorkingSetCheckButtonSelection()) {
+
+			Iterator<String> it = modulePage.getModuleMap().keySet().iterator();
+			while (it.hasNext()) {
+				String aKey = it.next();
+				ArrayList<String> b = modulePage.getModuleMap().get(aKey);
+				for (String file : b) {
+					if (file.equals(projectList.get(filePosition)
+							.getAbsolutePath())) {
+						for (int i = 0; i < modulePage.getWorkingSetManager()
+								.getAllWorkingSets().length; i++) {
+							if (modulePage.getWorkingSetManager()
+									.getAllWorkingSets()[i].getName().equals(
+									aKey)) {
+								modulePage
+										.getWorkingSetManager()
+										.getWorkingSet(aKey)
+										.setElements(
+												getNewElements(aKey, project));
+								break;
+
+							} else {
+
+								if ((i + 1) == modulePage
+										.getWorkingSetManager()
+										.getAllWorkingSets().length) {
+									modulePage
+											.getWorkingSetManager()
+											.addWorkingSet(
+													modulePage
+															.getWorkingSetManager()
+															.createWorkingSet(
+																	aKey,
+																	new IAdaptable[] { project }));
+									break;
+								}
+							}
+						}
+
+					}
+				}
+			}
 		}
+
+	}
+
+	private IAdaptable[] getNewElements(String key, IProject project) {
+
+		IAdaptable[] oldState = modulePage.getWorkingSetManager()
+				.getWorkingSet(key).getElements();
+		IAdaptable[] newState = new IAdaptable[oldState.length + 1];
+
+		for (int i = 0; i < newState.length; i++) {
+			if (i == oldState.length) {
+				newState[i] = project;
+				break;
+			} else {
+				newState[i] = oldState[i];
+			}
+
+		}
+
+		return newState;
+
 	}
 
 }
