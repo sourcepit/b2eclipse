@@ -2,15 +2,15 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: B2-SVN-Integration-Bundle
 Bundle-SymbolicName: org.sourcepit.b2eclipse.svn;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 0.1.0.qualifier
 Bundle-Activator: org.sourcepit.b2eclipse.svn.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.team.svn.ui;bundle-version="1.0.0",
- org.eclipse.team.svn.core;bundle-version="1.0.0",
- org.eclipse.team.ui;bundle-version="3.6.200",
- org.sourcepit.b2eclipse;bundle-version="1.0.0",
- org.eclipse.core.resources;bundle-version="3.8.0",
- org.eclipse.jdt.ui;bundle-version="3.8.0"
+ org.sourcepit.b2eclipse;bundle-version="0.1.0",
+ org.eclipse.team.svn.ui;bundle-version="[1.0.0,2.0.0)",
+ org.eclipse.team.svn.core;bundle-version="[1.0.0,2.0.0)",
+ org.eclipse.team.ui;bundle-version="[3.6.0,4.0.0)",
+ org.eclipse.core.resources;bundle-version="[3.7.0,4.0.0)",
+ org.eclipse.jdt.ui;bundle-version="[3.7.0,4.0.0)"
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6

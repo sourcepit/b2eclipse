@@ -26,8 +26,8 @@
 			<url>http://nexus.sourcepit.org/content/groups/public/</url>
 		</repository>
 		<repository>
-			<id>indigo</id>
-			<url>http://p2.sourcepit.org/eclipse/indigo/</url>
+			<id>juno</id>
+			<url>http://p2.sourcepit.org/eclipse/juno/</url>
 			<layout>p2</layout>
 		</repository>
 	</repositories>
