@@ -14,7 +14,7 @@
             locationURI="popup:org.eclipse.team.svn.ui.repository.RepositoriesView">
         <command
                commandId="org.sourcepit.b2eclipse.ui.B2SVN"
-               icon="src/org/sourcepit/b2eclipse/svn/b2.gif"
+               icon="icons/b2.gif"
                label="Check out b2 Project/s..."
                style="push">
             <visibleWhen

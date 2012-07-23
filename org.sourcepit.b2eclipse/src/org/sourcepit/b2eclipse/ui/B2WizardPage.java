@@ -47,7 +47,6 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -69,6 +68,7 @@ import org.eclipse.ui.internal.WorkbenchPlugin;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.Category;
 import org.sourcepit.b2eclipse.input.TreeViewerInput;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
@@ -305,9 +305,7 @@ public class B2WizardPage extends WizardPage {
 
 		easyButton.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				easyButton.setImage(new Image(modulePageWidgetContainer
-						.getDisplay(), getClass().getResourceAsStream(
-						"State3.png")));
+				easyButton.setImage(Activator.getImageFromPath("icons/State3.png"));
 
 				easyButtonSelection = true;
 
@@ -347,9 +345,7 @@ public class B2WizardPage extends WizardPage {
 		easyButton.addListener(SWT.MouseEnter, new Listener() {
 
 			public void handleEvent(Event event) {
-				easyButton.setImage(new Image(modulePageWidgetContainer
-						.getDisplay(), getClass().getResourceAsStream(
-						"State2.png")));
+				easyButton.setImage(Activator.getImageFromPath("icons/State2.png"));
 
 			}
 
@@ -358,9 +354,7 @@ public class B2WizardPage extends WizardPage {
 		easyButton.addListener(SWT.MouseExit, new Listener() {
 
 			public void handleEvent(Event event) {
-				easyButton.setImage(new Image(modulePageWidgetContainer
-						.getDisplay(), getClass().getResourceAsStream(
-						"State1.png")));
+				easyButton.setImage(Activator.getImageFromPath("icons/State1.png"));
 
 			}
 
@@ -607,8 +601,7 @@ public class B2WizardPage extends WizardPage {
 		setButtonLayoutData(deselectAllBtn);
 
 		easyButton = new Button(buttonsComposite, SWT.PUSH);
-		easyButton.setImage(new Image(modulePageWidgetContainer.getDisplay(),
-				getClass().getResourceAsStream("State1.png")));
+		easyButton.setImage(Activator.getImageFromPath("icons/State1.png"));
 		easyButton.setEnabled(false);
 		Dialog.applyDialogFont(easyButton);
 		setButtonLayoutData(easyButton);

@@ -60,8 +60,7 @@ public class B2Wizard extends Wizard implements IImportWizard,
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		setWindowTitle(Messages.B2Wizard_1);
-		setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(
-				B2WizardPage.class, "ProjectFolder.gif"));
+		setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(Activator.getImageFromPath("icons/ProjectFolder.gif")));
 		this.currentSelection = selection;
 		workbench.getActiveWorkbenchWindow().getSelectionService()
 				.addSelectionListener(this);

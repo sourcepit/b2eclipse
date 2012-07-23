@@ -14,7 +14,7 @@
             locationURI="popup:org.eclipse.egit.ui.RepositoriesView">
         <command
                commandId="org.sourcepit.b2eclipse.ui.B2Git"
-               icon="src/org/sourcepit/b2eclipse/git/b2.gif"
+               icon="icons/b2.gif"
                label="Check out b2 Project/s..."
                style="push">
             <visibleWhen
