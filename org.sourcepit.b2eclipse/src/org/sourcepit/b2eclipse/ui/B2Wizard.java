@@ -6,29 +6,9 @@
 
 package org.sourcepit.b2eclipse.ui;
 
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
-import org.eclipse.jface.dialogs.DialogSettings;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -47,44 +27,14 @@ import org.sourcepit.b2eclipse.Activator;
 public class B2Wizard extends Wizard implements IImportWizard,
 		ISelectionListener {
 	private B2WizardPage modulePage;
-	private List<File> projectList;
-	private static final String DIALOG_SETTING_FILE = "workingSets.xml";
-	private File workingSetsXML;
-	private DialogSettings dialogSettings;
-	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-	private IProjectDescription projectDescription = null;
-	private IProject project = null;
+	private IStructuredSelection currentSelection = null;
+
 
 	public B2Wizard() {
 		super();
-		setWindowTitle(Messages.B2Wizard_1);
-		setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(
-				B2WizardPage.class, "ProjectFolder.gif"));
-		modulePage = new B2WizardPage(Messages.B2Wizard_2);
+
+		modulePage = new B2WizardPage(Messages.B2Wizard_2, currentSelection);
 		setNeedsProgressMonitor(true);
-		dialogSettings = new DialogSettings("workingSets");
-
-		workingSetsXML = new File(DIALOG_SETTING_FILE);
-		modulePage.setWorkingSetXML(workingSetsXML);
-
-		if (!workingSetsXML.exists()) {
-			try {
-
-				workingSetsXML.createNewFile();
-				dialogSettings.save(DIALOG_SETTING_FILE);
-
-			} catch (IOException e) {
-				throw new IllegalStateException(e);
-			}
-		}
-
-		try {
-			dialogSettings.load(DIALOG_SETTING_FILE);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-
-		setDialogSettings(dialogSettings);
 
 		addPage(modulePage);
 
@@ -94,80 +44,14 @@ public class B2Wizard extends Wizard implements IImportWizard,
 	 * After pressing the finish button the selected projects will be create
 	 * {@inheritDoc}
 	 */
-	@Override
+
 	public boolean performFinish() {
 		try {
-			return doPerformFinish();
+			return modulePage.doPerformFinish();
 		} catch (RuntimeException e) {
 			Activator.error(e);
 		}
 		return false;
-	}
-
-	private boolean doPerformFinish() {
-		saveDialogSettings();
-
-		projectList = modulePage.getSelectedProjects();
-
-		final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress() {
-			public void run(IProgressMonitor monitor)
-					throws InvocationTargetException {
-				try {
-					ResourcesPlugin.getWorkspace().run(
-							new IWorkspaceRunnable() {
-								public void run(IProgressMonitor monitor)
-										throws CoreException {
-									monitor.beginTask(Messages.B2Wizard_3,
-											projectList.size());
-									try {
-										for (int i = 0; i < projectList.size(); i++) {
-											if (monitor.isCanceled()) {
-												return;
-											}
-											monitor.subTask(Messages.B2Wizard_4
-													+ " "
-													+ projectList.get(i)
-															.getParent());
-											if (modulePage
-													.getCopyModeCheckButtonSelection())
-												copyProjects(i);
-											else
-												linkProjects(i);
-											monitor.worked(1);
-										}
-									} finally {
-										monitor.done();
-									}
-								}
-							}, monitor);
-				} catch (CoreException e) {
-					throw new InvocationTargetException(e);
-				}
-			}
-		};
-
-		runWithProgress(runnableWithProgress);
-
-		return true;
-	}
-
-	private void runWithProgress(
-			final IRunnableWithProgress runnableWithProgress) {
-		try {
-			getContainer().run(true, true, runnableWithProgress);
-		} catch (InvocationTargetException e) {
-			throw new IllegalStateException(e);
-		} catch (InterruptedException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	private void saveDialogSettings() {
-		try {
-			getDialogSettings().save(DIALOG_SETTING_FILE);
-		} catch (IOException e1) {
-			throw new IllegalStateException(e1);
-		}
 	}
 
 	/**
@@ -175,6 +59,10 @@ public class B2Wizard extends Wizard implements IImportWizard,
 	 * absolute path of the selected project {@inheritDoc}
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
+		setWindowTitle(Messages.B2Wizard_1);
+		setDefaultPageImageDescriptor(ImageDescriptor.createFromFile(
+				B2WizardPage.class, "ProjectFolder.gif"));
+		this.currentSelection = selection;
 		workbench.getActiveWorkbenchWindow().getSelectionService()
 				.addSelectionListener(this);
 
@@ -219,119 +107,6 @@ public class B2Wizard extends Wizard implements IImportWizard,
 
 	public B2WizardPage getB2WizardPage() {
 		return modulePage;
-	}
-
-	public void linkProjects(int projectsListPosition) {
-
-		try {
-			createProjects(projectsListPosition);
-			JavaCapabilityConfigurationPage.createProject(project,
-					projectDescription.getLocationURI(), null);
-
-			addProjectToWorkingSet(project, projectsListPosition);
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
-		}
-
-	}
-
-	private void copyProjects(int projectsListPosition) {
-		try {
-			createProjects(projectsListPosition);
-			JavaCapabilityConfigurationPage.createProject(project, workspace
-					.getRoot().getLocationURI(), null);
-			final JavaCapabilityConfigurationPage jcpage = new JavaCapabilityConfigurationPage();
-			IJavaProject ijava = JavaCore.create(project);
-			jcpage.init(ijava, null, null, false);
-			try {
-				jcpage.configureJavaProject(null);
-			} catch (InterruptedException e) {
-				throw new IllegalStateException(e);
-			}
-
-			addProjectToWorkingSet(project, projectsListPosition);
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-
-	private void createProjects(int projectsListPosition) throws CoreException {
-		final IPath projectFile = new Path(String.valueOf(projectList
-				.get(projectsListPosition)));
-		projectDescription = workspace.loadProjectDescription(projectFile);
-		project = workspace.getRoot().getProject(projectDescription.getName());
-	}
-
-	private void addProjectToWorkingSet(IProject project, int filePosition) {
-		if (modulePage.getWorkingSetCheckButtonSelection()
-				&& modulePage.getWorkingSets() != null) {
-			modulePage.getWorkingSetManager().addToWorkingSets(project,
-					modulePage.getWorkingSets());
-
-		} else if (!modulePage.getWorkingSetCheckButtonSelection()) {
-
-			Iterator<String> it = modulePage.getModuleMap().keySet().iterator();
-			while (it.hasNext()) {
-				String aKey = it.next();
-				ArrayList<String> b = modulePage.getModuleMap().get(aKey);
-				for (String file : b) {
-					if (file.equals(projectList.get(filePosition)
-							.getAbsolutePath())) {
-						for (int i = 0; i < modulePage.getWorkingSetManager()
-								.getAllWorkingSets().length; i++) {
-							if (modulePage.getWorkingSetManager()
-									.getAllWorkingSets()[i].getName().equals(
-									aKey)) {
-								modulePage
-										.getWorkingSetManager()
-										.getWorkingSet(aKey)
-										.setElements(
-												getNewElements(aKey, project));
-								break;
-
-							} else {
-
-								if ((i + 1) == modulePage
-										.getWorkingSetManager()
-										.getAllWorkingSets().length) {
-									modulePage
-											.getWorkingSetManager()
-											.addWorkingSet(
-													modulePage
-															.getWorkingSetManager()
-															.createWorkingSet(
-																	aKey,
-																	new IAdaptable[] { project }));
-									break;
-								}
-							}
-						}
-
-					}
-				}
-			}
-		}
-
-	}
-
-	private IAdaptable[] getNewElements(String key, IProject project) {
-
-		IAdaptable[] oldElements = modulePage.getWorkingSetManager()
-				.getWorkingSet(key).getElements();
-		IAdaptable[] newElements = new IAdaptable[oldElements.length + 1];
-
-		for (int i = 0; i < newElements.length; i++) {
-			if (i == oldElements.length) {
-				newElements[i] = project;
-				break;
-			} else {
-				newElements[i] = oldElements[i];
-			}
-
-		}
-
-		return newElements;
-
 	}
 
 }

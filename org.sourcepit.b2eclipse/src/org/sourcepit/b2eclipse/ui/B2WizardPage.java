@@ -7,33 +7,36 @@
 package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.layout.PixelConverter;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -44,15 +47,14 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -60,17 +62,17 @@ import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
-import org.eclipse.ui.dialogs.IWorkingSetSelectionDialog;
+import org.eclipse.ui.dialogs.WorkingSetConfigurationBlock;
+import org.eclipse.ui.dialogs.WorkingSetGroup;
+import org.eclipse.ui.internal.WorkbenchMessages;
+import org.eclipse.ui.internal.WorkbenchPlugin;
+import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.sourcepit.b2eclipse.input.Category;
 import org.sourcepit.b2eclipse.input.TreeViewerInput;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
@@ -79,29 +81,37 @@ public class B2WizardPage extends WizardPage {
 
 	private Text dirTxt, workspaceTxt;
 	private Button dirBtn, workspaceBtn, dirRadioBtn, workspaceRadioBtn,
-			workingSetcheckBtn, copyModecheckBtn, workingSetBtn, selectAllBtn,
-			deselectAllBtn, easyButton;
+			copyModecheckBtn, selectAllBtn, deselectAllBtn, easyButton;
 	private Shell dialogShell;
 	private Composite modulePageWidgetContainer;
 	private CheckboxTreeViewer dirTreeViewer;
-	private Combo workingSetCombo;
+
 	private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench()
 			.getWorkingSetManager();
 	private IWorkingSet[] workingSets;
-	private IWorkingSetSelectionDialog workingSetSelectionDialog;
-	private IWorkingSet workingSetComboItem;
-	private String directoryName, comboBoxItems = ""; //$NON-NLS-1$
+
+	private String selectedDirectory; //$NON-NLS-1$
 	private boolean workingSetcheckButtonSelection = false,
 			copyModecheckButtonSelection = false, easyButtonSelection = false;
 	private IPath projectPath;
 	private File workingSetXMLFile;
 	private TreeViewerInput treeViewerInput;
+	private static String previouslyBrowsedDirectory = "";
 	private ArrayList<String> fileList = new ArrayList<String>();
 	private Map<String, ArrayList<String>> moduleMap = new HashMap<String, ArrayList<String>>();
+	private IStructuredSelection currentSelection;
+	private WorkingSetGroup workingSetGroup;
+	private List<IProject> createdProjects = new ArrayList<IProject>();
+	private List<File> projectList;
+	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+	private IProjectDescription projectDescription = null;
+	private IProject project = null;
 
-	public B2WizardPage(String name) {
+	public B2WizardPage(String name, IStructuredSelection currentSelection) {
 
 		super(name);
+		this.currentSelection = currentSelection;
+		setPageComplete(false);
 		setTitle(Messages.B2WizardPage_1);
 		setDescription(Messages.B2WizardPage_2);
 
@@ -112,9 +122,13 @@ public class B2WizardPage extends WizardPage {
 	 */
 	public void createControl(Composite parent) {
 		modulePageWidgetContainer = new Composite(parent, SWT.NONE);
-		modulePageWidgetContainer.setLayout(new GridLayout(3, false));;
+		setControl(modulePageWidgetContainer);
 
-		addWidgets();
+		modulePageWidgetContainer.setLayout(new GridLayout());
+		modulePageWidgetContainer.setLayoutData(new GridData(GridData.FILL_BOTH
+				| GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL));
+
+		addWidgets(modulePageWidgetContainer);
 
 		if (getPath() != null) {
 			dirTxt.setText(String.valueOf(getPath()));
@@ -130,86 +144,19 @@ public class B2WizardPage extends WizardPage {
 
 		setControl(modulePageWidgetContainer);
 
-		setPageComplete(true);
-		checkSection();
 
 	}
 
 	/**
 	 * add Widgets on Wizard Page
 	 */
-	public void addWidgets() {
-		GridData gridData = new GridData();
-		gridData.horizontalAlignment = SWT.FILL;
+	public void addWidgets(Composite workArea) {
 
-		GridData gridData2 = new GridData();
-		gridData2.horizontalAlignment = SWT.FILL;
-		gridData2.widthHint = 90;
-		gridData2.verticalAlignment = SWT.TOP;
-
-		GridData gridData3 = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 3);
-		gridData3.widthHint = 500;
-		gridData3.heightHint = 300;
-
-		dirRadioBtn = new Button(modulePageWidgetContainer, SWT.RADIO);
-		dirRadioBtn.setText(Messages.B2WizardPage_3);
-		dirRadioBtn.setSelection(true);
-
-		dirTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
-		dirTxt.setLayoutData(gridData);
-
-		dirBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-		dirBtn.setText(Messages.B2WizardPage_4);
-		dirBtn.setLayoutData(gridData2);
-
-		workspaceRadioBtn = new Button(modulePageWidgetContainer, SWT.RADIO);
-		workspaceRadioBtn.setText(Messages.B2WizardPage_5);
-
-		workspaceTxt = new Text(modulePageWidgetContainer, SWT.BORDER);
-		workspaceTxt.setLayoutData(gridData);
-		workspaceTxt.setEnabled(false);
-
-		workspaceBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-		workspaceBtn.setText(Messages.B2WizardPage_6);
-		workspaceBtn.setEnabled(false);
-		workspaceBtn.setLayoutData(gridData2);
-
-		dirTreeViewer = new CheckboxTreeViewer(modulePageWidgetContainer);
-		dirTreeViewer.setContentProvider(new ContentProvider());
-		dirTreeViewer.setLabelProvider(new LabelProvider());
-		dirTreeViewer.getTree().setLayoutData(gridData3);
-		addDropSupport(dirTreeViewer);
-
-		selectAllBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-		selectAllBtn.setText(Messages.B2WizardPage_7);
-		selectAllBtn.setLayoutData(gridData2);
-
-		deselectAllBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-		deselectAllBtn.setText(Messages.B2WizardPage_8);
-		deselectAllBtn.setLayoutData(gridData2);
-
-		easyButton = new Button(modulePageWidgetContainer, SWT.PUSH);
-		easyButton.setImage(new Image(modulePageWidgetContainer.getDisplay(),
-				getClass().getResourceAsStream("State1.png")));
-		easyButton.setLayoutData(gridData2);
-
-		workingSetcheckBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
-		workingSetcheckBtn.setText(Messages.B2WizardPage_9);
-		workingSetcheckBtn.setLayoutData(gridData);
-
-		workingSetCombo = new Combo(modulePageWidgetContainer, SWT.DROP_DOWN
-				| SWT.READ_ONLY | SWT.HORIZONTAL | SWT.LEFT_TO_RIGHT);
-		workingSetCombo.setEnabled(false);
-		workingSetCombo.setLayoutData(gridData);
-
-		workingSetBtn = new Button(modulePageWidgetContainer, SWT.PUSH);
-		workingSetBtn.setText(Messages.B2WizardPage_10);
-		workingSetBtn.setEnabled(false);
-		workingSetBtn.setLayoutData(gridData);
-
-		copyModecheckBtn = new Button(modulePageWidgetContainer, SWT.CHECK);
-		copyModecheckBtn.setText(Messages.B2WizardPage_15);
-		copyModecheckBtn.setLayoutData(gridData);
+		createRootAndWorkspaceArea(workArea);
+		createProjectsArea(workArea);
+		createOptionsArea(workArea);
+		createWorkingSetGroup(workArea);
+		Dialog.applyDialogFont(workArea);
 
 	}
 
@@ -225,16 +172,34 @@ public class B2WizardPage extends WizardPage {
 				DirectoryDialog directoryDialog = new DirectoryDialog(
 						dialogShell, SWT.OPEN);
 				directoryDialog.setText(Messages.B2WizardPage_11);
-				directoryName = directoryDialog.open();
-				if (directoryName == null)
-					return;
-				dirTxt.setText(directoryName);
-				workspaceTxt.setText(""); //$NON-NLS-1$
 
-				dirTreeViewer.setInput(new TreeViewerInput(new File(
-						directoryName)));
+				String directoryName = dirTxt.getText().trim();
+				if (directoryName.length() == 0) {
+					directoryName = previouslyBrowsedDirectory;
+				}
 
-				dirTreeViewer.expandAll();
+				if (directoryName.length() == 0) {
+					directoryDialog.setFilterPath(IDEWorkbenchPlugin
+							.getPluginWorkspace().getRoot().getLocation()
+							.toOSString());
+				} else {
+					File path = new File(directoryName);
+					if (path.exists()) {
+						directoryDialog.setFilterPath(new Path(directoryName)
+								.toOSString());
+					}
+				}
+
+				selectedDirectory = directoryDialog.open();
+				if (selectedDirectory != null) {
+					previouslyBrowsedDirectory = selectedDirectory;
+					dirTxt.setText(selectedDirectory);
+					workspaceTxt.setText(""); //$NON-NLS-1$
+					dirTreeViewer.setInput(new TreeViewerInput(new File(
+							selectedDirectory)));
+
+					dirTreeViewer.expandAll();
+				}
 
 			}
 		});
@@ -253,13 +218,13 @@ public class B2WizardPage extends WizardPage {
 						.getWorkspace().getRoot());
 				elementTreeSelectionDialog.open();
 				if (elementTreeSelectionDialog.getFirstResult() != null) {
-					directoryName = String
+					selectedDirectory = String
 							.valueOf(((IResource) elementTreeSelectionDialog
 									.getFirstResult()).getLocation());
-					workspaceTxt.setText(directoryName);
+					workspaceTxt.setText(selectedDirectory);
 					dirTxt.setText(""); //$NON-NLS-1$
 					dirTreeViewer.setInput(new TreeViewerInput(new File(
-							directoryName)));
+							selectedDirectory)));
 				}
 			}
 		});
@@ -291,28 +256,6 @@ public class B2WizardPage extends WizardPage {
 
 		});
 
-		workingSetcheckBtn.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				if (workingSetcheckBtn.getSelection()) {
-					if (getWorkingSets() == null) {
-						addComboItemToWorkingSet();
-					}
-
-					workingSetcheckButtonSelection = true;
-					workingSetBtn.setEnabled(true);
-					workingSetCombo.setEnabled(true);
-					easyButton.setEnabled(false);
-
-				} else {
-					workingSetcheckButtonSelection = false;
-					workingSetBtn.setEnabled(false);
-					workingSetCombo.setEnabled(false);
-					easyButton.setEnabled(true);
-				}
-			}
-		});
-
 		copyModecheckBtn.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -323,22 +266,6 @@ public class B2WizardPage extends WizardPage {
 				} else {
 					copyModecheckButtonSelection = false;
 				}
-			}
-		});
-
-		workingSetBtn.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-
-				workingSetSelectionDialog = workingSetManager
-						.createWorkingSetSelectionDialog(dialogShell, true);
-				if (dirTreeViewer.getCheckedElements().length != 0) {
-					selectWorkingSetSelectionDialog();
-				}
-				workingSets = workingSetSelectionDialog.getSelection();
-
-				addItemToCombo();
-				checkWorkingSetCombo();
-
 			}
 		});
 
@@ -356,6 +283,8 @@ public class B2WizardPage extends WizardPage {
 					}
 
 				}
+				setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
+				easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
 			}
 
 		});
@@ -365,13 +294,9 @@ public class B2WizardPage extends WizardPage {
 				setCategoriesUnchecked();
 
 				if (getTreeViewerInput() != null) {
-					for (int i = 0; i < getTreeViewerInput()
-							.getProjectFileList().size(); i++) {
-
-						dirTreeViewer.setSubtreeChecked(getTreeViewerInput()
-								.getProjectFileList().get(i), false);
-
-					}
+					dirTreeViewer.setCheckedElements(new Object[0]);
+					setPageComplete(false);
+					easyButton.setEnabled(false);
 
 				}
 			}
@@ -441,93 +366,20 @@ public class B2WizardPage extends WizardPage {
 
 		});
 
-		workingSetCombo.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				addComboItemToWorkingSet();
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
-
 		// if a category is checked in the tree, check all its children
 		dirTreeViewer.addCheckStateListener(new ICheckStateListener() {
 			public void checkStateChanged(CheckStateChangedEvent event) {
+
 				if (event.getChecked()) {
 					dirTreeViewer.setSubtreeChecked(event.getElement(), true);
 				} else {
 					dirTreeViewer.setSubtreeChecked(event.getElement(), false);
 				}
+				setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
+				easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
 
 			}
 		});
-
-	}
-
-	public void addItemToCombo() {
-		if (getWorkingSets() != null) {
-			if (getWorkingSets().length == 1) {
-				for (final IWorkingSet workingSet : getWorkingSets()) {
-
-					for (int y = 0; y < workingSetCombo.getItemCount(); y++) {
-						if (workingSetCombo.getItem(y).equals(
-								workingSet.getName())) {
-							return;
-						}
-
-					}
-
-					workingSetCombo.add(workingSet.getName());
-
-					getDialogSettings().addNewSection(workingSet.getName());
-
-				}
-				workingSetCombo.setText(getWorkingSets()[0].getName());
-			} else {
-				for (final IWorkingSet workingSet : getWorkingSets()) {
-
-					for (int y = 0; y < workingSetCombo.getItemCount(); y++) {
-						if (workingSetCombo.getItem(y).equals(comboBoxItems)) {
-							return;
-						}
-
-					}
-
-					comboBoxItems = comboBoxItems.concat(workingSet.getName()
-							.concat(",")); //$NON-NLS-1$
-
-				}
-				if (comboBoxItems.length() != 0) {
-					comboBoxItems = comboBoxItems.substring(0,
-							comboBoxItems.length() - 1);
-					workingSetCombo.add(comboBoxItems);
-
-					getDialogSettings().addNewSection(comboBoxItems);
-
-					workingSetCombo.setText(comboBoxItems);
-					comboBoxItems = ""; //$NON-NLS-1$
-				}
-			}
-
-		}
-
-	}
-
-	public void addComboItemToWorkingSet() {
-		if (workingSetCombo.getText().contains(",")) //$NON-NLS-1$
-		{
-			String[] splitItems = workingSetCombo.getText().split(","); //$NON-NLS-1$
-			workingSets = new IWorkingSet[splitItems.length];
-			for (int i = 0; i < splitItems.length; i++) {
-				workingSetComboItem = workingSetManager
-						.getWorkingSet(splitItems[i]);
-				workingSets[i] = workingSetComboItem;
-			}
-		} else {
-			workingSetComboItem = workingSetManager
-					.getWorkingSet(workingSetCombo.getText());
-			workingSets = new IWorkingSet[] { workingSetComboItem };
-		}
 
 	}
 
@@ -556,21 +408,6 @@ public class B2WizardPage extends WizardPage {
 				}
 			}
 		});
-
-	}
-
-	private void selectWorkingSetSelectionDialog() {
-		if (getWorkingSets() == null) {
-			addComboItemToWorkingSet();
-			workingSetSelectionDialog.setSelection(getWorkingSets());
-			workingSetSelectionDialog.open();
-		} else if (workingSetCombo.getText().trim().length() == 0) {
-			workingSetSelectionDialog.setSelection(null);
-			workingSetSelectionDialog.open();
-		} else if (workingSetComboItem != null || getWorkingSets() != null) {
-			workingSetSelectionDialog.setSelection(getWorkingSets());
-			workingSetSelectionDialog.open();
-		}
 
 	}
 
@@ -662,210 +499,6 @@ public class B2WizardPage extends WizardPage {
 			treeViewerInput.clearArrayList();
 	}
 
-	private void checkWorkingSetCombo() {
-		checkWorkingSetComboComma();
-		for (final String item : workingSetCombo.getItems()) {
-			for (int y = 0; y < workingSetManager.getWorkingSets().length; y++) {
-				if (item.contains(",") && item.contains(workingSetManager.getWorkingSets()[y].getName())) //$NON-NLS-1$
-				{
-					break;
-				}
-				if (item.equals(workingSetManager.getWorkingSets()[y].getName())) {
-
-					break;
-
-				} else {
-					if ((y + 1) == workingSetManager.getWorkingSets().length) {
-
-						workingSetCombo.remove(item);
-					}
-
-				}
-			}
-		}
-
-	}
-
-	private void checkWorkingSetComboComma() {
-		int counter = 0;
-		for (final String wsitem : workingSetCombo.getItems()) {
-			if (wsitem.contains(",")) //$NON-NLS-1$
-			{
-				String[] splitItems = wsitem.split(","); //$NON-NLS-1$
-				for (final String item : splitItems) {
-					for (final IWorkingSet workingSet : workingSetManager
-							.getWorkingSets()) {
-						if (item.equals(workingSet.getName())) {
-							counter++;
-
-						}
-					}
-				}
-				if (splitItems.length != counter) {
-					workingSetCombo.remove(wsitem);
-
-				}
-				counter = 0;
-
-			}
-		}
-	}
-
-	private void checkSection() {
-
-		checkSectionComma();
-
-		for (final IDialogSettings dialogSetting : getDialogSettings()
-				.getSections()) {
-			for (int y = 0; y < workingSetManager.getWorkingSets().length; y++) {
-
-				if (getDialogSettings().getSection(dialogSetting.getName())
-						.getName().contains(",") //$NON-NLS-1$
-						&& getDialogSettings()
-								.getSection(dialogSetting.getName())
-								.getName()
-								.contains(
-										workingSetManager.getWorkingSets()[y]
-												.getName())) {
-					break;
-				}
-
-				if (getDialogSettings()
-						.getSection(dialogSetting.getName())
-						.getName()
-						.equals(workingSetManager.getWorkingSets()[y].getName())) {
-
-					workingSetCombo.add(getDialogSettings().getSection(
-							dialogSetting.getName()).getName());
-					workingSetCombo.setText(getDialogSettings().getSection(
-							dialogSetting.getName()).getName());
-
-					break;
-
-				}
-
-				else {
-					if ((y + 1) == workingSetManager.getWorkingSets().length) {
-
-						removeSection(getDialogSettings().getSection(
-								dialogSetting.getName()).getName());
-					}
-
-				}
-
-			}
-		}
-	}
-
-	public void checkSectionComma() {
-		int counter = 0;
-		for (final IDialogSettings dialogSetting : getDialogSettings()
-				.getSections()) {
-			if (getDialogSettings().getSection(dialogSetting.getName())
-					.getName().contains(",")) //$NON-NLS-1$
-			{
-				String[] splitItems = getDialogSettings()
-						.getSection(dialogSetting.getName()).getName()
-						.split(","); //$NON-NLS-1$
-				for (final String item : splitItems) {
-
-					for (final IWorkingSet workingSet : workingSetManager
-							.getWorkingSets()) {
-
-						if (item.equals(workingSet.getName())) {
-							counter++;
-
-						}
-					}
-				}
-				if (splitItems.length != counter) {
-
-					removeSection(getDialogSettings().getSection(
-							dialogSetting.getName()).getName());
-
-				} else {
-					workingSetCombo.add(getDialogSettings().getSection(
-							dialogSetting.getName()).getName());
-					workingSetCombo.setText(getDialogSettings().getSection(
-							dialogSetting.getName()).getName());
-				}
-				counter = 0;
-			}
-
-		}
-
-	}
-
-	private void removeSection(String sectionName) {
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-
-		try {
-			DocumentBuilder builder = factory.newDocumentBuilder();
-			Document doc = builder.parse(getWorkingSetXML());
-
-			NodeList nodes = doc.getElementsByTagName("section"); //$NON-NLS-1$
-
-			for (int i = 0; i < nodes.getLength(); i++) {
-
-				Element rmSection = (Element) nodes.item(i);
-
-				if (rmSection.getAttribute("name").equals(sectionName)) //$NON-NLS-1$
-				{
-					rmSection.getParentNode().removeChild(rmSection);
-				}
-
-			}
-
-			saveXMLChanges(doc);
-		} catch (ParserConfigurationException e) {
-			throw new IllegalArgumentException(e);
-		} catch (SAXException e) {
-			throw new IllegalArgumentException(e);
-		} catch (IOException e) {
-			throw new IllegalArgumentException(e);
-		} catch (TransformerException e) {
-			throw new IllegalArgumentException(e);
-		}
-
-	}
-
-	private void saveXMLChanges(Document doc) throws TransformerException,
-			IOException {
-		Transformer transformer = TransformerFactory.newInstance()
-				.newTransformer();
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes"); //$NON-NLS-1$
-
-		StreamResult strmResult = new StreamResult(new StringWriter());
-		DOMSource domSource = new DOMSource(doc);
-		transformer.transform(domSource, strmResult);
-
-		String xmlData = strmResult.getWriter().toString();
-
-		byte xmlContent[] = xmlData.getBytes("UTF-8"); //$NON-NLS-1$
-
-		FileWriter fileWriter = null;
-		try {
-			fileWriter = new FileWriter(getWorkingSetXML().getName());
-			for (final byte data : xmlContent) {
-				fileWriter.write(data);
-			}
-			xmlContent = null;
-
-		} catch (IOException e) {
-		} finally {
-			closeWriter(fileWriter);
-		}
-	}
-
-	private void closeWriter(FileWriter writer) {
-		if (writer != null) {
-			try {
-				writer.close();
-			} catch (IOException e) {
-			}
-		}
-	}
-
 	public TreeViewerInput getTreeViewerInput() {
 		treeViewerInput = (TreeViewerInput) dirTreeViewer.getInput();
 		return treeViewerInput;
@@ -904,6 +537,323 @@ public class B2WizardPage extends WizardPage {
 
 	private void setFileList(String file) {
 		fileList.add(file);
+	}
+
+	private void createWorkingSetGroup(Composite workArea) {
+		String[] workingSetIds = new String[] {
+				"org.eclipse.ui.resourceWorkingSetPage", //$NON-NLS-1$
+				"org.eclipse.jdt.ui.JavaWorkingSetPage" }; //$NON-NLS-1$
+		
+		Group workingSetGroup = new Group(workArea, SWT.NONE);
+		workingSetGroup.setFont(workArea.getFont());
+		workingSetGroup
+				.setText(WorkbenchMessages.WorkingSetGroup_WorkingSets_group);
+		workingSetGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true,
+				false));
+		workingSetGroup.setLayout(new GridLayout(1, false));
+
+		WorkingSetConfigurationBlock workingSetBlock = new WorkingSetConfigurationBlock(workingSetIds,
+				WorkbenchPlugin.getDefault().getDialogSettings(),Messages.B2WizardPage_9,null,Messages.B2WizardPage_10);
+		workingSetBlock.setWorkingSets(workingSetBlock
+				.findApplicableWorkingSets(currentSelection));
+		workingSetBlock.createContent(workingSetGroup);
+		
+		
+	}
+
+	private void createProjectsArea(Composite workArea) {
+		Composite treeViewerComposite = new Composite(workArea, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 2;
+		layout.marginWidth = 0;
+		layout.makeColumnsEqualWidth = false;
+		treeViewerComposite.setLayout(layout);
+
+		treeViewerComposite.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL
+				| GridData.GRAB_VERTICAL | GridData.FILL_BOTH));
+
+		dirTreeViewer = new CheckboxTreeViewer(treeViewerComposite, SWT.BORDER);
+		dirTreeViewer.setContentProvider(new ContentProvider());
+		dirTreeViewer.setLabelProvider(new LabelProvider());
+		addDropSupport(dirTreeViewer);
+
+		GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+		gridData.widthHint = new PixelConverter(dirTreeViewer.getControl())
+				.convertWidthInCharsToPixels(25);
+		gridData.heightHint = new PixelConverter(dirTreeViewer.getControl())
+				.convertHeightInCharsToPixels(10);
+		dirTreeViewer.getControl().setLayoutData(gridData);
+		createSelectionButtonsArea(treeViewerComposite);
+	}
+
+	private void createSelectionButtonsArea(Composite workArea) {
+		Composite buttonsComposite = new Composite(workArea, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
+		buttonsComposite.setLayout(layout);
+
+		buttonsComposite.setLayoutData(new GridData(
+				GridData.VERTICAL_ALIGN_BEGINNING));
+
+		selectAllBtn = new Button(buttonsComposite, SWT.PUSH);
+		selectAllBtn.setText(Messages.B2WizardPage_7);
+		Dialog.applyDialogFont(selectAllBtn);
+		setButtonLayoutData(selectAllBtn);
+
+		deselectAllBtn = new Button(buttonsComposite, SWT.PUSH);
+		deselectAllBtn.setText(Messages.B2WizardPage_8);
+		Dialog.applyDialogFont(deselectAllBtn);
+		setButtonLayoutData(deselectAllBtn);
+
+		easyButton = new Button(buttonsComposite, SWT.PUSH);
+		easyButton.setImage(new Image(modulePageWidgetContainer.getDisplay(),
+				getClass().getResourceAsStream("State1.png")));
+		easyButton.setEnabled(false);
+		Dialog.applyDialogFont(easyButton);
+		setButtonLayoutData(easyButton);
+
+	}
+
+	private void createRootAndWorkspaceArea(Composite workArea) {
+		Composite projectGroup = new Composite(workArea, SWT.NONE);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 3;
+		layout.makeColumnsEqualWidth = false;
+		layout.marginWidth = 0;
+		projectGroup.setLayout(layout);
+		projectGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		dirRadioBtn = new Button(projectGroup, SWT.RADIO);
+		dirRadioBtn.setText(Messages.B2WizardPage_3);
+		dirRadioBtn.setSelection(true);
+
+		dirTxt = new Text(projectGroup, SWT.BORDER);
+
+		GridData directoryPathData = new GridData(
+				GridData.HORIZONTAL_ALIGN_FILL | GridData.GRAB_HORIZONTAL);
+		directoryPathData.widthHint = new PixelConverter(dirTxt)
+				.convertWidthInCharsToPixels(25);
+		dirTxt.setLayoutData(directoryPathData);
+
+		dirBtn = new Button(projectGroup, SWT.PUSH);
+		dirBtn.setText(Messages.B2WizardPage_4);
+		setButtonLayoutData(dirBtn);
+
+		workspaceRadioBtn = new Button(projectGroup, SWT.RADIO);
+		workspaceRadioBtn.setText(Messages.B2WizardPage_5);
+
+		workspaceTxt = new Text(projectGroup, SWT.BORDER);
+		workspaceTxt.setEnabled(false);
+
+		GridData archivePathData = new GridData(GridData.HORIZONTAL_ALIGN_FILL
+				| GridData.GRAB_HORIZONTAL);
+		archivePathData.widthHint = new PixelConverter(workspaceTxt)
+				.convertWidthInCharsToPixels(25);
+		workspaceTxt.setLayoutData(archivePathData); 
+
+		workspaceBtn = new Button(projectGroup, SWT.PUSH);
+		workspaceBtn.setText(Messages.B2WizardPage_6);
+		workspaceBtn.setEnabled(false);
+		setButtonLayoutData(workspaceBtn);
+	}
+
+	private void createOptionsArea(Composite workArea) {
+
+		Composite optionsGroup = new Composite(workArea, SWT.NONE);
+		optionsGroup.setLayout(new GridLayout());
+		optionsGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		copyModecheckBtn = new Button(optionsGroup, SWT.CHECK);
+		copyModecheckBtn.setText(Messages.B2WizardPage_15);
+		copyModecheckBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+	}
+
+	public WorkingSetGroup getWorkingSetGroup() {
+		return workingSetGroup;
+	}
+
+	public boolean doPerformFinish() {
+
+		projectList = getSelectedProjects();
+		createdProjects.removeAll(createdProjects);
+
+		final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress() {
+			public void run(IProgressMonitor monitor)
+					throws InvocationTargetException {
+				try {
+					ResourcesPlugin.getWorkspace().run(
+							new IWorkspaceRunnable() {
+								public void run(IProgressMonitor monitor)
+										throws CoreException {
+									monitor.beginTask(Messages.B2Wizard_3,
+											projectList.size());
+									try {
+										if (monitor.isCanceled()) {
+											throw new OperationCanceledException();
+										}
+										for (int i = 0; i < projectList.size(); i++) {
+
+											monitor.subTask(Messages.B2Wizard_4
+													+ " "
+													+ projectList.get(i)
+															.getParent());
+											if (getCopyModeCheckButtonSelection())
+												createdProjects
+														.add(copyProjects(i));
+											else
+												createdProjects
+														.add(linkProjects(i));
+
+											monitor.worked(1);
+
+										}
+									} finally {
+										monitor.done();
+									}
+								}
+							}, monitor);
+				} catch (CoreException e) {
+					throw new InvocationTargetException(e);
+				}
+			}
+		};
+
+		runWithProgress(runnableWithProgress);
+
+		return true;
+	}
+
+	private void runWithProgress(final IRunnableWithProgress runnable) {
+		try {
+			getContainer().run(true, true, runnable);
+		} catch (InvocationTargetException e) {
+			throw new IllegalStateException(e);
+		} catch (InterruptedException e) {
+			throw new IllegalStateException(e);
+		}
+		if (!getEasyButtonSelection())
+			addToWorkingSets();
+	}
+
+	public IProject linkProjects(int projectsListPosition) {
+
+		try {
+			createProjects(projectsListPosition);
+			JavaCapabilityConfigurationPage.createProject(project,
+					projectDescription.getLocationURI(), null);
+
+			if (getEasyButtonSelection()) {
+				easyAddToWorkingSets(projectsListPosition);
+			}
+			return project;
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		}
+
+	}
+
+	private IProject copyProjects(int projectsListPosition) {
+		try {
+			createProjects(projectsListPosition);
+			JavaCapabilityConfigurationPage.createProject(project, workspace
+					.getRoot().getLocationURI(), null);
+			final JavaCapabilityConfigurationPage jcpage = new JavaCapabilityConfigurationPage();
+			IJavaProject ijava = JavaCore.create(project);
+			jcpage.init(ijava, null, null, false);
+
+			try {
+				jcpage.configureJavaProject(null);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
+
+			if (getEasyButtonSelection()) {
+				easyAddToWorkingSets(projectsListPosition);
+			}
+			return project;
+		} catch (CoreException e) {
+			throw new IllegalStateException(e);
+		}
+
+	}
+
+	private void addToWorkingSets() {
+
+		IWorkingSet[] selectedWorkingSets = getWorkingSetGroup()
+				.getSelectedWorkingSets();
+		if (selectedWorkingSets == null || selectedWorkingSets.length == 0)
+			return;
+		IWorkingSetManager workingSetManager = PlatformUI.getWorkbench()
+				.getWorkingSetManager();
+		for (Iterator<IProject> i = createdProjects.iterator(); i.hasNext();) {
+			IProject project = (IProject) i.next();
+			workingSetManager.addToWorkingSets(project, selectedWorkingSets);
+		}
+	}
+
+	private void easyAddToWorkingSets(int filePosition) {
+
+		Iterator<String> it = getModuleMap().keySet().iterator();
+		while (it.hasNext()) {
+			String aKey = it.next();
+			ArrayList<String> b = getModuleMap().get(aKey);
+			for (String file : b) {
+				if (file.equals(projectList.get(filePosition).getAbsolutePath())) {
+					for (int i = 0; i < getWorkingSetManager()
+							.getAllWorkingSets().length; i++) {
+						if (getWorkingSetManager().getAllWorkingSets()[i]
+								.getName().equals(aKey)) {
+							getWorkingSetManager().getWorkingSet(aKey)
+									.setElements(getNewElements(aKey, project));
+							break;
+
+						} else {
+
+							if ((i + 1) == getWorkingSetManager()
+									.getAllWorkingSets().length) {
+								getWorkingSetManager()
+										.addWorkingSet(
+												getWorkingSetManager()
+														.createWorkingSet(
+																aKey,
+																new IAdaptable[] { project }));
+								break;
+							}
+						}
+					}
+
+				}
+			}
+		}
+	}
+
+	private void createProjects(int projectsListPosition) throws CoreException {
+		final IPath projectFile = new Path(String.valueOf(projectList
+				.get(projectsListPosition)));
+		projectDescription = workspace.loadProjectDescription(projectFile);
+		project = workspace.getRoot().getProject(projectDescription.getName());
+	}
+
+	private IAdaptable[] getNewElements(String key, IProject project) {
+
+		IAdaptable[] oldElements = getWorkingSetManager().getWorkingSet(key)
+				.getElements();
+		IAdaptable[] newElements = new IAdaptable[oldElements.length + 1];
+
+		for (int i = 0; i < newElements.length; i++) {
+			if (i == oldElements.length) {
+				newElements[i] = project;
+				break;
+			} else {
+				newElements[i] = oldElements[i];
+			}
+
+		}
+
+		return newElements;
+
 	}
 
 }
