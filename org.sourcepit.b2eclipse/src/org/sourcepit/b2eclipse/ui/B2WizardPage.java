@@ -52,6 +52,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
@@ -100,8 +101,7 @@ public class B2WizardPage extends WizardPage
    private List<IProject> createdProjects = new ArrayList<IProject>();
    private List<File> projectList;
    private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-   private IProjectDescription projectDescription = null;
-   private IProject project = null;
+   private int dummy;
 
    public B2WizardPage(String name, IStructuredSelection currentSelection)
    {
@@ -119,6 +119,7 @@ public class B2WizardPage extends WizardPage
     */
    public void createControl(Composite parent)
    {
+      initializeDialogUnits(parent);
       modulePageWidgetContainer = new Composite(parent, SWT.NONE);
       setControl(modulePageWidgetContainer);
 
@@ -632,14 +633,14 @@ public class B2WizardPage extends WizardPage
          | GridData.FILL_BOTH));
 
       dirTreeViewer = new CheckboxTreeViewer(treeViewerComposite, SWT.BORDER);
+      GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
+      gridData.widthHint = new PixelConverter(dirTreeViewer.getControl()).convertWidthInCharsToPixels(100);
+      gridData.heightHint = new PixelConverter(dirTreeViewer.getControl()).convertHeightInCharsToPixels(25);
+      dirTreeViewer.getControl().setLayoutData(gridData);
+
       dirTreeViewer.setContentProvider(new ContentProvider());
       dirTreeViewer.setLabelProvider(new LabelProvider());
       addDropSupport(dirTreeViewer);
-
-      GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-      gridData.widthHint = new PixelConverter(dirTreeViewer.getControl()).convertWidthInCharsToPixels(25);
-      gridData.heightHint = new PixelConverter(dirTreeViewer.getControl()).convertHeightInCharsToPixels(10);
-      dirTreeViewer.getControl().setLayoutData(gridData);
       createSelectionButtonsArea(treeViewerComposite);
    }
 
@@ -687,7 +688,7 @@ public class B2WizardPage extends WizardPage
 
       dirTxt = new Text(projectGroup, SWT.BORDER);
 
-      GridData directoryPathData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.GRAB_HORIZONTAL);
+      GridData directoryPathData = new GridData(SWT.FILL, SWT.FILL, true, true);
       directoryPathData.widthHint = new PixelConverter(dirTxt).convertWidthInCharsToPixels(25);
       dirTxt.setLayoutData(directoryPathData);
 
@@ -701,7 +702,7 @@ public class B2WizardPage extends WizardPage
       workspaceTxt = new Text(projectGroup, SWT.BORDER);
       workspaceTxt.setEnabled(false);
 
-      GridData archivePathData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.GRAB_HORIZONTAL);
+      GridData archivePathData = new GridData(SWT.FILL, SWT.FILL, true, true);
       archivePathData.widthHint = new PixelConverter(workspaceTxt).convertWidthInCharsToPixels(25);
       workspaceTxt.setLayoutData(archivePathData);
 
@@ -749,12 +750,19 @@ public class B2WizardPage extends WizardPage
                         }
                         for (int i = 0; i < projectList.size(); i++)
                         {
-
+                           dummy = i;
                            monitor.subTask(Messages.B2Wizard_4 + " " + projectList.get(i).getParent());
-                           if (getCopyModeCheckButtonSelection())
-                              createdProjects.add(copyProjects(i));
-                           else
-                              createdProjects.add(linkProjects(i));
+                           Display.getDefault().asyncExec(new Runnable()
+                           {
+
+                              public void run()
+                              {
+                                 if (getCopyModeCheckButtonSelection())
+                                    createdProjects.add(copyProjects(dummy));
+                                 else
+                                    createdProjects.add(linkProjects(dummy));
+                              }
+                           });
 
                            monitor.worked(1);
 
@@ -795,7 +803,7 @@ public class B2WizardPage extends WizardPage
       }
 
 
-      addToWorkingSets();
+      // addToWorkingSets();
 
 
    }
@@ -805,14 +813,17 @@ public class B2WizardPage extends WizardPage
 
       try
       {
-         createProjects(projectsListPosition);
+         final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
+         IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
+         IProject project = workspace.getRoot().getProject(projectDescription.getName());
          JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
 
          if (getEasyButtonSelection())
          {
-            easyAddToWorkingSets(projectsListPosition);
-            
-//            getWorkingSetManager().addWorkingSet(getWorkingSetManager().createWorkingSet("Test", new IAdaptable[]{project}));
+            easyAddToWorkingSets(projectsListPosition, project);
+
+            // getWorkingSetManager().addWorkingSet(getWorkingSetManager().createWorkingSet("Test", new
+            // IAdaptable[]{project}));
          }
          return project;
       }
@@ -827,12 +838,13 @@ public class B2WizardPage extends WizardPage
    {
       try
       {
-         createProjects(projectsListPosition);
-         JavaCapabilityConfigurationPage.createProject(project, workspace.getRoot().getLocationURI(), null);
+         final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
+         final IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
+         final IProject project = workspace.getRoot().getProject(projectDescription.getName());
+         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
          final JavaCapabilityConfigurationPage jcpage = new JavaCapabilityConfigurationPage();
          IJavaProject ijava = JavaCore.create(project);
          jcpage.init(ijava, null, null, false);
-
          try
          {
             jcpage.configureJavaProject(null);
@@ -841,12 +853,9 @@ public class B2WizardPage extends WizardPage
          {
             throw new IllegalStateException(e);
          }
-
-         if (getEasyButtonSelection())
-         {
-            easyAddToWorkingSets(projectsListPosition);
-         }
          return project;
+
+
       }
       catch (CoreException e)
       {
@@ -869,7 +878,7 @@ public class B2WizardPage extends WizardPage
       }
    }
 
-   private void easyAddToWorkingSets(int filePosition)
+   private void easyAddToWorkingSets(int filePosition, IProject project)
    {
 
       Iterator<String> it = getModuleMap().keySet().iterator();
@@ -906,13 +915,6 @@ public class B2WizardPage extends WizardPage
       }
 
 
-   }
-
-   private void createProjects(int projectsListPosition) throws CoreException
-   {
-      final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
-      projectDescription = workspace.loadProjectDescription(projectFile);
-      project = workspace.getRoot().getProject(projectDescription.getName());
    }
 
    private IAdaptable[] getNewElements(String key, IProject project)
