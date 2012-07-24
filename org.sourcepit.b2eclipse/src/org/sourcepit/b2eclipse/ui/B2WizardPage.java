@@ -8,6 +8,7 @@ package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,10 +25,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -61,10 +61,13 @@ import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
+import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.dialogs.WorkingSetGroup;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
+import org.eclipse.ui.wizards.datatransfer.FileSystemStructureProvider;
+import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.Category;
 import org.sourcepit.b2eclipse.input.TreeViewerInput;
@@ -100,7 +103,6 @@ public class B2WizardPage extends WizardPage
    private WorkingSetGroup workingSetGroup;
    private List<IProject> createdProjects = new ArrayList<IProject>();
    private List<File> projectList;
-   private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
    private int dummy;
 
    public B2WizardPage(String name, IStructuredSelection currentSelection)
@@ -803,7 +805,7 @@ public class B2WizardPage extends WizardPage
       }
 
 
-      // addToWorkingSets();
+      addToWorkingSets();
 
 
    }
@@ -813,6 +815,7 @@ public class B2WizardPage extends WizardPage
 
       try
       {
+         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
          final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
          IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
          IProject project = workspace.getRoot().getProject(projectDescription.getName());
@@ -834,35 +837,48 @@ public class B2WizardPage extends WizardPage
 
    }
 
-   private IProject copyProjects(int projectsListPosition)
+   private synchronized IProject copyProjects(int projectsListPosition)
    {
+      final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
+
       try
       {
-         final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
-         final IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
-         final IProject project = workspace.getRoot().getProject(projectDescription.getName());
-         JavaCapabilityConfigurationPage.createProject(project, workspace.getRoot().getLocationURI(), null);
-         final JavaCapabilityConfigurationPage jcpage = new JavaCapabilityConfigurationPage();
-         IJavaProject ijava = JavaCore.create(project);
-         jcpage.init(ijava, null, null, false);
-         try
-         {
-            jcpage.configureJavaProject(null);
-         }
-         catch (InterruptedException e)
-         {
-            throw new IllegalStateException(e);
-         }
-         return project;
-
+         IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
+         URI locationURI = projectDescription.getLocationURI();
+         projectDescription.setLocation(null);
+         IProject project = workspace.getRoot().getProject(projectDescription.getName());
+         project.create(projectDescription, new NullProgressMonitor());
+         project.open(null);
+         File importSource = new File(locationURI);
+         List<?> filesToImport = FileSystemStructureProvider.INSTANCE.getChildren(importSource);
+         ImportOperation operation = new ImportOperation(project.getFullPath(), importSource,
+            FileSystemStructureProvider.INSTANCE, (IOverwriteQuery) this, filesToImport);
+         operation.setContext(getShell());
+         operation.setOverwriteResources(true);
+         operation.setCreateContainerStructure(false);
+         operation.run(null);
 
       }
       catch (CoreException e)
       {
          throw new IllegalStateException(e);
       }
+      catch (InvocationTargetException e)
+      {
+         throw new IllegalStateException(e);
+      }
+      catch (InterruptedException e)
+      {
+         throw new IllegalStateException(e);
+      }
+
+
+      return null;
+
 
    }
+
 
    private void addToWorkingSets()
    {
@@ -940,5 +956,6 @@ public class B2WizardPage extends WizardPage
       return newElements;
 
    }
+
 
 }
