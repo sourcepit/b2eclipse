@@ -841,7 +841,7 @@ public class B2WizardPage extends WizardPage
          final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
          final IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
          final IProject project = workspace.getRoot().getProject(projectDescription.getName());
-         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+         JavaCapabilityConfigurationPage.createProject(project, workspace.getRoot().getLocationURI(), null);
          final JavaCapabilityConfigurationPage jcpage = new JavaCapabilityConfigurationPage();
          IJavaProject ijava = JavaCore.create(project);
          jcpage.init(ijava, null, null, false);
