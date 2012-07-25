@@ -16,8 +16,8 @@ import java.util.List;
 public class TreeViewerInput {
 
 	private File[] projects;
-	private ArrayList<File> projectFileList = new ArrayList<File>();
-	private ArrayList<String> dirList = new ArrayList<String>();
+	private List<File> projectFileList = new ArrayList<File>();
+	private List<String> dirList = new ArrayList<String>();
 	private List<Category> categories;
 
 	public TreeViewerInput() {
@@ -79,7 +79,7 @@ public class TreeViewerInput {
 		return categories;
 	}
 
-	private ArrayList<File> getProjects(Object inputElement) {
+	private List<File> getProjects(Object inputElement) {
 
 		File[] elementList = ((File) inputElement).listFiles();
 		getDirList().clear();
@@ -106,7 +106,7 @@ public class TreeViewerInput {
 		projectFileList.clear();
 	}
 
-	public ArrayList<File> getProjectFileList() {
+	public List<File> getProjectFileList() {
 		return projectFileList;
 	}
 
@@ -114,7 +114,7 @@ public class TreeViewerInput {
 		return categories;
 	}
 
-	private ArrayList<String> getDirList() {
+	private List<String> getDirList() {
 		return dirList;
 	}
 

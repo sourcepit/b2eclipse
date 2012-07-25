@@ -24,88 +24,101 @@ import org.sourcepit.b2eclipse.Activator;
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
 
-public class B2Wizard extends Wizard implements IImportWizard,
-		ISelectionListener {
-	private B2WizardPage modulePage;
-	private IStructuredSelection currentSelection = null;
+public class B2Wizard extends Wizard implements IImportWizard, ISelectionListener
+{
+   private B2WizardPage modulePage;
+   private IStructuredSelection currentSelection = null;
 
 
-	public B2Wizard() {
-		super();
+   public B2Wizard()
+   {
+      super();
 
-		modulePage = new B2WizardPage(Messages.B2Wizard_2, currentSelection);
-		setNeedsProgressMonitor(true);
+      modulePage = new B2WizardPage(Messages.B2Wizard_2, currentSelection);
+      setNeedsProgressMonitor(true);
 
-		addPage(modulePage);
+      addPage(modulePage);
 
-	}
+   }
 
-	/**
-	 * After pressing the finish button the selected projects will be create
-	 * {@inheritDoc}
-	 */
+   /**
+    * After pressing the finish button the selected projects will be create {@inheritDoc}
+    */
 
-	public boolean performFinish() {
-		try {
-			return modulePage.doPerformFinish();
-		} catch (RuntimeException e) {
-			Activator.error(e);
-		}
-		return false;
-	}
+   public boolean performFinish()
+   {
+      try
+      {
+         return modulePage.doPerformFinish();
+      }
+      catch (RuntimeException e)
+      {
+         Activator.error(e);
+      }
+      return false;
+   }
 
-	/**
-	 * By clicking project in the package explorer firstElement gets the
-	 * absolute path of the selected project {@inheritDoc}
-	 */
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		setWindowTitle(Messages.B2Wizard_1);
-		setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(Activator.getImageFromPath("icons/ProjectFolder.gif")));
-		this.currentSelection = selection;
-		workbench.getActiveWorkbenchWindow().getSelectionService()
-				.addSelectionListener(this);
+   /**
+    * By clicking project in the package explorer firstElement gets the absolute path of the selected project
+    * {@inheritDoc}
+    */
+   public void init(IWorkbench workbench, IStructuredSelection selection)
+   {
+      setWindowTitle(Messages.B2Wizard_1);
+      setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(Activator
+         .getImageFromPath("icons/ProjectFolder.gif")));
+      this.currentSelection = selection;
+      workbench.getActiveWorkbenchWindow().getSelectionService().addSelectionListener(this);
 
-		if (selection instanceof IStructuredSelection) {
+      if (selection instanceof IStructuredSelection)
+      {
 
-			final Object firstElement = selection.getFirstElement();
+         final Object firstElement = selection.getFirstElement();
 
-			if (firstElement instanceof IAdaptable) {
-				final IResource selectedResource = (IResource) ((IAdaptable) firstElement)
-						.getAdapter(IResource.class);
-				if (selectedResource != null) {
-					final IPath location;
-					if (selectedResource.getType() == IResource.FILE) {
-						location = selectedResource.getParent().getLocation();
-					} else {
-						location = selectedResource.getLocation();
-					}
-					modulePage.setPath(location);
-				}
-			}
-		}
+         if (firstElement instanceof IAdaptable)
+         {
+            final IResource selectedResource = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
+            if (selectedResource != null)
+            {
+               final IPath location;
+               if (selectedResource.getType() == IResource.FILE)
+               {
+                  location = selectedResource.getParent().getLocation();
+               }
+               else
+               {
+                  location = selectedResource.getLocation();
+               }
+               modulePage.setPath(location);
+            }
+         }
+      }
 
-	}
+   }
 
-	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+   public void selectionChanged(IWorkbenchPart part, ISelection selection)
+   {
 
-		if (part != B2Wizard.this) {
-			init(PlatformUI.getWorkbench(), (IStructuredSelection) selection);
-		}
+      if (part != B2Wizard.this)
+      {
+         init(PlatformUI.getWorkbench(), (IStructuredSelection) selection);
+      }
 
-	}
+   }
 
-	/**
-	 * disposes the SelectionListener
-	 */
-	public void dispose() {
-		modulePage.clearArrayList();
-		PlatformUI.getWorkbench().getActiveWorkbenchWindow()
-				.getSelectionService().removeSelectionListener(this);
-		super.dispose();
-	}
+   /**
+    * disposes the SelectionListener
+    */
+   public void dispose()
+   {
+      modulePage.clearArrayList();
+      PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().removeSelectionListener(this);
+      super.dispose();
+   }
 
-	public B2WizardPage getB2WizardPage() {
-		return modulePage;
-	}
+   public B2WizardPage getB2WizardPage()
+   {
+      return modulePage;
+   }
 
 }
