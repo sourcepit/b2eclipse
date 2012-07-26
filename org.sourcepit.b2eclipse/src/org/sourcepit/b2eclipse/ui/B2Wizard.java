@@ -13,6 +13,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbench;
@@ -65,8 +66,8 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
       setWindowTitle(Messages.B2Wizard_1);
-      setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(Activator
-         .getImageFromPath("icons/ProjectFolder.gif")));
+      Image projectFolder = Activator.getImageFromPath("icons/ProjectFolder.gif");
+      setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(projectFolder));
       this.currentSelection = selection;
       workbench.getActiveWorkbenchWindow().getSelectionService().addSelectionListener(this);
 

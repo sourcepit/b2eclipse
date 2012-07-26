@@ -48,8 +48,11 @@ import org.eclipse.swt.dnd.DropTargetAdapter;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -86,7 +89,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    private Text dirTxt, workspaceTxt;
    private Button dirBtn, workspaceBtn, dirRadioBtn, workspaceRadioBtn, copyModecheckBtn, selectAllBtn, deselectAllBtn,
-      easyButton;
+      refreshBtn, easyButton;
    private Shell dialogShell;
    private Composite modulePageWidgetContainer;
    private CheckboxTreeViewer dirTreeViewer;
@@ -94,7 +97,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
    private IWorkingSet[] workingSets;
 
-   private String selectedDirectory; //$NON-NLS-1$
+   private String selectedDirectory, selectedProject; //$NON-NLS-1$
    private boolean workingSetcheckButtonSelection = false, copyModecheckButtonSelection = false,
       easyButtonSelection = false;
    private IPath projectPath;
@@ -107,6 +110,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    private List<IProject> createdProjects = new ArrayList<IProject>();
    private List<File> projectList;
    private int dummy;
+   private Image state1, state2, state3;
 
    public B2WizardPage(String name, IStructuredSelection currentSelection)
    {
@@ -136,8 +140,13 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
       if (getPath() != null)
       {
-         dirTxt.setText(String.valueOf(getPath()));
-         dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(getPath()))));
+         boolean result = testOnLocalDrive(getPath().toOSString());
+         if (result == true)
+         {
+            dirTxt.setText(String.valueOf(getPath()));
+            dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(getPath()))));
+            dirTreeViewer.expandAll();
+         }
       }
 
       dialogShell = parent.getShell();
@@ -203,12 +212,16 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
             selectedDirectory = directoryDialog.open();
             if (selectedDirectory != null)
             {
-               previouslyBrowsedDirectory = selectedDirectory;
-               dirTxt.setText(selectedDirectory);
-               workspaceTxt.setText(""); //$NON-NLS-1$
-               dirTreeViewer.setInput(new TreeViewerInput(new File(selectedDirectory)));
+               boolean result = testOnLocalDrive(selectedDirectory);
+               if (result == true)
+               {
+                  previouslyBrowsedDirectory = selectedDirectory;
+                  dirTxt.setText(selectedDirectory);
+                  workspaceTxt.setText(""); //$NON-NLS-1$
+                  dirTreeViewer.setInput(new TreeViewerInput(new File(selectedDirectory)));
 
-               dirTreeViewer.expandAll();
+                  dirTreeViewer.expandAll();
+               }
             }
 
          }
@@ -229,11 +242,15 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
             elementTreeSelectionDialog.open();
             if (elementTreeSelectionDialog.getFirstResult() != null)
             {
-               selectedDirectory = String.valueOf(((IResource) elementTreeSelectionDialog.getFirstResult())
-                  .getLocation());
-               workspaceTxt.setText(selectedDirectory);
+               selectedProject = String.valueOf(((IResource) elementTreeSelectionDialog.getFirstResult()).getLocation());
+               workspaceTxt.setText(selectedProject);
                dirTxt.setText(""); //$NON-NLS-1$
-               dirTreeViewer.setInput(new TreeViewerInput(new File(selectedDirectory)));
+               boolean result = testOnLocalDrive(selectedProject);
+               if (result == true)
+               {
+                  dirTreeViewer.setInput(new TreeViewerInput(new File(selectedProject)));
+                  dirTreeViewer.expandAll();
+               }
             }
          }
       });
@@ -269,6 +286,22 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
          }
 
+      });
+      dirTxt.addModifyListener(new ModifyListener()
+      {
+
+         public void modifyText(ModifyEvent e)
+         {
+
+            Text txt = (Text) e.widget;
+            boolean result = testOnLocalDrive(txt.getText());
+            if (result == true)
+            {
+               dirTreeViewer.setInput(new TreeViewerInput(new File(txt.getText())));
+               dirTreeViewer.expandAll();
+            }
+
+         }
       });
 
       copyModecheckBtn.addSelectionListener(new SelectionAdapter()
@@ -321,7 +354,30 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
             {
                dirTreeViewer.setCheckedElements(new Object[0]);
                setPageComplete(false);
-               easyButton.setEnabled(false);
+               easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
+
+            }
+         }
+
+      });
+
+      refreshBtn.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            if (!dirTxt.getText().equals(""))
+            {
+
+               boolean result = testOnLocalDrive(dirTxt.getText());
+               if (result == true)
+               {
+                  dirTreeViewer.refresh(true);
+                  dirTreeViewer.setCheckedElements(new Object[0]);
+                  dirTreeViewer.expandAll();
+                  easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
+                  setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
+
+               }
 
             }
          }
@@ -332,7 +388,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       {
          public void handleEvent(Event event)
          {
-            easyButton.setImage(Activator.getImageFromPath("icons/State3.png"));
+            easyButton.setImage(state3);
 
             easyButtonSelection = true;
 
@@ -380,7 +436,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
          public void handleEvent(Event event)
          {
-            easyButton.setImage(Activator.getImageFromPath("icons/State2.png"));
+            easyButton.setImage(state2);
 
          }
 
@@ -391,7 +447,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
          public void handleEvent(Event event)
          {
-            easyButton.setImage(Activator.getImageFromPath("icons/State1.png"));
+            easyButton.setImage(state1);
 
          }
 
@@ -417,6 +473,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
          }
       });
 
+
    }
 
    private void addDropSupport(final CheckboxTreeViewer treeviewer)
@@ -440,6 +497,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                {
                   dirTxt.setText(file.getAbsolutePath());
                   dirTreeViewer.setInput(new TreeViewerInput(file));
+                  dirTreeViewer.expandAll();
                }
                else
                {
@@ -651,9 +709,18 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       Dialog.applyDialogFont(deselectAllBtn);
       setButtonLayoutData(deselectAllBtn);
 
+      refreshBtn = new Button(buttonsComposite, SWT.PUSH);
+      refreshBtn.setText(Messages.B2WizardPage_16);
+      Dialog.applyDialogFont(refreshBtn);
+      setButtonLayoutData(refreshBtn);
+
+
       easyButton = new Button(buttonsComposite, SWT.PUSH);
-      easyButton.setImage(Activator.getImageFromPath("icons/State1.png"));
-      easyButton.setEnabled(false);
+      state1 = Activator.getImageFromPath("icons/State1.png");
+      state2 = Activator.getImageFromPath("icons/State2.png");
+      state3 = Activator.getImageFromPath("icons/State3.png");
+      easyButton.setImage(state1);
+      easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
       Dialog.applyDialogFont(easyButton);
       setButtonLayoutData(easyButton);
 
@@ -789,8 +856,8 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
          throw new IllegalStateException(e);
       }
 
-
-      addToWorkingSets();
+      if (!getEasyButtonSelection())
+         addToWorkingSets();
 
 
    }
@@ -875,7 +942,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    private void addToWorkingSets()
    {
-
       IWorkingSet[] selectedWorkingSets = workingSetGroup.getSelectedWorkingSets();
       if (selectedWorkingSets == null || selectedWorkingSets.length == 0)
          return;
@@ -958,6 +1024,15 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
          }
       });
       return dialog.getReturnCode() < 0 ? CANCEL : response[dialog.getReturnCode()];
+   }
+
+   private boolean testOnLocalDrive(String path)
+   {
+      File pathFile = new File(path);
+      if (pathFile.getParentFile() != null)
+         return true;
+      else
+         return false;
    }
 
 
