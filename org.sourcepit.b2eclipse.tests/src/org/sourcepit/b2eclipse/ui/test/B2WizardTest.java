@@ -24,6 +24,7 @@ public class B2WizardTest extends TestRunner {
 	private SWTBotTree treeViewer;
 	private SWTBotTreeItem swtBotFirstTreeItem = null;
 	private SWTBotButton easy = null;
+	private String projectPath = "target/tmp/";
 
 	public void chooseB2Wizard() {
 		bot.menu("File").menu("Import...").click();
@@ -32,14 +33,14 @@ public class B2WizardTest extends TestRunner {
 				.select("Check out b2 Project/s...");
 		bot.button("Next >").click();
 
-		importShell = bot.shell("Importieren...");
+		importShell = bot.shell(Messages.B2Wizard_1);
 		importShell.activate();
 
 		treeViewer = bot.tree();
 
 		SWTBotText dirText = bot.textWithTooltip(Messages.B2WizardPage_17);
 		dirText.setFocus();
-		dirText.setText("target/tmp/");
+		dirText.setText(projectPath);
 	}
 
 	@Test
@@ -47,7 +48,7 @@ public class B2WizardTest extends TestRunner {
 
 		chooseB2Wizard();
 
-		SWTBotButton selectAll = importShell.bot().button("Alles auswählen");
+		SWTBotButton selectAll = importShell.bot().button(Messages.B2WizardPage_7);
 		selectAll.click();
 
 		assertTrue(treeViewer.hasItems());
@@ -55,14 +56,14 @@ public class B2WizardTest extends TestRunner {
 			assertTrue(item.isChecked());
 		}
 
-		SWTBotButton deSelectAll = importShell.bot().button("Auswahl aufh.");
+		SWTBotButton deSelectAll = importShell.bot().button(Messages.B2WizardPage_8);
 		deSelectAll.click();
 
 		for (SWTBotTreeItem item : treeViewer.getAllItems()) {
 			assertFalse(item.isChecked());
 		}
 
-		SWTBotButton refresh = importShell.bot().button("Aktualisieren");
+		SWTBotButton refresh = importShell.bot().button(Messages.B2WizardPage_16);
 		refresh.click();
 
 		for (SWTBotTreeItem item : treeViewer.getAllItems()) {
@@ -113,7 +114,7 @@ public class B2WizardTest extends TestRunner {
 			swtBotFirstTreeItem.check();
 		}
 		easy = bot
-				.buttonWithTooltip("Ausgewählte Projekte werden erstellt und den dazugehörigen WorkingSets hinzugefügt.");
+				.buttonWithTooltip(Messages.B2WizardPage_19);
 		easy.click();
 
 	}
@@ -127,7 +128,7 @@ public class B2WizardTest extends TestRunner {
 			swtBotFirstTreeItem.check();
 		}
 		easy = bot
-				.buttonWithTooltip("Ausgewählte Projekte werden erstellt und den dazugehörigen WorkingSets hinzugefügt.");
+				.buttonWithTooltip(Messages.B2WizardPage_19);
 		easy.click();
 	}
 
@@ -140,13 +141,13 @@ public class B2WizardTest extends TestRunner {
 		}
 		copyMode();
 		SWTBotButton easy = bot
-				.buttonWithTooltip("Ausgewählte Projekte werden erstellt und den dazugehörigen WorkingSets hinzugefügt.");
+				.buttonWithTooltip(Messages.B2WizardPage_19);
 		easy.click();
 
 	}
 
 	public void copyMode() {
-		SWTBotCheckBox copyMode = bot.checkBox("Projekt/e kopieren:");
+		SWTBotCheckBox copyMode = bot.checkBox(Messages.B2WizardPage_15);
 		copyMode.click();
 	}
 

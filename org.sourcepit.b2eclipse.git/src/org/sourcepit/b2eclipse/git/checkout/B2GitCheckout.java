@@ -9,12 +9,12 @@ import org.eclipse.egit.ui.internal.repository.tree.FolderNode;
 import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNode;
 import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNodeType;
 import org.eclipse.jface.wizard.WizardDialog;
-import org.sourcepit.b2eclipse.handler.B2CheckoutHandler;
+import org.sourcepit.b2eclipse.git.handler.B2GitCheckoutHandler;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
-public class B2GitCheckout extends B2CheckoutHandler {
+public class B2GitCheckout extends B2GitCheckoutHandler {
 	
 
 	public Object execute(ExecutionEvent arg0) throws ExecutionException {

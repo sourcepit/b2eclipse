@@ -31,13 +31,13 @@ import org.eclipse.team.svn.core.resource.IRepositoryContainer;
 import org.eclipse.team.svn.core.resource.IRepositoryResource;
 import org.eclipse.team.svn.core.utility.ILoggedOperationFactory;
 import org.eclipse.team.svn.core.utility.ProgressMonitorUtility;
-import org.sourcepit.b2eclipse.handler.B2CheckoutHandler;
+import org.sourcepit.b2eclipse.svn.handler.B2SVNCheckoutHandler;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
 
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
-public class B2SVNCheckout extends B2CheckoutHandler {
+public class B2SVNCheckout extends B2SVNCheckoutHandler {
 
 	private Shell shell;
 	private IRepositoryResource selectedResource;

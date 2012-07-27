@@ -716,6 +716,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
 
       easyButton = new Button(buttonsComposite, SWT.PUSH);
+      easyButton.setToolTipText(Messages.B2WizardPage_19);
       state1 = Activator.getImageFromPath("icons/State1.png");
       state2 = Activator.getImageFromPath("icons/State2.png");
       state3 = Activator.getImageFromPath("icons/State3.png");
@@ -755,6 +756,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       workspaceRadioBtn.setText(Messages.B2WizardPage_5);
 
       workspaceTxt = new Text(rootAndWorkspaceComposite, SWT.BORDER);
+      workspaceTxt.setToolTipText(Messages.B2WizardPage_18);
       workspaceTxt.setEnabled(false);
 
       GridData workspaceData = new GridData(SWT.FILL, SWT.FILL, true, true);
