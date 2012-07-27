@@ -741,6 +741,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       dirRadioBtn.setSelection(true);
 
       dirTxt = new Text(rootAndWorkspaceComposite, SWT.BORDER);
+      dirTxt.setToolTipText(Messages.B2WizardPage_17);
 
       GridData directoryPathData = new GridData(SWT.FILL, SWT.FILL, true, true);
       directoryPathData.widthHint = new PixelConverter(dirTxt).convertWidthInCharsToPixels(25);
