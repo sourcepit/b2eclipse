@@ -7,7 +7,6 @@ import junit.textui.TestRunner;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swtbot.swt.finder.SWTBot;
-import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCheckBox;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
@@ -15,10 +14,8 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.sourcepit.b2eclipse.ui.Messages;
 
-@RunWith(SWTBotJunit4ClassRunner.class)
 public class B2WizardTest extends TestRunner
 {
    private final SWTBot bot = new SWTBot();
