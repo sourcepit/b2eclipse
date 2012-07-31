@@ -801,23 +801,19 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                      monitor.beginTask(Messages.B2Wizard_3, projectList.size());
                      try
                      {
-                        if (monitor.isCanceled())
-                        {
-                           throw new OperationCanceledException();
-                        }
                         for (int i = 0; i < projectList.size(); i++)
                         {
                            dummy = i;
                            monitor.subTask(Messages.B2Wizard_4 + " " + projectList.get(i).getParent());
-                           Display.getDefault().asyncExec(new Runnable()
+                           Display.getDefault().syncExec(new Runnable()
                            {
 
                               public void run()
                               {
                                  if (getCopyModeCheckButtonSelection())
-                                    createdProjects.add(copyProjects(dummy));
+                                    copyProjects(dummy);
                                  else
-                                    createdProjects.add(linkProjects(dummy));
+                                    linkProjects(dummy);
                               }
                            });
 
@@ -831,6 +827,9 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                      }
                   }
                }, monitor);
+            }
+            catch(OperationCanceledException e){
+               //ignore
             }
             catch (CoreException e)
             {
@@ -865,7 +864,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    }
 
-   public IProject linkProjects(int projectsListPosition)
+   public void linkProjects(int projectsListPosition)
    {
 
       try
@@ -881,7 +880,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
             easyAddToWorkingSets(projectsListPosition, project);
 
          }
-         return project;
+         createdProjects.add(project);
       }
       catch (CoreException e)
       {
@@ -890,7 +889,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    }
 
-   private synchronized IProject copyProjects(int projectsListPosition)
+   private synchronized void copyProjects(int projectsListPosition)
    {
       final IWorkspace workspace = ResourcesPlugin.getWorkspace();
       final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
@@ -935,15 +934,15 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       }
       catch (InterruptedException e)
       {
-         throw new IllegalStateException(e);
+         return;
       }
-      return project;
+      createdProjects.add(project);
 
 
    }
 
 
-   private void addToWorkingSets()
+   private synchronized void addToWorkingSets()
    {
       IWorkingSet[] selectedWorkingSets = workingSetGroup.getSelectedWorkingSets();
       if (selectedWorkingSets == null || selectedWorkingSets.length == 0)
