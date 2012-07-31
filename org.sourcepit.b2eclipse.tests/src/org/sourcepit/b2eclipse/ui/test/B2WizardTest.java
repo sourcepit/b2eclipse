@@ -25,13 +25,7 @@ public class B2WizardTest extends TestRunner
    private SWTBotButton easy = null;
    private String projectPath = "target/tmp/";
 
-   @Test
-   public void test()
-   {
-      assertTrue(true);
-   }
-
-   public void chooseB2Wizard()
+   public void selectB2Wizard()
    {
       bot.menu("File").menu("Import...").click();
       bot.shell("Import").setFocus();
@@ -52,7 +46,7 @@ public class B2WizardTest extends TestRunner
    public void testButtons()
    {
 
-      chooseB2Wizard();
+      selectB2Wizard();
 
       SWTBotButton selectAll = importShell.bot().button(Messages.B2WizardPage_7);
       selectAll.click();
@@ -87,7 +81,7 @@ public class B2WizardTest extends TestRunner
    @Test
    public void createProject()
    {
-      chooseB2Wizard();
+      selectB2Wizard();
 
       if (treeViewer.hasItems())
       {
@@ -97,11 +91,24 @@ public class B2WizardTest extends TestRunner
       finish();
 
    }
+   @Test
+   public void createProjects(){
+      selectB2Wizard();
+      if (treeViewer.hasItems())
+      {
+         swtBotFirstTreeItem = treeViewer.getAllItems()[1].getItems()[0];
+         swtBotFirstTreeItem.check();
+         swtBotFirstTreeItem = treeViewer.getAllItems()[2].getItems()[0];
+         swtBotFirstTreeItem.check();
+      }
+      finish();
+      
+   }
 
    @Test
    public void copyProject()
    {
-      chooseB2Wizard();
+      selectB2Wizard();
       if (treeViewer.hasItems())
       {
          swtBotFirstTreeItem = treeViewer.getAllItems()[0].getItems()[3];
@@ -123,7 +130,7 @@ public class B2WizardTest extends TestRunner
    @Test
    public void easyCreateProject()
    {
-      chooseB2Wizard();
+      selectB2Wizard();
       if (treeViewer.hasItems())
       {
          swtBotFirstTreeItem = treeViewer.getAllItems()[0].getItems()[1];
@@ -137,7 +144,7 @@ public class B2WizardTest extends TestRunner
    @Test
    public void easyCreateProjectToExistingWS()
    {
-      chooseB2Wizard();
+      selectB2Wizard();
 
       if (treeViewer.hasItems())
       {
@@ -151,7 +158,7 @@ public class B2WizardTest extends TestRunner
    @Test
    public void easyCopyProject()
    {
-      chooseB2Wizard();
+      selectB2Wizard();
       if (treeViewer.hasItems())
       {
          swtBotFirstTreeItem = treeViewer.getAllItems()[0].getItems()[4];
@@ -172,7 +179,7 @@ public class B2WizardTest extends TestRunner
    @Test
    public void openAndCloseWorkingSetDialog()
    {
-      chooseB2Wizard();
+      selectB2Wizard();
       SWTBotCheckBox projectToWorkingSets = bot.checkBox("Add project to working sets");
       projectToWorkingSets.click();
       SWTBotButton workingSet = bot.button("Select...");
