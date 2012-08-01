@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2012 Sourcepit.org contributors and others. All rights reserved. This program and the accompanying
+ * materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
 
 package org.sourcepit.b2eclipse.ui.test;
 
@@ -89,8 +94,10 @@ public class B2WizardTest extends TestRunner
          swtBotFirstTreeItem.check();
       }
       finish();
+      bot.sleep(1000);
 
    }
+   
    @Test
    public void createProjects(){
       selectB2Wizard();
@@ -102,6 +109,7 @@ public class B2WizardTest extends TestRunner
          swtBotFirstTreeItem.check();
       }
       finish();
+      bot.sleep(1000);
       
    }
 
@@ -118,6 +126,7 @@ public class B2WizardTest extends TestRunner
       copyMode();
 
       finish();
+      bot.sleep(1000);
 
    }
 
@@ -138,6 +147,7 @@ public class B2WizardTest extends TestRunner
       }
       easy = bot.buttonWithTooltip(Messages.B2WizardPage_19);
       easy.click();
+      bot.sleep(1000);
 
    }
 
@@ -153,6 +163,7 @@ public class B2WizardTest extends TestRunner
       }
       easy = bot.buttonWithTooltip(Messages.B2WizardPage_19);
       easy.click();
+      bot.sleep(1000);
    }
 
    @Test
@@ -167,6 +178,7 @@ public class B2WizardTest extends TestRunner
       copyMode();
       SWTBotButton easy = bot.buttonWithTooltip(Messages.B2WizardPage_19);
       easy.click();
+      bot.sleep(1000);
 
    }
 
@@ -189,7 +201,7 @@ public class B2WizardTest extends TestRunner
       workingSetShell.activate();
       workingSetShell.close();
       cancel();
-      assertTrue(ResourcesPlugin.getWorkspace().getRoot().getProjects().length == 5);
+      assertTrue(ResourcesPlugin.getWorkspace().getRoot().getProjects().length == 7);
    }
 
    public void cancel()

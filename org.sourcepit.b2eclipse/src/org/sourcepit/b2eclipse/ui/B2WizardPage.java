@@ -218,7 +218,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                   previouslyBrowsedDirectory = selectedDirectory;
                   dirTxt.setText(selectedDirectory);
                   workspaceTxt.setText(""); //$NON-NLS-1$
-                  dirTreeViewer.setInput(new TreeViewerInput(new File(selectedDirectory)));
+//                  dirTreeViewer.setInput(new TreeViewerInput(new File(selectedDirectory)));
 
                   dirTreeViewer.expandAll();
                }
@@ -248,7 +248,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                boolean result = testOnLocalDrive(selectedProject);
                if (result == true)
                {
-                  dirTreeViewer.setInput(new TreeViewerInput(new File(selectedProject)));
+//                  dirTreeViewer.setInput(new TreeViewerInput(new File(selectedProject)));
                   dirTreeViewer.expandAll();
                }
             }
@@ -288,6 +288,22 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
       });
       dirTxt.addModifyListener(new ModifyListener()
+      {
+
+         public void modifyText(ModifyEvent e)
+         {
+
+            Text txt = (Text) e.widget;
+            boolean result = testOnLocalDrive(txt.getText());
+            if (result == true)
+            {
+               dirTreeViewer.setInput(new TreeViewerInput(new File(txt.getText())));
+               dirTreeViewer.expandAll();
+            }
+
+         }
+      });
+      workspaceTxt.addModifyListener(new ModifyListener()
       {
 
          public void modifyText(ModifyEvent e)
@@ -496,7 +512,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                if (file.isDirectory())
                {
                   dirTxt.setText(file.getAbsolutePath());
-                  dirTreeViewer.setInput(new TreeViewerInput(file));
+//                  dirTreeViewer.setInput(new TreeViewerInput(file));
                   dirTreeViewer.expandAll();
                }
                else
@@ -864,7 +880,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    }
 
-   public void linkProjects(int projectsListPosition)
+   private void linkProjects(int projectsListPosition)
    {
 
       try
@@ -889,7 +905,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    }
 
-   private synchronized void copyProjects(int projectsListPosition)
+   private void copyProjects(int projectsListPosition)
    {
       final IWorkspace workspace = ResourcesPlugin.getWorkspace();
       final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
@@ -942,7 +958,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    }
 
 
-   private synchronized void addToWorkingSets()
+   private void addToWorkingSets()
    {
       IWorkingSet[] selectedWorkingSets = workingSetGroup.getSelectedWorkingSets();
       if (selectedWorkingSets == null || selectedWorkingSets.length == 0)
