@@ -95,10 +95,9 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    private CheckboxTreeViewer dirTreeViewer;
 
    private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
-   private IWorkingSet[] workingSets;
 
    private String selectedDirectory, selectedProject; //$NON-NLS-1$
-   private boolean workingSetcheckButtonSelection = false, copyModecheckButtonSelection = false,
+   private boolean copyModecheckButtonSelection = false,
       easyButtonSelection = false;
    private IPath projectPath;
    private TreeViewerInput treeViewerInput;
@@ -110,7 +109,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    private List<IProject> createdProjects = new ArrayList<IProject>();
    private List<File> projectList;
    private int dummy;
-   private Image state1, state2, state3;
+   private Image imgState1, imgState2, imgState3;
 
    public B2WizardPage(String name, IStructuredSelection currentSelection)
    {
@@ -120,6 +119,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       setPageComplete(false);
       setTitle(Messages.B2WizardPage_1);
       setDescription(Messages.B2WizardPage_2);
+      clearArrayList();
 
    }
 
@@ -163,7 +163,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    /**
     * add Widgets on Wizard Page
     */
-   public void addWidgets(Composite workArea)
+   private void addWidgets(Composite workArea)
    {
 
       createRootAndWorkspaceArea(workArea);
@@ -183,9 +183,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       {
          public void handleEvent(Event event)
          {
-            if (getTreeViewerInput() != null)
-               clearArrayList();
-
             DirectoryDialog directoryDialog = new DirectoryDialog(dialogShell, SWT.OPEN);
             directoryDialog.setText(Messages.B2WizardPage_11);
 
@@ -218,7 +215,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                   previouslyBrowsedDirectory = selectedDirectory;
                   dirTxt.setText(selectedDirectory);
                   workspaceTxt.setText(""); //$NON-NLS-1$
-//                  dirTreeViewer.setInput(new TreeViewerInput(new File(selectedDirectory)));
+                  // dirTreeViewer.setInput(new TreeViewerInput(new File(selectedDirectory)));
 
                   dirTreeViewer.expandAll();
                }
@@ -231,9 +228,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       {
          public void handleEvent(Event event)
          {
-            if (getTreeViewerInput() != null)
-               clearArrayList();
-
             ElementTreeSelectionDialog elementTreeSelectionDialog = new ElementTreeSelectionDialog(dialogShell,
                new WorkbenchLabelProvider(), new BaseWorkbenchContentProvider());
             elementTreeSelectionDialog.setTitle(Messages.B2WizardPage_13);
@@ -248,7 +242,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                boolean result = testOnLocalDrive(selectedProject);
                if (result == true)
                {
-//                  dirTreeViewer.setInput(new TreeViewerInput(new File(selectedProject)));
+                  // dirTreeViewer.setInput(new TreeViewerInput(new File(selectedProject)));
                   dirTreeViewer.expandAll();
                }
             }
@@ -404,7 +398,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       {
          public void handleEvent(Event event)
          {
-            easyButton.setImage(state3);
+            easyButton.setImage(imgState3);
 
             easyButtonSelection = true;
 
@@ -430,17 +424,8 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
             }
 
-            Iterator<String> it = moduleMap.keySet().iterator();
-            while (it.hasNext())
-            {
-               String aKey = it.next();
-               ArrayList<String> b = moduleMap.get(aKey);
-               System.out.println("Key: " + aKey + " Value: " + b);
-            }
-
             if (((B2Wizard) getWizard()).performFinish() == true)
             {
-
                ((B2Wizard) getWizard()).getShell().close();
             }
 
@@ -452,7 +437,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
          public void handleEvent(Event event)
          {
-            easyButton.setImage(state2);
+            easyButton.setImage(imgState2);
 
          }
 
@@ -463,7 +448,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
          public void handleEvent(Event event)
          {
-            easyButton.setImage(state1);
+            easyButton.setImage(imgState1);
 
          }
 
@@ -512,7 +497,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                if (file.isDirectory())
                {
                   dirTxt.setText(file.getAbsolutePath());
-//                  dirTreeViewer.setInput(new TreeViewerInput(file));
+                  // dirTreeViewer.setInput(new TreeViewerInput(file));
                   dirTreeViewer.expandAll();
                }
                else
@@ -548,6 +533,48 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       return getSelectedProjects;
    }
 
+   public IWorkingSetManager getWorkingSetManager()
+   {
+      return workingSetManager;
+   
+   }
+
+   public boolean getEasyButtonSelection()
+   {
+      return easyButtonSelection;
+   }
+
+   public boolean getCopyModeCheckButtonSelection()
+   {
+      return copyModecheckButtonSelection;
+   }
+
+   private IPath getPath()
+   {
+      return projectPath;
+   }
+
+   public TreeViewerInput getTreeViewerInput()
+   {
+      treeViewerInput = (TreeViewerInput) dirTreeViewer.getInput();
+      return treeViewerInput;
+   }
+
+   public Map<String, ArrayList<String>> getModuleMap()
+   {
+      return moduleMap;
+   }
+
+   private ArrayList<String> getFileinFilelist()
+   {
+      return fileList;
+   }
+
+   private File getProject(int position){
+      return projectList.get(position);
+      
+   }
+
    public void setPath(IPath projectPath)
    {
       if (projectPath == null)
@@ -561,23 +588,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    }
 
-   private IPath getPath()
-   {
-      return projectPath;
-   }
-
-
-   public IWorkingSetManager getWorkingSetManager()
-   {
-      return workingSetManager;
-
-   }
-
-   public IWorkingSet[] getWorkingSets()
-   {
-      return workingSets;
-   }
-
    private void setCategoriesChecked()
    {
       if (getTreeViewerInput() != null)
@@ -587,7 +597,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
             dirTreeViewer.setChecked(category, true);
          }
       }
-
+   
    }
 
    private void setCategoriesUnchecked()
@@ -601,46 +611,20 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       }
    }
 
-   public boolean getWorkingSetCheckButtonSelection()
-   {
-      return workingSetcheckButtonSelection;
-   }
-
-   public boolean getEasyButtonSelection()
-   {
-      return easyButtonSelection;
-   }
-
-   public boolean getCopyModeCheckButtonSelection()
-   {
-      return copyModecheckButtonSelection;
-   }
-
    public void clearArrayList()
    {
       if (treeViewerInput != null)
          treeViewerInput.clearArrayList();
    }
 
-   public TreeViewerInput getTreeViewerInput()
-   {
-      treeViewerInput = (TreeViewerInput) dirTreeViewer.getInput();
-      return treeViewerInput;
-   }
-
-   public CheckboxTreeViewer getTreeViewer()
-   {
-      return dirTreeViewer;
-   }
-
    private String doParentSearch(File file)
    {
       File[] elementList = file.getParentFile().listFiles();
-      getFileList().clear();
+      getFileinFilelist().clear();
 
       for (File i : elementList)
       {
-         setFileList(i.getName());
+         addFiletoFilelist(i.getName());
       }
 
       if (fileList.contains("module.xml"))
@@ -657,17 +641,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    }
 
-   public Map<String, ArrayList<String>> getModuleMap()
-   {
-      return moduleMap;
-   }
-
-   private ArrayList<String> getFileList()
-   {
-      return fileList;
-   }
-
-   private void setFileList(String file)
+   private void addFiletoFilelist(String file)
    {
       fileList.add(file);
    }
@@ -733,10 +707,10 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
       easyButton = new Button(buttonsComposite, SWT.PUSH);
       easyButton.setToolTipText(Messages.B2WizardPage_19);
-      state1 = Activator.getImageFromPath("icons/State1.png");
-      state2 = Activator.getImageFromPath("icons/State2.png");
-      state3 = Activator.getImageFromPath("icons/State3.png");
-      easyButton.setImage(state1);
+      imgState1 = Activator.getImageFromPath("icons/State1.png");
+      imgState2 = Activator.getImageFromPath("icons/State2.png");
+      imgState3 = Activator.getImageFromPath("icons/State3.png");
+      easyButton.setImage(imgState1);
       easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
       Dialog.applyDialogFont(easyButton);
       setButtonLayoutData(easyButton);
@@ -802,7 +776,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    {
 
       projectList = getSelectedProjects();
-      createdProjects.removeAll(createdProjects);
+      removeAllCreatedProjectsList();
 
       final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
       {
@@ -820,7 +794,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                         for (int i = 0; i < projectList.size(); i++)
                         {
                            dummy = i;
-                           monitor.subTask(Messages.B2Wizard_4 + " " + projectList.get(i).getParent());
+                           monitor.subTask(Messages.B2Wizard_4 + " " + getProject(i).getParent());
                            Display.getDefault().syncExec(new Runnable()
                            {
 
@@ -844,8 +818,9 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                   }
                }, monitor);
             }
-            catch(OperationCanceledException e){
-               //ignore
+            catch (OperationCanceledException e)
+            {
+               // ignore
             }
             catch (CoreException e)
             {
@@ -886,7 +861,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       try
       {
          final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-         final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
+         final IPath projectFile = new Path(String.valueOf(getProject(projectsListPosition)));
          IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
          IProject project = workspace.getRoot().getProject(projectDescription.getName());
          JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
@@ -896,7 +871,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
             easyAddToWorkingSets(projectsListPosition, project);
 
          }
-         createdProjects.add(project);
+         addCreatedProject(project);
       }
       catch (CoreException e)
       {
@@ -908,7 +883,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    private void copyProjects(int projectsListPosition)
    {
       final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-      final IPath projectFile = new Path(String.valueOf(projectList.get(projectsListPosition)));
+      final IPath projectFile = new Path(String.valueOf(getProject(projectsListPosition)));
       IProject project = null;
 
       try
@@ -952,7 +927,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       {
          return;
       }
-      createdProjects.add(project);
+      addCreatedProject(project);
 
 
    }
@@ -973,7 +948,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    private void easyAddToWorkingSets(int filePosition, IProject project)
    {
-
+   
       Iterator<String> it = getModuleMap().keySet().iterator();
       while (it.hasNext())
       {
@@ -981,10 +956,10 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
          final List<String> projectPaths = getModuleMap().get(workingsetName);
          for (String projectPath : projectPaths)
          {
-            if (projectPath.equals(projectList.get(filePosition).getAbsolutePath()))
+            if (projectPath.equals(getProject(filePosition).getAbsolutePath()))
             {
                final IWorkingSetManager manager = getWorkingSetManager();
-
+   
                // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
                // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
                IWorkingSet workingSet = manager.getWorkingSet(workingsetName);
@@ -993,18 +968,22 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                   workingSet = manager.createWorkingSet(workingsetName, new IAdaptable[] { project });
                   workingSet.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
                   manager.addWorkingSet(workingSet);
-
+   
                }
                else
                {
                   manager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
                }
-
+   
             }
          }
       }
+   
+   
+   }
 
-
+   private void removeAllCreatedProjectsList(){
+      createdProjects.removeAll(createdProjects);
    }
 
    public String queryOverwrite(String pathString)
@@ -1051,6 +1030,10 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
          return true;
       else
          return false;
+   }
+   
+   private void addCreatedProject(IProject project){
+      createdProjects.add(project);
    }
 
 
