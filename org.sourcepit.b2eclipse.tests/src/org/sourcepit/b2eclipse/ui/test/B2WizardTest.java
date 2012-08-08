@@ -145,7 +145,7 @@ public class B2WizardTest extends TestRunner
          swtBotFirstTreeItem = treeViewer.getAllItems()[0].getItems()[1];
          swtBotFirstTreeItem.check();
       }
-      easy = bot.buttonWithTooltip(Messages.B2WizardPage_19);
+      easy = bot.buttonWithTooltip(Messages.B2WizardPage_22);
       easy.click();
       bot.sleep(1000);
 

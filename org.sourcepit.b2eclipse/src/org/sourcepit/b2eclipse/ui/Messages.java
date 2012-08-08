@@ -33,6 +33,9 @@ public class Messages extends NLS
    public static String B2WizardPage_17;
    public static String B2WizardPage_18;
    public static String B2WizardPage_19;
+   public static String B2WizardPage_20;
+   public static String B2WizardPage_21;
+   public static String B2WizardPage_22;
    static
    {
       // initialize resource bundle

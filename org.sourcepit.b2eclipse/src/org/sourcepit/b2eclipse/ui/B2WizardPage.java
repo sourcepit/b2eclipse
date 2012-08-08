@@ -691,22 +691,25 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
       selectAllBtn = new Button(buttonsComposite, SWT.PUSH);
       selectAllBtn.setText(Messages.B2WizardPage_7);
+      selectAllBtn.setToolTipText(Messages.B2WizardPage_19);
       Dialog.applyDialogFont(selectAllBtn);
       setButtonLayoutData(selectAllBtn);
 
       deselectAllBtn = new Button(buttonsComposite, SWT.PUSH);
       deselectAllBtn.setText(Messages.B2WizardPage_8);
+      deselectAllBtn.setToolTipText(Messages.B2WizardPage_20);
       Dialog.applyDialogFont(deselectAllBtn);
       setButtonLayoutData(deselectAllBtn);
 
       refreshBtn = new Button(buttonsComposite, SWT.PUSH);
       refreshBtn.setText(Messages.B2WizardPage_16);
+      refreshBtn.setToolTipText(Messages.B2WizardPage_21);
       Dialog.applyDialogFont(refreshBtn);
       setButtonLayoutData(refreshBtn);
 
 
       easyButton = new Button(buttonsComposite, SWT.PUSH);
-      easyButton.setToolTipText(Messages.B2WizardPage_19);
+      easyButton.setToolTipText(Messages.B2WizardPage_22);
       imgState1 = Activator.getImageFromPath("icons/State1.png");
       imgState2 = Activator.getImageFromPath("icons/State2.png");
       imgState3 = Activator.getImageFromPath("icons/State3.png");
