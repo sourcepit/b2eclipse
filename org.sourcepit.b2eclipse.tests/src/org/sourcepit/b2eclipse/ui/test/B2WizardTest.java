@@ -161,7 +161,7 @@ public class B2WizardTest extends TestRunner
          swtBotFirstTreeItem = treeViewer.getAllItems()[1].getItems()[1];
          swtBotFirstTreeItem.check();
       }
-      easy = bot.buttonWithTooltip(Messages.B2WizardPage_19);
+      easy = bot.buttonWithTooltip(Messages.B2WizardPage_22);
       easy.click();
       bot.sleep(1000);
    }
@@ -176,7 +176,7 @@ public class B2WizardTest extends TestRunner
          swtBotFirstTreeItem.check();
       }
       copyMode();
-      SWTBotButton easy = bot.buttonWithTooltip(Messages.B2WizardPage_19);
+      SWTBotButton easy = bot.buttonWithTooltip(Messages.B2WizardPage_22);
       easy.click();
       bot.sleep(1000);
 

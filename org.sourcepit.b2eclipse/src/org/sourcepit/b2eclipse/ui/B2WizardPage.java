@@ -88,8 +88,8 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 {
 
    private Text dirTxt, workspaceTxt;
-   private Button dirBtn, workspaceBtn, dirRadioBtn, workspaceRadioBtn, copyModecheckBtn, selectAllBtn, deselectAllBtn,
-      refreshBtn, easyButton;
+   private Button dirBtn, workspaceBtn, dirRadioBtn, workspaceRadioBtn, copyModecheckBtn,
+      selectAllBtn, deselectAllBtn, refreshBtn, easyButton;
    private Shell dialogShell;
    private Composite modulePageWidgetContainer;
    private CheckboxTreeViewer dirTreeViewer;
@@ -97,8 +97,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
 
    private String selectedDirectory, selectedProject; //$NON-NLS-1$
-   private boolean copyModecheckButtonSelection = false,
-      easyButtonSelection = false;
+   private boolean copyModecheckButtonSelection = false, easyButtonSelection = false;
    private IPath projectPath;
    private TreeViewerInput treeViewerInput;
    private static String previouslyBrowsedDirectory = "";
@@ -224,6 +223,8 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
          }
       });
 
+
+
       workspaceBtn.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
@@ -297,6 +298,9 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
          }
       });
+
+
+
       workspaceTxt.addModifyListener(new ModifyListener()
       {
 
@@ -536,7 +540,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    public IWorkingSetManager getWorkingSetManager()
    {
       return workingSetManager;
-   
+
    }
 
    public boolean getEasyButtonSelection()
@@ -570,9 +574,10 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       return fileList;
    }
 
-   private File getProject(int position){
+   private File getProject(int position)
+   {
       return projectList.get(position);
-      
+
    }
 
    public void setPath(IPath projectPath)
@@ -597,7 +602,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
             dirTreeViewer.setChecked(category, true);
          }
       }
-   
+
    }
 
    private void setCategoriesUnchecked()
@@ -951,7 +956,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    private void easyAddToWorkingSets(int filePosition, IProject project)
    {
-   
+
       Iterator<String> it = getModuleMap().keySet().iterator();
       while (it.hasNext())
       {
@@ -962,7 +967,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
             if (projectPath.equals(getProject(filePosition).getAbsolutePath()))
             {
                final IWorkingSetManager manager = getWorkingSetManager();
-   
+
                // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
                // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
                IWorkingSet workingSet = manager.getWorkingSet(workingsetName);
@@ -971,21 +976,22 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                   workingSet = manager.createWorkingSet(workingsetName, new IAdaptable[] { project });
                   workingSet.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
                   manager.addWorkingSet(workingSet);
-   
+
                }
                else
                {
                   manager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
                }
-   
+
             }
          }
       }
-   
-   
+
+
    }
 
-   private void removeAllCreatedProjectsList(){
+   private void removeAllCreatedProjectsList()
+   {
       createdProjects.removeAll(createdProjects);
    }
 
@@ -1034,8 +1040,9 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       else
          return false;
    }
-   
-   private void addCreatedProject(IProject project){
+
+   private void addCreatedProject(IProject project)
+   {
       createdProjects.add(project);
    }
 
