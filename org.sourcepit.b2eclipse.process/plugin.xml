@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut id="org.sourcepit.b2eclipse.b2Build"
+                class="org.sourcepit.b2eclipse.launch.ExecuteModuleAction"
+                label="B2 build..."
+                modes="run">
+         <contextualLaunch>
+           <contextLabel label="B2 build..." mode="run"/>
+           <enablement>
+     		<count value="1"/>
+              <iterate>
+                 <or>
+                    <adapt type="org.eclipse.core.resources.IFile">
+                       <test property="org.eclipse.core.resources.name" value="module.xml"/>
+                    </adapt>
+                    <adapt type="org.eclipse.core.resources.IProject">
+                       <test 
+                       forcePluginActivation="true"
+                       property="org.sourcepit.b2eclipse.testers.containsFile"> 
+                       </test>
+                    </adapt>       
+                 </or>
+              </iterate>
+           </enablement>
+       </contextualLaunch>
+     </shortcut>
+     </extension>
+     
+  <extension point="org.eclipse.core.expressions.propertyTesters">
+    <propertyTester
+      id="org.sourcepit.b2eclipse.FileTester"
+      type="org.eclipse.core.resources.IResource"
+      namespace="org.sourcepit.b2eclipse.testers"
+      properties="containsFile"
+      class="org.sourcepit.b2eclipse.tester.FilePropertyTester">
+    </propertyTester>
+    </extension>
+</plugin>
