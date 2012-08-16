@@ -34,14 +34,18 @@ public class FilePropertyTester extends PropertyTester
 
       if (PROPERTY_CONTAINS_FILE.equals(property))
       {
-         File folder = new File(((IProject) receiver).getLocation().toOSString());
-         doModuleSearch(folder);
+         File selectedProject = new File(((IProject) receiver).getLocation().toOSString());
+         if (expectedValue instanceof String)
+         {
+            doModuleSearch(selectedProject, (String) expectedValue);
+         }
+
 
       }
       return result;
    }
 
-   public void doModuleSearch(File file)
+   public void doModuleSearch(File file, String expectedValue)
    {
 
       if (height != 2)
@@ -54,11 +58,11 @@ public class FilePropertyTester extends PropertyTester
             fileList.add((i.getName()));
          }
 
-         if (fileList.contains("module.xml"))
+         if (fileList.contains(expectedValue))
          {
             for (File element : elementList)
             {
-               if (element.getName().equals("module.xml"))
+               if (element.getName().equals(expectedValue))
                {
                   result = true;
 
@@ -66,7 +70,7 @@ public class FilePropertyTester extends PropertyTester
             }
          }
          height++;
-         doModuleSearch(file.getParentFile());
+         doModuleSearch(file.getParentFile(), expectedValue);
       }
 
 

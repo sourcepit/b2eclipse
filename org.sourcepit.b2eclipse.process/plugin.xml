@@ -18,7 +18,8 @@
                     <adapt type="org.eclipse.core.resources.IProject">
                        <test 
                        forcePluginActivation="true"
-                       property="org.sourcepit.b2eclipse.testers.containsFile"> 
+                       property="org.sourcepit.b2eclipse.testers.containsFile"
+                       value="module.xml"> 
                        </test>
                     </adapt>       
                  </or>
