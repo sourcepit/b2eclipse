@@ -8,14 +8,12 @@ package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -26,12 +24,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -40,7 +36,6 @@ import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTarget;
@@ -50,8 +45,6 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -67,14 +60,10 @@ import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
-import org.eclipse.ui.dialogs.IOverwriteQuery;
 import org.eclipse.ui.dialogs.WorkingSetGroup;
-import org.eclipse.ui.internal.ide.IDEWorkbenchMessages;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
-import org.eclipse.ui.wizards.datatransfer.FileSystemStructureProvider;
-import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.Category;
 import org.sourcepit.b2eclipse.input.TreeViewerInput;
@@ -84,12 +73,12 @@ import org.sourcepit.b2eclipse.provider.LabelProvider;
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
-public class B2WizardPage extends WizardPage implements IOverwriteQuery
+public class B2WizardPage extends WizardPage
 {
 
    private Text dirTxt, workspaceTxt;
-   private Button dirBtn, workspaceBtn, dirRadioBtn, workspaceRadioBtn, copyModecheckBtn,
-      selectAllBtn, deselectAllBtn, refreshBtn, easyButton;
+   private Button dirBtn, workspaceBtn, dirRadioBtn, workspaceRadioBtn, selectAllBtn, deselectAllBtn, refreshBtn,
+      easyButton;
    private Shell dialogShell;
    private Composite modulePageWidgetContainer;
    private CheckboxTreeViewer dirTreeViewer;
@@ -97,7 +86,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
 
    private String selectedDirectory, selectedProject; //$NON-NLS-1$
-   private boolean copyModecheckButtonSelection = false, easyButtonSelection = false;
+   private boolean easyButtonSelection = false;
    private IPath projectPath;
    private TreeViewerInput treeViewerInput;
    private static String previouslyBrowsedDirectory = "";
@@ -116,8 +105,8 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       super(name);
       this.currentSelection = currentSelection;
       setPageComplete(false);
-      setTitle(Messages.B2WizardPage_1);
-      setDescription(Messages.B2WizardPage_2);
+      setTitle(Messages.msgImportHeader);
+      setDescription(Messages.msgImportSuperscription);
       clearArrayList();
 
    }
@@ -167,7 +156,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
       createRootAndWorkspaceArea(workArea);
       createProjectsArea(workArea);
-      createOptionsArea(workArea);
       createWorkingSetGroup(workArea);
       Dialog.applyDialogFont(workArea);
 
@@ -183,7 +171,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
          public void handleEvent(Event event)
          {
             DirectoryDialog directoryDialog = new DirectoryDialog(dialogShell, SWT.OPEN);
-            directoryDialog.setText(Messages.B2WizardPage_11);
+            directoryDialog.setText(Messages.msgSelectDirTitle);
 
             String directoryName = dirTxt.getText().trim();
             if (directoryName.length() == 0)
@@ -224,15 +212,14 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       });
 
 
-
       workspaceBtn.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
             ElementTreeSelectionDialog elementTreeSelectionDialog = new ElementTreeSelectionDialog(dialogShell,
                new WorkbenchLabelProvider(), new BaseWorkbenchContentProvider());
-            elementTreeSelectionDialog.setTitle(Messages.B2WizardPage_13);
-            elementTreeSelectionDialog.setMessage(Messages.B2WizardPage_14);
+            elementTreeSelectionDialog.setTitle(Messages.msgSelectProjectTitle);
+            elementTreeSelectionDialog.setMessage(Messages.msgSelectProject);
             elementTreeSelectionDialog.setInput(ResourcesPlugin.getWorkspace().getRoot());
             elementTreeSelectionDialog.open();
             if (elementTreeSelectionDialog.getFirstResult() != null)
@@ -300,7 +287,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       });
 
 
-
       workspaceTxt.addModifyListener(new ModifyListener()
       {
 
@@ -315,24 +301,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                dirTreeViewer.expandAll();
             }
 
-         }
-      });
-
-      copyModecheckBtn.addSelectionListener(new SelectionAdapter()
-      {
-         @Override
-         public void widgetSelected(SelectionEvent e)
-         {
-            if (copyModecheckBtn.getSelection())
-            {
-
-               copyModecheckButtonSelection = true;
-
-            }
-            else
-            {
-               copyModecheckButtonSelection = false;
-            }
          }
       });
 
@@ -483,8 +451,8 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    private void addDropSupport(final CheckboxTreeViewer treeviewer)
    {
-      int ops = DND.DROP_DEFAULT | DND.DROP_MOVE;
-      DropTarget target = new DropTarget(treeviewer.getTree(), ops);
+      int style = DND.DROP_DEFAULT | DND.DROP_MOVE;
+      DropTarget target = new DropTarget(treeviewer.getTree(), style);
       final FileTransfer fileTransfer = FileTransfer.getInstance();
       Transfer[] types = new Transfer[] { fileTransfer };
       target.setTransfer(types);
@@ -548,11 +516,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       return easyButtonSelection;
    }
 
-   public boolean getCopyModeCheckButtonSelection()
-   {
-      return copyModecheckButtonSelection;
-   }
-
    private IPath getPath()
    {
       return projectPath;
@@ -569,7 +532,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       return moduleMap;
    }
 
-   private ArrayList<String> getFileinFilelist()
+   private ArrayList<String> getFileList()
    {
       return fileList;
    }
@@ -625,7 +588,7 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
    private String doParentSearch(File file)
    {
       File[] elementList = file.getParentFile().listFiles();
-      getFileinFilelist().clear();
+      getFileList().clear();
 
       for (File i : elementList)
       {
@@ -651,13 +614,46 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       fileList.add(file);
    }
 
-   private void createWorkingSetGroup(Composite workArea)
+   private void createRootAndWorkspaceArea(Composite workArea)
    {
-      String[] workingSetIds = new String[] { "org.eclipse.ui.resourceWorkingSetPage", //$NON-NLS-1$
-         "org.eclipse.jdt.ui.JavaWorkingSetPage" }; //$NON-NLS-1$
-      workingSetGroup = new WorkingSetGroup(workArea, currentSelection, workingSetIds);
+      Composite rootAndWorkspaceComposite = new Composite(workArea, SWT.NONE);
+      GridLayout layout = new GridLayout();
+      layout.numColumns = 3;
+      layout.makeColumnsEqualWidth = false;
+      layout.marginWidth = 0;
+      rootAndWorkspaceComposite.setLayout(layout);
+      rootAndWorkspaceComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+      dirRadioBtn = new Button(rootAndWorkspaceComposite, SWT.RADIO);
+      dirRadioBtn.setText(Messages.msgSelectRootRbtn);
+      dirRadioBtn.setSelection(true);
 
+      dirTxt = new Text(rootAndWorkspaceComposite, SWT.BORDER);
+      dirTxt.setToolTipText(Messages.msgSelectRootTt);
+
+      GridData directoryPathData = new GridData(SWT.FILL, SWT.FILL, true, true);
+      directoryPathData.widthHint = new PixelConverter(dirTxt).convertWidthInCharsToPixels(25);
+      dirTxt.setLayoutData(directoryPathData);
+
+      dirBtn = new Button(rootAndWorkspaceComposite, SWT.PUSH);
+      dirBtn.setText(Messages.msgBrowseBtn);
+      setButtonLayoutData(dirBtn);
+
+      workspaceRadioBtn = new Button(rootAndWorkspaceComposite, SWT.RADIO);
+      workspaceRadioBtn.setText(Messages.msgSelectWorkspaceRbtn);
+
+      workspaceTxt = new Text(rootAndWorkspaceComposite, SWT.BORDER);
+      workspaceTxt.setToolTipText(Messages.msgSelectWorkspaceTt);
+      workspaceTxt.setEnabled(false);
+
+      GridData workspaceData = new GridData(SWT.FILL, SWT.FILL, true, true);
+      workspaceData.widthHint = new PixelConverter(workspaceTxt).convertWidthInCharsToPixels(25);
+      workspaceTxt.setLayoutData(workspaceData);
+
+      workspaceBtn = new Button(rootAndWorkspaceComposite, SWT.PUSH);
+      workspaceBtn.setText(Messages.msgBrowseBtn);
+      workspaceBtn.setEnabled(false);
+      setButtonLayoutData(workspaceBtn);
    }
 
    private void createProjectsArea(Composite workArea)
@@ -695,26 +691,26 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       buttonsComposite.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 
       selectAllBtn = new Button(buttonsComposite, SWT.PUSH);
-      selectAllBtn.setText(Messages.B2WizardPage_7);
-      selectAllBtn.setToolTipText(Messages.B2WizardPage_19);
+      selectAllBtn.setText(Messages.msgSelectAllBtn);
+      selectAllBtn.setToolTipText(Messages.msgDeselectAllTt);
       Dialog.applyDialogFont(selectAllBtn);
       setButtonLayoutData(selectAllBtn);
 
       deselectAllBtn = new Button(buttonsComposite, SWT.PUSH);
-      deselectAllBtn.setText(Messages.B2WizardPage_8);
-      deselectAllBtn.setToolTipText(Messages.B2WizardPage_20);
+      deselectAllBtn.setText(Messages.msgDeselectAllBtn);
+      deselectAllBtn.setToolTipText(Messages.msgSelectAllTt);
       Dialog.applyDialogFont(deselectAllBtn);
       setButtonLayoutData(deselectAllBtn);
 
       refreshBtn = new Button(buttonsComposite, SWT.PUSH);
-      refreshBtn.setText(Messages.B2WizardPage_16);
-      refreshBtn.setToolTipText(Messages.B2WizardPage_21);
+      refreshBtn.setText(Messages.msgRefreshBtn);
+      refreshBtn.setToolTipText(Messages.msgRefreshTt);
       Dialog.applyDialogFont(refreshBtn);
       setButtonLayoutData(refreshBtn);
 
 
       easyButton = new Button(buttonsComposite, SWT.PUSH);
-      easyButton.setToolTipText(Messages.B2WizardPage_22);
+      easyButton.setToolTipText(Messages.msgEasyTt);
       imgState1 = Activator.getImageFromPath("icons/State1.png");
       imgState2 = Activator.getImageFromPath("icons/State2.png");
       imgState3 = Activator.getImageFromPath("icons/State3.png");
@@ -725,58 +721,12 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    }
 
-   private void createRootAndWorkspaceArea(Composite workArea)
+   private void createWorkingSetGroup(Composite workArea)
    {
-      Composite rootAndWorkspaceComposite = new Composite(workArea, SWT.NONE);
-      GridLayout layout = new GridLayout();
-      layout.numColumns = 3;
-      layout.makeColumnsEqualWidth = false;
-      layout.marginWidth = 0;
-      rootAndWorkspaceComposite.setLayout(layout);
-      rootAndWorkspaceComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+      String[] workingSetIds = new String[] { "org.eclipse.ui.resourceWorkingSetPage", //$NON-NLS-1$
+         "org.eclipse.jdt.ui.JavaWorkingSetPage" }; //$NON-NLS-1$
+      workingSetGroup = new WorkingSetGroup(workArea, currentSelection, workingSetIds);
 
-      dirRadioBtn = new Button(rootAndWorkspaceComposite, SWT.RADIO);
-      dirRadioBtn.setText(Messages.B2WizardPage_3);
-      dirRadioBtn.setSelection(true);
-
-      dirTxt = new Text(rootAndWorkspaceComposite, SWT.BORDER);
-      dirTxt.setToolTipText(Messages.B2WizardPage_17);
-
-      GridData directoryPathData = new GridData(SWT.FILL, SWT.FILL, true, true);
-      directoryPathData.widthHint = new PixelConverter(dirTxt).convertWidthInCharsToPixels(25);
-      dirTxt.setLayoutData(directoryPathData);
-
-      dirBtn = new Button(rootAndWorkspaceComposite, SWT.PUSH);
-      dirBtn.setText(Messages.B2WizardPage_4);
-      setButtonLayoutData(dirBtn);
-
-      workspaceRadioBtn = new Button(rootAndWorkspaceComposite, SWT.RADIO);
-      workspaceRadioBtn.setText(Messages.B2WizardPage_5);
-
-      workspaceTxt = new Text(rootAndWorkspaceComposite, SWT.BORDER);
-      workspaceTxt.setToolTipText(Messages.B2WizardPage_18);
-      workspaceTxt.setEnabled(false);
-
-      GridData workspaceData = new GridData(SWT.FILL, SWT.FILL, true, true);
-      workspaceData.widthHint = new PixelConverter(workspaceTxt).convertWidthInCharsToPixels(25);
-      workspaceTxt.setLayoutData(workspaceData);
-
-      workspaceBtn = new Button(rootAndWorkspaceComposite, SWT.PUSH);
-      workspaceBtn.setText(Messages.B2WizardPage_6);
-      workspaceBtn.setEnabled(false);
-      setButtonLayoutData(workspaceBtn);
-   }
-
-   private void createOptionsArea(Composite workArea)
-   {
-
-      Composite copyModeComposite = new Composite(workArea, SWT.NONE);
-      copyModeComposite.setLayout(new GridLayout());
-      copyModeComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-      copyModecheckBtn = new Button(copyModeComposite, SWT.CHECK);
-      copyModecheckBtn.setText(Messages.B2WizardPage_15);
-      copyModecheckBtn.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
    }
 
@@ -796,22 +746,19 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
                {
                   public void run(IProgressMonitor monitor) throws CoreException
                   {
-                     monitor.beginTask(Messages.B2Wizard_3, projectList.size());
+                     monitor.beginTask(Messages.msgSelectRootRbtn, projectList.size());
                      try
                      {
                         for (int i = 0; i < projectList.size(); i++)
                         {
                            dummy = i;
-                           monitor.subTask(Messages.B2Wizard_4 + " " + getProject(i).getParent());
+                           monitor.subTask(Messages.msgBrowseBtn + " " + getProject(i).getParent());
                            Display.getDefault().syncExec(new Runnable()
                            {
 
                               public void run()
                               {
-                                 if (getCopyModeCheckButtonSelection())
-                                    copyProjects(dummy);
-                                 else
-                                    linkProjects(dummy);
+                                 linkProjects(dummy);
                               }
                            });
 
@@ -888,59 +835,6 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
 
    }
 
-   private void copyProjects(int projectsListPosition)
-   {
-      final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-      final IPath projectFile = new Path(String.valueOf(getProject(projectsListPosition)));
-      IProject project = null;
-
-      try
-      {
-         IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
-         URI locationURI = projectDescription.getLocationURI();
-         projectDescription.setLocation(null);
-         project = workspace.getRoot().getProject(projectDescription.getName());
-         project.create(projectDescription, new NullProgressMonitor());
-         project.open(null);
-         File importSource = new File(locationURI);
-         List<?> filesToImport = FileSystemStructureProvider.INSTANCE.getChildren(importSource);
-         ImportOperation operation = new ImportOperation(project.getFullPath(), importSource,
-            FileSystemStructureProvider.INSTANCE, this, filesToImport);
-         operation.setContext(getShell());
-         operation.setOverwriteResources(true);
-         operation.setCreateContainerStructure(false);
-         operation.run(null);
-         if (getEasyButtonSelection())
-         {
-            easyAddToWorkingSets(projectsListPosition, project);
-
-         }
-
-
-      }
-      catch (ResourceException e)
-      {
-         MessageDialog
-            .openInformation(new Shell(), "Information", "Resource " + project.getName() + " already exists.");
-      }
-      catch (CoreException e)
-      {
-         throw new IllegalStateException(e);
-      }
-      catch (InvocationTargetException e)
-      {
-         throw new IllegalStateException(e);
-      }
-      catch (InterruptedException e)
-      {
-         return;
-      }
-      addCreatedProject(project);
-
-
-   }
-
-
    private void addToWorkingSets()
    {
       IWorkingSet[] selectedWorkingSets = workingSetGroup.getSelectedWorkingSets();
@@ -995,47 +889,10 @@ public class B2WizardPage extends WizardPage implements IOverwriteQuery
       createdProjects.removeAll(createdProjects);
    }
 
-   public String queryOverwrite(String pathString)
-   {
-      Path path = new Path(pathString);
-
-      String messageString;
-
-      if (path.getFileExtension() == null || path.segmentCount() < 2)
-      {
-         messageString = NLS.bind(IDEWorkbenchMessages.WizardDataTransfer_existsQuestion, pathString);
-      }
-      else
-      {
-         messageString = NLS.bind(IDEWorkbenchMessages.WizardDataTransfer_overwriteNameAndPathQuestion,
-            path.lastSegment(), path.removeLastSegments(1).toOSString());
-      }
-
-      final MessageDialog dialog = new MessageDialog(getContainer().getShell(), IDEWorkbenchMessages.Question, null,
-         messageString, MessageDialog.QUESTION, new String[] { IDialogConstants.YES_LABEL,
-            IDialogConstants.YES_TO_ALL_LABEL, IDialogConstants.NO_LABEL, IDialogConstants.NO_TO_ALL_LABEL,
-            IDialogConstants.CANCEL_LABEL }, 0)
-      {
-         protected int getShellStyle()
-         {
-            return super.getShellStyle() | SWT.SHEET;
-         }
-      };
-      String[] response = new String[] { YES, ALL, NO, NO_ALL, CANCEL };
-      getControl().getDisplay().syncExec(new Runnable()
-      {
-         public void run()
-         {
-            dialog.open();
-         }
-      });
-      return dialog.getReturnCode() < 0 ? CANCEL : response[dialog.getReturnCode()];
-   }
-
    private boolean testOnLocalDrive(String path)
    {
-      File pathFile = new File(path);
-      if (pathFile.getParentFile() != null)
+      File filePath = new File(path);
+      if (filePath.getParentFile() != null)
          return true;
       else
          return false;

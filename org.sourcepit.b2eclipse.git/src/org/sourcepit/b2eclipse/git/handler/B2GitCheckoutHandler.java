@@ -15,15 +15,19 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+/**
+ * @author Marco Grupe <marco.grupe@googlemail.com>
+ */
+
 public abstract class B2GitCheckoutHandler extends AbstractHandler
 {
    public Object getSelectedNode(ExecutionEvent event) throws ExecutionException
    {
       ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
-      IStructuredSelection ss = (IStructuredSelection) selection;
+      IStructuredSelection structuredSelection = (IStructuredSelection) selection;
       if (selection instanceof IStructuredSelection)
       {
-         Object element = ss.getFirstElement();
+         Object element = structuredSelection.getFirstElement();
          if (element instanceof RepositoryTreeNode)
          {
             final RepositoryTreeNode<?> selectedGitRepoResource = (RepositoryTreeNode<?>) element;

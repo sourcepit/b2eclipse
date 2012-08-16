@@ -6,7 +6,7 @@
       <wizard
             class="org.sourcepit.b2eclipse.ui.B2Wizard"
             icon="icons/b2.gif"
-            id="ImportWizard"
+            id="org.sourcepit.b2eclipse.ImportWizard"
             name="Check out b2 Project/s...">
       </wizard>
    </extension>

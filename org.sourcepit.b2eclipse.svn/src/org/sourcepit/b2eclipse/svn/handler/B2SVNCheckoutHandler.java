@@ -17,6 +17,10 @@ import org.eclipse.team.svn.core.resource.IRepositoryResource;
 import org.eclipse.team.svn.ui.repository.model.RepositoryResource;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+/**
+ * @author Marco Grupe <marco.grupe@googlemail.com>
+ */
+
 public abstract class B2SVNCheckoutHandler extends AbstractHandler
 {
    public Object getSelectedNode(ExecutionEvent event) throws ExecutionException

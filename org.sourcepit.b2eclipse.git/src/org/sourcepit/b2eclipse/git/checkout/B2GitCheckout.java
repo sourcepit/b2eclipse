@@ -17,30 +17,32 @@ import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNodeType;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.sourcepit.b2eclipse.git.handler.B2GitCheckoutHandler;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
+
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
-public class B2GitCheckout extends B2GitCheckoutHandler {
-	
 
-	public Object execute(ExecutionEvent arg0) throws ExecutionException {
-		final String path;
-		RepositoryTreeNode<?> node = (RepositoryTreeNode<?>) getSelectedNode(
-				arg0);
+public class B2GitCheckout extends B2GitCheckoutHandler
+{
 
-		if (node.getType() == RepositoryTreeNodeType.WORKINGDIR)
-			path = node.getRepository().getWorkTree().toString();
-		else if (node.getType() == RepositoryTreeNodeType.FOLDER)
-			path = ((File) ((FolderNode) node).getObject()).getPath()
-					.toString();
-		else
-			return null;
 
-		B2Wizard wizard = new B2Wizard();
-		WizardDialog dialog = new WizardDialog(getShell(arg0), wizard);
-		wizard.getB2WizardPage().setPath(new Path(path));
-		dialog.open();
-		return null;
-	}
+   public Object execute(ExecutionEvent arg0) throws ExecutionException
+   {
+      final String path;
+      RepositoryTreeNode<?> node = (RepositoryTreeNode<?>) getSelectedNode(arg0);
+
+      if (node.getType() == RepositoryTreeNodeType.WORKINGDIR)
+         path = node.getRepository().getWorkTree().toString();
+      else if (node.getType() == RepositoryTreeNodeType.FOLDER)
+         path = ((File) ((FolderNode) node).getObject()).getPath().toString();
+      else
+         return null;
+
+      B2Wizard wizard = new B2Wizard();
+      WizardDialog dialog = new WizardDialog(getShell(arg0), wizard);
+      wizard.getB2WizardPage().setPath(new Path(path));
+      dialog.open();
+      return null;
+   }
 
 }

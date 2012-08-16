@@ -21,6 +21,7 @@ import org.sourcepit.b2eclipse.input.Category;
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
+
 public class LabelProvider extends StyledCellLabelProvider
 {
    /**
@@ -49,8 +50,8 @@ public class LabelProvider extends StyledCellLabelProvider
          final String projectName = projectDirPath.lastSegment();
          label.append(projectName);
 
-         final IPath pathToProject = projectDirPath.removeLastSegments(1);
-         label.append("  (" + pathToProject.toOSString() + ")", StyledString.DECORATIONS_STYLER);
+         final IPath styledProjectDirPath = projectDirPath.removeLastSegments(1);
+         label.append("  (" + styledProjectDirPath.toOSString() + ")", StyledString.DECORATIONS_STYLER);
 
 
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()

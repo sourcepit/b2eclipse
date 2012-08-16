@@ -8,34 +8,36 @@ package org.sourcepit.b2eclipse.ui;
 
 import org.eclipse.osgi.util.NLS;
 
+/**
+ * @author Marco Grupe <marco.grupe@googlemail.com>
+ */
+
 public class Messages extends NLS
 {
    private static final String BUNDLE_NAME = "org.sourcepit.b2eclipse.ui.messages"; //$NON-NLS-1$
-   public static String B2Wizard_1;
-   public static String B2Wizard_2;
-   public static String B2Wizard_3;
-   public static String B2Wizard_4;
-   public static String B2WizardPage_1;
-   public static String B2WizardPage_2;
-   public static String B2WizardPage_3;
-   public static String B2WizardPage_4;
-   public static String B2WizardPage_5;
-   public static String B2WizardPage_6;
-   public static String B2WizardPage_7;
-   public static String B2WizardPage_8;
-   public static String B2WizardPage_9;
-   public static String B2WizardPage_10;
-   public static String B2WizardPage_11;
-   public static String B2WizardPage_13;
-   public static String B2WizardPage_14;
-   public static String B2WizardPage_15;
-   public static String B2WizardPage_16;
-   public static String B2WizardPage_17;
-   public static String B2WizardPage_18;
-   public static String B2WizardPage_19;
-   public static String B2WizardPage_20;
-   public static String B2WizardPage_21;
-   public static String B2WizardPage_22;
+   
+   public static String msgImportTitle;
+   public static String msgImportHeader;
+   public static String msgImportSuperscription;
+
+   public static String msgSelectRootRbtn;
+   public static String msgSelectWorkspaceRbtn;
+   public static String msgSelectRootTt;
+   public static String msgSelectWorkspaceTt;
+   public static String msgSelectDirTitle;
+   public static String msgSelectProjectTitle;
+   public static String msgSelectProject;
+   public static String msgBrowseBtn;
+
+
+   public static String msgSelectAllBtn;
+   public static String msgSelectAllTt;
+   public static String msgDeselectAllBtn;
+   public static String msgDeselectAllTt;
+   public static String msgRefreshBtn;
+   public static String msgRefreshTt;
+   public static String msgEasyTt;
+
    static
    {
       // initialize resource bundle

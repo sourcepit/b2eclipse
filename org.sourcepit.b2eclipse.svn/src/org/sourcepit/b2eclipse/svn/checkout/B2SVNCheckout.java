@@ -37,83 +37,93 @@ import org.sourcepit.b2eclipse.ui.B2Wizard;
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
-public class B2SVNCheckout extends B2SVNCheckoutHandler {
 
-	private Shell shell;
-	private IRepositoryResource selectedResource;
-	private IProject project;
-	private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+/**
+ * @author Marco Grupe <marco.grupe@googlemail.com>
+ */
+public class B2SVNCheckout extends B2SVNCheckoutHandler
+{
 
-	public void openWizard() {
-		B2Wizard wizard = new B2Wizard();
-		WizardDialog dialog = new WizardDialog(shell, wizard);
-		wizard.getB2WizardPage().setPath(project.getLocation());
-		dialog.open();
-	}
+   private Shell shell;
+   private IRepositoryResource selectedResource;
+   private IProject project;
+   private final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
-	public IActionOperation createOperation(IRepositoryContainer container,
-			File location) {
+   public void openWizard()
+   {
+      B2Wizard wizard = new B2Wizard();
+      WizardDialog dialog = new WizardDialog(shell, wizard);
+      wizard.getB2WizardPage().setPath(project.getLocation());
+      dialog.open();
+   }
 
-		CheckoutAsOperation checkout = new CheckoutAsOperation(location,
-				container, 3, false, true);
-		AddRepositoryLocationOperation add = new AddRepositoryLocationOperation(
-				container.getRepositoryLocation());
-		SaveRepositoryLocationsOperation save = new SaveRepositoryLocationsOperation();
-		CompositeOperation op = new CompositeOperation(
-				checkout.getOperationName(), checkout.getMessagesClass());
-		op.add(checkout);
-		op.add(add, new IActionOperation[] { checkout });
-		op.add(save, new IActionOperation[] { add });
-		return op;
-	}
+   public IActionOperation createOperation(IRepositoryContainer container, File location)
+   {
 
-	public void checkout(File location, IProgressMonitor monitor)
-			throws CoreException, InterruptedException {
+      CheckoutAsOperation checkout = new CheckoutAsOperation(location, container, 3, false, true);
+      AddRepositoryLocationOperation addOp = new AddRepositoryLocationOperation(container.getRepositoryLocation());
+      SaveRepositoryLocationsOperation saveOp = new SaveRepositoryLocationsOperation();
+      CompositeOperation compOp = new CompositeOperation(checkout.getOperationName(), checkout.getMessagesClass());
+      compOp.add(checkout);
+      compOp.add(addOp, new IActionOperation[] { checkout });
+      compOp.add(saveOp, new IActionOperation[] { addOp });
+      return compOp;
+   }
 
-		IRepositoryContainer container = (IRepositoryContainer) selectedResource;
-		IActionOperation op = createOperation(container, location);
-		ProgressMonitorUtility.doTaskExternal(op, monitor,
-				ILoggedOperationFactory.EMPTY);
-		IStatus status = op.getStatus();
-		if (status != null && !status.isOK())
-			throw new CoreException(status);
-		else
-			return;
-	}
+   public void checkout(File location, IProgressMonitor monitor) throws CoreException, InterruptedException
+   {
 
-	public void createProjects() throws CoreException, ResourceException {
+      IRepositoryContainer container = (IRepositoryContainer) selectedResource;
+      IActionOperation op = createOperation(container, location);
+      ProgressMonitorUtility.doTaskExternal(op, monitor, ILoggedOperationFactory.EMPTY);
+      IStatus status = op.getStatus();
+      if (status != null && !status.isOK())
+         throw new CoreException(status);
+      else
+         return;
+   }
 
-		project = workspace.getRoot().getProject(selectedResource.getName());
+   public void createProjects() throws CoreException, ResourceException
+   {
 
-		project.create(new NullProgressMonitor());
+      project = workspace.getRoot().getProject(selectedResource.getName());
 
-	}
+      project.create(new NullProgressMonitor());
 
-	public void dispose() {
-	}
+   }
 
-	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		shell = getShell(event);
-		selectedResource = (IRepositoryResource) getSelectedNode(event);
+   public void dispose()
+   {
+   }
 
-		try {
-			createProjects();
-			checkout(project.getLocation().toFile(), new NullProgressMonitor());
-			workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE,
-					new NullProgressMonitor());
-			openWizard();
+   @Override
+   public Object execute(ExecutionEvent event) throws ExecutionException
+   {
+      shell = getShell(event);
+      selectedResource = (IRepositoryResource) getSelectedNode(event);
 
-		} catch (ResourceException e) {
-			MessageDialog.openInformation(new Shell(), "Resource",
-					"Resource already exists.");
-		} catch (CoreException e) {
-			throw new IllegalStateException(e);
-		} catch (InterruptedException e) {
-			throw new IllegalStateException(e);
-		}
+      try
+      {
+         createProjects();
+         checkout(project.getLocation().toFile(), new NullProgressMonitor());
+         workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+         openWizard();
 
-		return null;
-	}
+      }
+      catch (ResourceException e)
+      {
+         MessageDialog.openInformation(new Shell(), "Resource", "Resource already exists.");
+      }
+      catch (CoreException e)
+      {
+         throw new IllegalStateException(e);
+      }
+      catch (InterruptedException e)
+      {
+         throw new IllegalStateException(e);
+      }
+
+      return null;
+   }
 
 }

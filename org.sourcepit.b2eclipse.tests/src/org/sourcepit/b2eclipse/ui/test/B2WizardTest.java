@@ -37,12 +37,12 @@ public class B2WizardTest extends TestRunner
       bot.tree().select("Other").expandNode("Other").select("Check out b2 Project/s...");
       bot.button("Next >").click();
 
-      importShell = bot.shell(Messages.B2Wizard_1);
+      importShell = bot.shell(Messages.msgImportTitle);
       importShell.activate();
 
       treeViewer = bot.tree();
 
-      SWTBotText dirText = bot.textWithTooltip(Messages.B2WizardPage_17);
+      SWTBotText dirText = bot.textWithTooltip(Messages.msgSelectRootTt);
       dirText.setFocus();
       dirText.setText(projectPath);
    }
@@ -53,7 +53,7 @@ public class B2WizardTest extends TestRunner
 
       selectB2Wizard();
 
-      SWTBotButton selectAll = importShell.bot().button(Messages.B2WizardPage_7);
+      SWTBotButton selectAll = importShell.bot().button(Messages.msgSelectAllBtn);
       selectAll.click();
 
       assertTrue(treeViewer.hasItems());
@@ -62,7 +62,7 @@ public class B2WizardTest extends TestRunner
          assertTrue(item.isChecked());
       }
 
-      SWTBotButton deSelectAll = importShell.bot().button(Messages.B2WizardPage_8);
+      SWTBotButton deSelectAll = importShell.bot().button(Messages.msgDeselectAllBtn);
       deSelectAll.click();
 
       for (SWTBotTreeItem item : treeViewer.getAllItems())
@@ -70,7 +70,7 @@ public class B2WizardTest extends TestRunner
          assertFalse(item.isChecked());
       }
 
-      SWTBotButton refresh = importShell.bot().button(Messages.B2WizardPage_16);
+      SWTBotButton refresh = importShell.bot().button(Messages.msgRefreshBtn);
       refresh.click();
 
       for (SWTBotTreeItem item : treeViewer.getAllItems())
@@ -113,23 +113,6 @@ public class B2WizardTest extends TestRunner
       
    }
 
-   @Test
-   public void copyProject()
-   {
-      selectB2Wizard();
-      if (treeViewer.hasItems())
-      {
-         swtBotFirstTreeItem = treeViewer.getAllItems()[0].getItems()[3];
-         swtBotFirstTreeItem.check();
-      }
-
-      copyMode();
-
-      finish();
-      bot.sleep(1000);
-
-   }
-
    public void finish()
    {
       SWTBotButton finish = bot.button("Finish");
@@ -145,7 +128,7 @@ public class B2WizardTest extends TestRunner
          swtBotFirstTreeItem = treeViewer.getAllItems()[0].getItems()[1];
          swtBotFirstTreeItem.check();
       }
-      easy = bot.buttonWithTooltip(Messages.B2WizardPage_22);
+      easy = bot.buttonWithTooltip(Messages.msgEasyTt);
       easy.click();
       bot.sleep(1000);
 
@@ -161,31 +144,9 @@ public class B2WizardTest extends TestRunner
          swtBotFirstTreeItem = treeViewer.getAllItems()[1].getItems()[1];
          swtBotFirstTreeItem.check();
       }
-      easy = bot.buttonWithTooltip(Messages.B2WizardPage_22);
+      easy = bot.buttonWithTooltip(Messages.msgEasyTt);
       easy.click();
       bot.sleep(1000);
-   }
-
-   @Test
-   public void easyCopyProject()
-   {
-      selectB2Wizard();
-      if (treeViewer.hasItems())
-      {
-         swtBotFirstTreeItem = treeViewer.getAllItems()[0].getItems()[4];
-         swtBotFirstTreeItem.check();
-      }
-      copyMode();
-      SWTBotButton easy = bot.buttonWithTooltip(Messages.B2WizardPage_22);
-      easy.click();
-      bot.sleep(1000);
-
-   }
-
-   public void copyMode()
-   {
-      SWTBotCheckBox copyMode = bot.checkBox(Messages.B2WizardPage_15);
-      copyMode.click();
    }
 
    @Test
@@ -201,7 +162,7 @@ public class B2WizardTest extends TestRunner
       workingSetShell.activate();
       workingSetShell.close();
       cancel();
-      assertTrue(ResourcesPlugin.getWorkspace().getRoot().getProjects().length == 7);
+      assertTrue(ResourcesPlugin.getWorkspace().getRoot().getProjects().length == 5);
    }
 
    public void cancel()

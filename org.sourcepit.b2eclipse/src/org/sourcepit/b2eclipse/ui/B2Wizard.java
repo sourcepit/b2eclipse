@@ -35,11 +35,10 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    {
       super();
 
-      modulePage = new B2WizardPage(Messages.B2Wizard_2, currentSelection);
+      modulePage = new B2WizardPage(Messages.msgImportHeader, currentSelection);
       setNeedsProgressMonitor(true);
 
       addPage(modulePage);
-
    }
 
    /**
@@ -65,7 +64,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
     */
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
-      setWindowTitle(Messages.B2Wizard_1);
+      setWindowTitle(Messages.msgImportTitle);
       Image projectFolder = Activator.getImageFromPath("icons/ProjectFolder.gif");
       setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(projectFolder));
       this.currentSelection = selection;
@@ -74,11 +73,11 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       if (selection instanceof IStructuredSelection)
       {
 
-         final Object firstElement = selection.getFirstElement();
+         final Object element = selection.getFirstElement();
 
-         if (firstElement instanceof IAdaptable)
+         if (element instanceof IAdaptable)
          {
-            final IResource selectedResource = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
+            final IResource selectedResource = (IResource) ((IAdaptable) element).getAdapter(IResource.class);
             if (selectedResource != null)
             {
                final IPath location;
