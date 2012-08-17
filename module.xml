@@ -17,7 +17,7 @@
 
 	<properties>
 		<tycho.version>0.15.0</tycho.version>
-		<b2.version>0.1.0-alpha-3</b2.version>
+		<b2.version>0.1.0-SNAPSHOT</b2.version>
 	</properties>
 
 	<repositories>
