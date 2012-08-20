@@ -16,7 +16,6 @@ import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -35,7 +34,7 @@ public class ExecuteModuleAction implements ILaunchShortcut
    @Override
    public void launch(ISelection selection, String mode)
    {
-      org.sourcepit.b2eclipse.mvn.Activator.getDefault().extractPlugin();
+      org.sourcepit.b2eclipse.mvn.Activator.getDefault().copy();
       if (selection instanceof IStructuredSelection)
       {
          IStructuredSelection structuredSelection = (IStructuredSelection) selection;
@@ -45,11 +44,12 @@ public class ExecuteModuleAction implements ILaunchShortcut
          {
             final IResource selectedResource = (IResource) ((IAdaptable) element).getAdapter(IResource.class);
             String path = null;
-            String mvnBatPath = Platform.getInstallLocation().getURL().getPath().substring(1)
-               + "plugins/b2-maven/b2/apache-maven-3.0.4/bin/mvn.bat clean deploy";
 
-            String mvnPath = Platform.getInstallLocation().getURL().getPath().substring(1)
-               + "plugins/b2-maven/b2/apache-maven-3.0.4";
+            String mvnBatPath = org.sourcepit.b2eclipse.mvn.Activator.getDefault().getMvnPath()
+               + "\\b2\\apache-maven-3.0.4\\bin\\mvn.bat clean deploy";
+
+            String mvnPath = org.sourcepit.b2eclipse.mvn.Activator.getDefault().getMvnPath()
+               + "\\b2\\apache-maven-3.0.4\\";
 
             if (selectedResource.getType() == IResource.FILE || selectedResource.getType() == IResource.PROJECT)
             {
@@ -71,8 +71,8 @@ public class ExecuteModuleAction implements ILaunchShortcut
                String[] envpResult = new String[envp.size()];
                envp.toArray(envpResult);
 
-               Runtime rt = Runtime.getRuntime();
-               rt.exec("cmd.exe /c start " + mvnBatPath, envpResult, new File(path));
+               Runtime runtime = Runtime.getRuntime();
+               runtime.exec("cmd.exe /c start " + mvnBatPath, envpResult, new File(path));
 
             }
             catch (IOException e)

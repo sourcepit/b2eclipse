@@ -6,16 +6,14 @@
 
 package org.sourcepit.b2eclipse.mvn;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -35,6 +33,7 @@ public class Activator extends AbstractUIPlugin
 
    // The shared instance
    private static Activator plugin;
+   private String mvnPath;
 
    /**
     * The constructor
@@ -76,66 +75,74 @@ public class Activator extends AbstractUIPlugin
       return plugin;
    }
 
-   public void extractPlugin()
+   public void copy()
    {
-      String pluginPath = Platform.getInstallLocation().getURL().getPath() + "plugins/" + getBundle().getSymbolicName()
-         + "_" + getBundle().getVersion() + ".jar";
-      String destDirPath = Platform.getInstallLocation().getURL().getPath() + "plugins/b2-maven";
-      File destDir = new File(destDirPath);
-      File plugin = new File(pluginPath);
+      try
+      {
+         final File bundleDir = FileLocator.getBundleFile(getDefault().getBundle());
+         final File newBundleDir = Activator.getDefault().getStateLocation().toFile();
+         if (bundleDir.exists())
+         {
+            copyFolder(bundleDir, newBundleDir);
+         }
+         setMvnPath(newBundleDir.getPath());
+      }
+      catch (IOException e)
+      {
+         throw new IllegalStateException(e);
+      }
+   }
 
-      if (plugin.exists() && !(destDir.exists()))
+   public void copyFolder(File src, File dest)
+   {
+      if (src.isDirectory())
+      {
+         if (!dest.exists())
+         {
+            dest.mkdir();
+         }
+
+         String[] files = src.list();
+
+         for (int i = 0; i < files.length; i++)
+         {
+
+            copyFolder(new File(src, files[i]), new File(dest, files[i]));
+         }
+      }
+      else
       {
          try
          {
-            JarFile jarFile = new JarFile(plugin);
-            Enumeration<?> files = jarFile.entries();
-            byte[] buffer = new byte[20000];
-            int len;
-            while (files.hasMoreElements())
+            InputStream iStream = new FileInputStream(src);
+            OutputStream oStream = new FileOutputStream(dest);
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = iStream.read(buffer)) > 0)
             {
-               JarEntry entry = (JarEntry) files.nextElement();
-
-               String entryFileName = entry.getName();
-
-               File dir = buildDirectoryHierarchy(entryFileName, destDir);
-               if (!dir.exists())
-               {
-                  dir.mkdirs();
-               }
-
-               if (!entry.isDirectory())
-               {
-                  BufferedInputStream buffInputStream = new BufferedInputStream(jarFile.getInputStream(entry));
-                  BufferedOutputStream buffOutputStream = new BufferedOutputStream(new FileOutputStream(new File(
-                     destDir, entryFileName)));
-
-                  while ((len = buffInputStream.read(buffer)) > 0)
-                  {
-                     buffOutputStream.write(buffer, 0, len);
-                  }
-
-                  buffOutputStream.flush();
-                  buffOutputStream.close();
-                  buffInputStream.close();
-               }
+               oStream.write(buffer, 0, length);
             }
 
+            iStream.close();
+            oStream.close();
          }
          catch (IOException e)
          {
             throw new IllegalStateException(e);
          }
 
+
       }
    }
 
-   private File buildDirectoryHierarchy(String entryName, File destDir)
+   private void setMvnPath(String mvnPath)
    {
-      int lastIndex = entryName.lastIndexOf('/');
-      String internalPathToEntry = entryName.substring(0, lastIndex + 1);
-      return new File(destDir, internalPathToEntry);
+      this.mvnPath = mvnPath;
    }
 
+   public String getMvnPath()
+   {
+      return mvnPath;
+   }
 
 }
