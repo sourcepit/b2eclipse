@@ -35,6 +35,8 @@ import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -66,6 +68,7 @@ import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.Category;
+import org.sourcepit.b2eclipse.input.ParentCategory;
 import org.sourcepit.b2eclipse.input.TreeViewerInput;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
@@ -133,7 +136,8 @@ public class B2WizardPage extends WizardPage
          {
             dirTxt.setText(String.valueOf(getPath()));
             dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(getPath()))));
-            dirTreeViewer.expandAll();
+            dirTreeViewer.expandToLevel(2);
+            setChecked();
          }
       }
 
@@ -202,9 +206,6 @@ public class B2WizardPage extends WizardPage
                   previouslyBrowsedDirectory = selectedDirectory;
                   dirTxt.setText(selectedDirectory);
                   workspaceTxt.setText(""); //$NON-NLS-1$
-                  // dirTreeViewer.setInput(new TreeViewerInput(new File(selectedDirectory)));
-
-                  dirTreeViewer.expandAll();
                }
             }
 
@@ -225,13 +226,12 @@ public class B2WizardPage extends WizardPage
             if (elementTreeSelectionDialog.getFirstResult() != null)
             {
                selectedProject = String.valueOf(((IResource) elementTreeSelectionDialog.getFirstResult()).getLocation());
-               workspaceTxt.setText(selectedProject);
-               dirTxt.setText(""); //$NON-NLS-1$
+
                boolean result = testOnLocalDrive(selectedProject);
                if (result == true)
                {
-                  // dirTreeViewer.setInput(new TreeViewerInput(new File(selectedProject)));
-                  dirTreeViewer.expandAll();
+                  workspaceTxt.setText(selectedProject);
+                  dirTxt.setText(""); //$NON-NLS-1$
                }
             }
          }
@@ -280,7 +280,10 @@ public class B2WizardPage extends WizardPage
             if (result == true)
             {
                dirTreeViewer.setInput(new TreeViewerInput(new File(txt.getText())));
-               dirTreeViewer.expandAll();
+               dirTreeViewer.expandToLevel(2);
+               setChecked();
+               setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
+               easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
             }
 
          }
@@ -298,7 +301,10 @@ public class B2WizardPage extends WizardPage
             if (result == true)
             {
                dirTreeViewer.setInput(new TreeViewerInput(new File(txt.getText())));
-               dirTreeViewer.expandAll();
+               dirTreeViewer.expandToLevel(2);
+               setChecked();
+               setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
+               easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
             }
 
          }
@@ -309,19 +315,18 @@ public class B2WizardPage extends WizardPage
          public void handleEvent(Event event)
          {
 
-            setCategoriesChecked();
             if (getTreeViewerInput() != null)
             {
-               for (int i = 0; i < getTreeViewerInput().getProjectFileList().size(); i++)
+               for (int i = 0; i < getTreeViewerInput().getCategories().size(); i++)
                {
 
-                  dirTreeViewer.setSubtreeChecked(getTreeViewerInput().getProjectFileList().get(i), true);
+                  dirTreeViewer.setSubtreeChecked(getTreeViewerInput().getCategories().get(i), true);
 
                }
-
+               setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
+               easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
             }
-            setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-            easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
+
          }
 
       });
@@ -330,12 +335,11 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            setCategoriesUnchecked();
 
             if (getTreeViewerInput() != null)
             {
                dirTreeViewer.setCheckedElements(new Object[0]);
-               setPageComplete(false);
+               setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
                easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
 
             }
@@ -349,13 +353,12 @@ public class B2WizardPage extends WizardPage
          {
             if (!dirTxt.getText().equals(""))
             {
-
-               boolean result = testOnLocalDrive(dirTxt.getText());
+               String text = dirTxt.getText();
+               boolean result = testOnLocalDrive(text);
                if (result == true)
                {
-                  dirTreeViewer.refresh(true);
+                  dirTxt.setText(text);
                   dirTreeViewer.setCheckedElements(new Object[0]);
-                  dirTreeViewer.expandAll();
                   easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
                   setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
 
@@ -374,23 +377,23 @@ public class B2WizardPage extends WizardPage
 
             easyButtonSelection = true;
 
-            List<File> list = getSelectedProjects();
-            for (File file : list)
+            List<File> projectList = getSelectedProjects();
+            for (File project : projectList)
             {
-               String result = doParentSearch(file);
+               String result = doParentSearch(project);
 
                if (moduleMap.containsKey(result))
                {
 
                   ArrayList<String> b = moduleMap.get(result);
-                  b.add(file.getAbsolutePath());
+                  b.add(project.getAbsolutePath());
                   moduleMap.put(result, b);
 
                }
                else
                {
                   ArrayList<String> dummyList = new ArrayList<String>();
-                  dummyList.add(file.getAbsolutePath());
+                  dummyList.add(project.getAbsolutePath());
                   moduleMap.put(result, dummyList);
                }
 
@@ -446,6 +449,20 @@ public class B2WizardPage extends WizardPage
          }
       });
 
+      dirTreeViewer.setComparator(new ViewerComparator()
+      {
+         @Override
+         public int compare(Viewer viewer, Object e1, Object e2)
+         {
+
+            if (e1 instanceof ParentCategory && e2 instanceof ParentCategory)
+            {
+               return ((ParentCategory) e1).getName().compareToIgnoreCase(((ParentCategory) e2).getName());
+            }
+            return 0;
+         }
+      });
+
 
    }
 
@@ -469,8 +486,6 @@ public class B2WizardPage extends WizardPage
                if (file.isDirectory())
                {
                   dirTxt.setText(file.getAbsolutePath());
-                  // dirTreeViewer.setInput(new TreeViewerInput(file));
-                  dirTreeViewer.expandAll();
                }
                else
                {
@@ -488,14 +503,14 @@ public class B2WizardPage extends WizardPage
     * 
     * @return the selected projects in TreeViewer
     */
-   public List<File> getSelectedProjects()
+   private List<File> getSelectedProjects()
    {
       Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
       ArrayList<File> getSelectedProjects = new ArrayList<File>();
 
       for (final Object checkedElement : getCheckedElements)
       {
-         if (getTreeViewerInput().getCategories().contains(checkedElement))
+         if (checkedElement instanceof Category)
          {
             continue;
          }
@@ -505,13 +520,13 @@ public class B2WizardPage extends WizardPage
       return getSelectedProjects;
    }
 
-   public IWorkingSetManager getWorkingSetManager()
+   private IWorkingSetManager getWorkingSetManager()
    {
       return workingSetManager;
 
    }
 
-   public boolean getEasyButtonSelection()
+   private boolean getEasyButtonSelection()
    {
       return easyButtonSelection;
    }
@@ -521,13 +536,13 @@ public class B2WizardPage extends WizardPage
       return projectPath;
    }
 
-   public TreeViewerInput getTreeViewerInput()
+   private TreeViewerInput getTreeViewerInput()
    {
       treeViewerInput = (TreeViewerInput) dirTreeViewer.getInput();
       return treeViewerInput;
    }
 
-   public Map<String, ArrayList<String>> getModuleMap()
+   private Map<String, ArrayList<String>> getModuleMap()
    {
       return moduleMap;
    }
@@ -556,27 +571,18 @@ public class B2WizardPage extends WizardPage
 
    }
 
-   private void setCategoriesChecked()
+   private void setChecked()
    {
       if (getTreeViewerInput() != null)
       {
-         for (final Category category : getTreeViewerInput().getCategories())
+         for (int i = 0; i < getTreeViewerInput().getCategories().size(); i++)
          {
-            dirTreeViewer.setChecked(category, true);
+
+            dirTreeViewer.setSubtreeChecked(getTreeViewerInput().getCategories().get(i), true);
+
          }
       }
 
-   }
-
-   private void setCategoriesUnchecked()
-   {
-      if (getTreeViewerInput() != null)
-      {
-         for (final Category category : getTreeViewerInput().getCategories())
-         {
-            dirTreeViewer.setChecked(category, false);
-         }
-      }
    }
 
    public void clearArrayList()
@@ -587,12 +593,13 @@ public class B2WizardPage extends WizardPage
 
    private String doParentSearch(File file)
    {
+
       File[] elementList = file.getParentFile().listFiles();
       getFileList().clear();
 
-      for (File i : elementList)
+      for (File fileElement : elementList)
       {
-         addFiletoFilelist(i.getName());
+         addFiletoFilelist(fileElement.getName());
       }
 
       if (fileList.contains("module.xml"))
@@ -605,6 +612,8 @@ public class B2WizardPage extends WizardPage
             }
          }
       }
+
+
       return doParentSearch(file.getParentFile());
 
    }
@@ -734,7 +743,7 @@ public class B2WizardPage extends WizardPage
    {
 
       projectList = getSelectedProjects();
-      removeAllCreatedProjectsList();
+      removeAllCreatedProjectsInList();
 
       final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
       {
@@ -884,7 +893,7 @@ public class B2WizardPage extends WizardPage
 
    }
 
-   private void removeAllCreatedProjectsList()
+   private void removeAllCreatedProjectsInList()
    {
       createdProjects.removeAll(createdProjects);
    }

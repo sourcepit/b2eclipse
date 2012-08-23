@@ -7,9 +7,13 @@
 package org.sourcepit.b2eclipse.provider;
 
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.sourcepit.b2eclipse.input.Category;
+import org.sourcepit.b2eclipse.input.SubCategory;
+import org.sourcepit.b2eclipse.input.ParentCategory;
 import org.sourcepit.b2eclipse.input.TreeViewerInput;
 
 /**
@@ -25,11 +29,19 @@ public class ContentProvider implements ITreeContentProvider
 
    public Object[] getChildren(Object parentElement)
    {
-      if (parentElement instanceof Category)
+      List<Object> result = new ArrayList<Object>();
+      if (parentElement instanceof ParentCategory)
       {
-         return ((Category) parentElement).getModules().toArray();
+         ParentCategory parent = (ParentCategory) parentElement;
+         result.addAll(parent.getCategoryEntries());
+
       }
-      return null;
+      else if (parentElement instanceof SubCategory)
+      {
+         SubCategory sub = (SubCategory) parentElement;
+         result.addAll(sub.getFileEntries());
+      }
+      return result.toArray();
    }
 
    public Object getParent(Object element)
@@ -39,11 +51,7 @@ public class ContentProvider implements ITreeContentProvider
 
    public boolean hasChildren(Object element)
    {
-      if (element instanceof Category)
-      {
-         return true;
-      }
-      return false;
+      return getChildren(element).length > 0;
    }
 
    public void inputChanged(Viewer viewer, Object oldInputData, Object newInputData)

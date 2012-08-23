@@ -62,13 +62,7 @@ public class B2WizardTest extends TestRunner
          assertTrue(item.isChecked());
       }
 
-      SWTBotButton deSelectAll = importShell.bot().button(Messages.msgDeselectAllBtn);
-      deSelectAll.click();
-
-      for (SWTBotTreeItem item : treeViewer.getAllItems())
-      {
-         assertFalse(item.isChecked());
-      }
+      deSelectAll();
 
       SWTBotButton refresh = importShell.bot().button(Messages.msgRefreshBtn);
       refresh.click();
@@ -87,6 +81,7 @@ public class B2WizardTest extends TestRunner
    public void createProject()
    {
       selectB2Wizard();
+      deSelectAll();
 
       if (treeViewer.hasItems())
       {
@@ -97,10 +92,13 @@ public class B2WizardTest extends TestRunner
       bot.sleep(1000);
 
    }
-   
+
    @Test
-   public void createProjects(){
+   public void createProjects()
+   {
       selectB2Wizard();
+      deSelectAll();
+
       if (treeViewer.hasItems())
       {
          swtBotFirstTreeItem = treeViewer.getAllItems()[1].getItems()[0];
@@ -110,7 +108,7 @@ public class B2WizardTest extends TestRunner
       }
       finish();
       bot.sleep(1000);
-      
+
    }
 
    public void finish()
@@ -123,6 +121,8 @@ public class B2WizardTest extends TestRunner
    public void easyCreateProject()
    {
       selectB2Wizard();
+      deSelectAll();
+
       if (treeViewer.hasItems())
       {
          swtBotFirstTreeItem = treeViewer.getAllItems()[0].getItems()[1];
@@ -138,7 +138,8 @@ public class B2WizardTest extends TestRunner
    public void easyCreateProjectToExistingWS()
    {
       selectB2Wizard();
-
+      deSelectAll();
+      
       if (treeViewer.hasItems())
       {
          swtBotFirstTreeItem = treeViewer.getAllItems()[1].getItems()[1];
@@ -169,5 +170,11 @@ public class B2WizardTest extends TestRunner
    {
       SWTBotButton cancel = bot.button("Cancel");
       cancel.click();
+   }
+
+   public void deSelectAll()
+   {
+      SWTBotButton deSelectAll = importShell.bot().button(Messages.msgDeselectAllBtn);
+      deSelectAll.click();
    }
 }

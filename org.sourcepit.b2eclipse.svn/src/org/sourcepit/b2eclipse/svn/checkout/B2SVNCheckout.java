@@ -57,7 +57,7 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
       dialog.open();
    }
 
-   public IActionOperation createOperation(IRepositoryContainer container, File location)
+   private IActionOperation createOperation(IRepositoryContainer container, File location)
    {
 
       CheckoutAsOperation checkout = new CheckoutAsOperation(location, container, 3, false, true);
@@ -70,7 +70,7 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
       return compOp;
    }
 
-   public void checkout(File location, IProgressMonitor monitor) throws CoreException, InterruptedException
+   private void checkout(File location, IProgressMonitor monitor) throws CoreException, InterruptedException
    {
 
       IRepositoryContainer container = (IRepositoryContainer) selectedResource;
@@ -83,12 +83,13 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
          return;
    }
 
-   public void createProjects() throws CoreException, ResourceException
+   private void createProjects() throws CoreException, ResourceException
    {
 
       project = workspace.getRoot().getProject(selectedResource.getName());
 
       project.create(new NullProgressMonitor());
+      project.open(new NullProgressMonitor());
 
    }
 

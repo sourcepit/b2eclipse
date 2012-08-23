@@ -74,6 +74,7 @@ public class ExecuteModuleAction implements ILaunchShortcut
                Runtime runtime = Runtime.getRuntime();
                runtime.exec("cmd.exe /c start " + mvnBatPath, envpResult, new File(path));
 
+
             }
             catch (IOException e)
             {
@@ -93,9 +94,9 @@ public class ExecuteModuleAction implements ILaunchShortcut
       File[] elementList = file.getParentFile().listFiles();
       fileList.clear();
 
-      for (File i : elementList)
+      for (File fileElement : elementList)
       {
-         fileList.add(i.getName());
+         fileList.add(fileElement.getName());
       }
 
       if (fileList.contains("module.xml"))

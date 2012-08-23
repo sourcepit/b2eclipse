@@ -16,7 +16,8 @@ import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-import org.sourcepit.b2eclipse.input.Category;
+import org.sourcepit.b2eclipse.input.SubCategory;
+import org.sourcepit.b2eclipse.input.ParentCategory;
 
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
@@ -33,15 +34,23 @@ public class LabelProvider extends StyledCellLabelProvider
       final Object element = cell.getElement();
       final StyledString label = new StyledString();
 
-
-      if (element instanceof Category)
+      if (element instanceof ParentCategory)
       {
-         final Category category = (Category) element;
+         final ParentCategory category = (ParentCategory) element;
          label.append(category.getName());
          cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
-         label.append(" ( " + category.getModules().size() + " ) ", StyledString.COUNTER_STYLER);
+         label.append(" ( " + category.getCategoryEntries().size() + " ) ", StyledString.COUNTER_STYLER);
       }
-      else
+
+      else if (element instanceof SubCategory)
+      {
+         final SubCategory category = (SubCategory) element;
+         label.append(category.getName());
+         cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
+         label.append(" ( " + category.getFileEntries().size() + " ) ", StyledString.COUNTER_STYLER);
+      }
+
+      else if (element instanceof File)
       {
          final File projectDir = (File) element;
 

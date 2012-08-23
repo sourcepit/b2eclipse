@@ -21,7 +21,6 @@ public class FilePropertyTester extends PropertyTester
 {
    private static final String PROPERTY_CONTAINS_FILE = "containsFile";
    private List<String> fileList = new ArrayList<String>();
-   private int height = 0;
    private boolean result = false;
 
    public FilePropertyTester()
@@ -37,7 +36,7 @@ public class FilePropertyTester extends PropertyTester
          File selectedProject = new File(((IProject) receiver).getLocation().toOSString());
          if (expectedValue instanceof String)
          {
-            doModuleSearch(selectedProject, (String) expectedValue);
+            result = doModuleSearch(selectedProject, (String) expectedValue);
          }
 
 
@@ -45,17 +44,16 @@ public class FilePropertyTester extends PropertyTester
       return result;
    }
 
-   public void doModuleSearch(File file, String expectedValue)
+   private boolean doModuleSearch(File file, String expectedValue)
    {
-
-      if (height != 2)
+      try
       {
          File[] elementList = file.getParentFile().listFiles();
          fileList.clear();
 
-         for (File i : elementList)
+         for (File fileElement : elementList)
          {
-            fileList.add((i.getName()));
+            fileList.add((fileElement.getName()));
          }
 
          if (fileList.contains(expectedValue))
@@ -64,17 +62,22 @@ public class FilePropertyTester extends PropertyTester
             {
                if (element.getName().equals(expectedValue))
                {
-                  result = true;
+                  return true;
 
                }
             }
          }
-         height++;
-         doModuleSearch(file.getParentFile(), expectedValue);
+         else
+         {
+            return doModuleSearch(file.getParentFile(), expectedValue);
+         }
       }
-
+      catch (NullPointerException e)
+      {
+         return false;
+      }
+      return false;
 
    }
-
 
 }
