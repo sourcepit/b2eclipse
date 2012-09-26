@@ -7,7 +7,7 @@
             class="org.sourcepit.b2eclipse.ui.B2Wizard"
             icon="icons/b2.gif"
             id="org.sourcepit.b2eclipse.ImportWizard"
-            name="Check out b2 Project/s...">
+            name="b2 Project/s Checkout">
       </wizard>
    </extension>
 </plugin>

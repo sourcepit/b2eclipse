@@ -1,65 +1,44 @@
-/**
- * Copyright (c) 2012 Sourcepit.org contributors and others. All rights reserved. This program and the accompanying
- * materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution,
- * and is available at http://www.eclipse.org/legal/epl-v10.html
- */
 
 package org.sourcepit.b2eclipse.provider;
 
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.sourcepit.b2eclipse.input.SubCategory;
-import org.sourcepit.b2eclipse.input.ParentCategory;
-import org.sourcepit.b2eclipse.input.TreeViewerInput;
+import org.sourcepit.b2eclipse.input.Node;
 
-/**
- * @author Marco Grupe <marco.grupe@googlemail.com>
- */
 
 public class ContentProvider implements ITreeContentProvider
 {
+
+   public void dispose()
+   {
+      // TODO Auto-generated method stub
+   }
+
+   public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
+   {
+      // TODO Auto-generated method stub
+      //viewer.setInput(((Node) newInput));
+   }
+
    public Object[] getElements(Object inputElement)
    {
-      return ((TreeViewerInput) inputElement).getData().toArray();
+      //Da oberstes root und nichts drin ist 
+      return ((Node) inputElement).getChildren().toArray();
    }
 
    public Object[] getChildren(Object parentElement)
    {
-      List<Object> result = new ArrayList<Object>();
-      if (parentElement instanceof ParentCategory)
-      {
-         ParentCategory parent = (ParentCategory) parentElement;
-         result.addAll(parent.getCategoryEntries());
-
-      }
-      else if (parentElement instanceof SubCategory)
-      {
-         SubCategory sub = (SubCategory) parentElement;
-         result.addAll(sub.getFileEntries());
-      }
-      return result.toArray();
+      return ((Node) parentElement).getChildren().toArray();
    }
 
    public Object getParent(Object element)
    {
-      return null;
+      return ((Node) element).getParent();
    }
 
    public boolean hasChildren(Object element)
    {
-      return getChildren(element).length > 0;
-   }
-
-   public void inputChanged(Viewer viewer, Object oldInputData, Object newInputData)
-   {
-   }
-
-   public void dispose()
-   {
+      return ((Node) element).getChildren().size() > 0;
    }
 
 }

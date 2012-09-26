@@ -8,248 +8,88 @@ package org.sourcepit.b2eclipse.input;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-
 
 /**
- * @author Marco Grupe <marco.grupe@googlemail.com>
+ * @author WD
  */
 
-public class TreeViewerInput
-{
-
-
-   private List<File> projectList = new ArrayList<File>();
-   private List<String> dirContentList = new ArrayList<String>();
-   private List<ParentCategory> parentCategories = new ArrayList<ParentCategory>();
-   private List<String> fileList = new ArrayList<String>();
-   private Map<String, ArrayList<String>> moduleMap = new HashMap<String, ArrayList<String>>();
-   boolean result = false;
-
-   public TreeViewerInput()
+public class TreeViewerInput extends ViewerInput
+{ 
+   public TreeViewerInput(Node _root, File path)
    {
-   };
-
-   public TreeViewerInput(Object inputElement)
-   {
-      File[] elementList = ((File) inputElement).listFiles();
-
-      if (elementList != null)
-      {
-         getProjects(inputElement);
-      }
-
+      abstractRoot = _root; 
+      createMainNodeSystem(path);
    }
-
-   public List<ParentCategory> getData()
+   
+   /**
+    * Creates the Node system that represents the Modules and Projects.
+    * 
+    * @param path the Path that should be searched
+    */
+   public void createMainNodeSystem(File path)
+   { 
+      localizeFiles(path, abstractRoot);
+   }
+   
+   /**
+    * Recursive search for the the Modules and Projects.
+    *  
+    * @param path the path that should be searched
+    * @param parent the root Node
+    */
+   private void localizeFiles(File path, Node parent)
    {
-      if (projectList != null)
+      List<File> pathList = new ArrayList<File>();
+      List<String> fileList = new ArrayList<String>();
+
+      Node me = parent;
+
+      if (path.listFiles() != null)
       {
-         moduleRelatedProjects();
-         Iterator<String> it = getModuleMap().keySet().iterator();
-         while (it.hasNext())
+         for (File iter : path.listFiles())
          {
-            SubCategory categoryPlugins = new SubCategory();
-            categoryPlugins.setName("Plugins");
-
-            SubCategory categoryTests = new SubCategory();
-            categoryTests.setName("Tests");
-
-            SubCategory categoryDocs = new SubCategory();
-            categoryDocs.setName("Docs");
-
-            final String parentName = it.next();
-            ParentCategory parentCategory = new ParentCategory();
-            parentCategory.setName(parentName);
-
-
-            final List<String> projectPaths = getModuleMap().get(parentName);
-            for (String projectPath : projectPaths)
+            if (checkDir(iter))
             {
-               File file = new File(projectPath);
-               if (!file.getParent().endsWith(".tests") && !new File(file.getParent()).getParent().endsWith("tests")
-                  && !file.getParent().endsWith(".doc") && !new File(file.getParent()).getParent().endsWith("doc"))
-               {
-                  categoryPlugins.getFileEntries().add(file);
-               }
-               if (file.getParent().endsWith(".tests") || new File(file.getParent()).getParent().endsWith("tests"))
-               {
-                  categoryTests.getFileEntries().add(file);
-               }
-               if (file.getParent().endsWith(".doc") || new File(file.getParent()).getParent().endsWith("doc"))
-               {
-                  categoryDocs.getFileEntries().add(file);
-               }
+               pathList.add(iter);
             }
-            parentCategory.getCategoryEntries().add(categoryPlugins);
-            parentCategory.getCategoryEntries().add(categoryTests);
-            parentCategory.getCategoryEntries().add(categoryDocs);
-            parentCategories.add(parentCategory);
-
-         }
-      }
-
-      return parentCategories;
-   }
-
-   private List<File> getProjects(Object inputElement)
-   {
-
-      File[] elementList = ((File) inputElement).listFiles();
-      dirContentList.clear();
-      if (elementList != null)
-      {
-         for (File file : elementList)
-         {
-            setDirList(file.getName());
-         }
-
-         if ((!(dirContentList.contains("module.xml")) && !(dirContentList.contains(".project"))))
-         {
-            doDirectorySearch(elementList);
-         }
-         else if (!(dirContentList.contains("module.xml")) && dirContentList.contains(".project") && result)
-         {
-            result = false;
-            doProjectSearch(elementList);
-            result = true;
-         }
-         else if (!(dirContentList.contains("module.xml")) && dirContentList.contains(".project"))
-         {
-            String name = null;
-            for (File file : elementList)
+            if (iter.isFile())
             {
-               if (file.getName().equals(".project"))
-               {
-                  name = doParentSearch(file);
-                  if (name != null)
-                  {
-                     doProjectSearch(elementList);
-                  }
-               }
+               fileList.add(iter.getName());
             }
-         }
-         else if ((dirContentList.contains("module.xml") && !(dirContentList.contains(".project")))
-            || (dirContentList.contains("module.xml") && dirContentList.contains(".project")))
-         {
-            result = true;
-            doDirectorySearch(elementList);
-            result = false;
-         }
-         return projectList;
-      }
-
-      return null;
-
-   }
-
-   public void clearArrayList()
-   {
-      projectList.clear();
-   }
-
-
-   public List<ParentCategory> getCategories()
-   {
-      return parentCategories;
-   }
-
-   private void setDirList(String file)
-   {
-      dirContentList.add(file);
-   }
-
-   private void doDirectorySearch(File[] elementList)
-   {
-
-      for (File file : elementList)
-      {
-         if (file.isDirectory() && !(file.getName().startsWith(".")) && !(file.getName().equals("target")))
-         {
-            getProjects(file);
-         }
-      }
-   }
-
-   private void doProjectSearch(File[] elementList)
-   {
-      for (File file : elementList)
-      {
-         if (file.getName().equals(".project"))
-         {
-            projectList.add(file.getAbsoluteFile());
-         }
-      }
-
-   }
-
-   private String doParentSearch(File file)
-   {
-      if (file.getParentFile() != null)
-      {
-         File[] elementList = file.getParentFile().listFiles();
-         fileList.clear();
-
-         for (File fileElement : elementList)
-         {
-            addFiletoFilelist(fileElement.getName());
          }
 
          if (fileList.contains("module.xml"))
          {
-            for (File element : elementList)
-            {
-               if (element.getName().equals("module.xml"))
-               {
-                  return element.getParentFile().getName();
-               }
-            }
+            me = new Node(parent, path, Node.Type.MODULE);
          }
 
-         return doParentSearch(file.getParentFile());
-      }
-      return null;
+         if (fileList.contains("MANIFEST.MF"))
+         {            
+            new Node(parent, path.getParentFile(), Node.Type.PROJECT);
+         }
 
-
-   }
-
-   private void moduleRelatedProjects()
-   {
-      for (File file : projectList)
-      {
-         String result = doParentSearch(file);
-         if (result != null)
+         for (File iter : pathList)
          {
-            if (moduleMap.containsKey(result))
-            {
-
-               ArrayList<String> b = moduleMap.get(result);
-               b.add(file.getAbsolutePath());
-               moduleMap.put(result, b);
-
-            }
-            else
-            {
-               ArrayList<String> dummyList = new ArrayList<String>();
-               dummyList.add(file.getAbsolutePath());
-               moduleMap.put(result, dummyList);
-            }
+            localizeFiles(iter, me);
          }
-
       }
    }
 
-   private Map<String, ArrayList<String>> getModuleMap()
+   /**
+    * Checks which directories are forbidden or uninteresting.
+    * 
+    * @param dir the checked directory
+    * @return true if directory is interesting, else false.
+    */
+   private boolean checkDir(File dir)
    {
-      return moduleMap;
+      // Feel free to add more restrictions
+      if (dir.isDirectory() && !dir.getName().equals(".metadata") && !dir.getName().equals("target")
+         && !dir.getName().equals(".git"))
+         return true;
+      else
+         return false;
    }
-
-   private void addFiletoFilelist(String file)
-   {
-      fileList.add(file);
-   }
-
+   
 }

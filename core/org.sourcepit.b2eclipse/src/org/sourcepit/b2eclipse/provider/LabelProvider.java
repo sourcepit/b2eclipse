@@ -7,66 +7,52 @@
 package org.sourcepit.b2eclipse.provider;
 
 
-import java.io.File;
-
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-import org.sourcepit.b2eclipse.input.SubCategory;
-import org.sourcepit.b2eclipse.input.ParentCategory;
+import org.sourcepit.b2eclipse.input.Node;
 
 /**
- * @author Marco Grupe <marco.grupe@googlemail.com>
+ * @author WD
  */
 
 public class LabelProvider extends StyledCellLabelProvider
 {
    /**
-    * specifiy the settings of the TreeViewer
+    * Specify the settings of the TreeViewer.
     */
    @Override
    public void update(ViewerCell cell)
    {
-      final Object element = cell.getElement();
       final StyledString label = new StyledString();
+      Node node = ((Node) cell.getElement());
 
-      if (element instanceof ParentCategory)
+      switch (node.getType())
       {
-         final ParentCategory category = (ParentCategory) element;
-         label.append(category.getName());
-         cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
-         label.append(" ( " + category.getCategoryEntries().size() + " ) ", StyledString.COUNTER_STYLER);
+         case PROJECT :
+
+            label.append(node.getName());
+
+            label.append("  (" + node.getFile().getAbsolutePath() + ")", StyledString.DECORATIONS_STYLER);
+
+
+            cell.setImage(PlatformUI.getWorkbench().getSharedImages()
+               .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
+            break;
+
+         case MODULE :
+            label.append(node.getName());
+            cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
+            break;
+
+         default :
+            label.append("unknown File, run for youre Life!");
+            cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJS_WARN_TSK));
+            break;
       }
 
-      else if (element instanceof SubCategory)
-      {
-         final SubCategory category = (SubCategory) element;
-         label.append(category.getName());
-         cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
-         label.append(" ( " + category.getFileEntries().size() + " ) ", StyledString.COUNTER_STYLER);
-      }
-
-      else if (element instanceof File)
-      {
-         final File projectDir = (File) element;
-
-         final IPath projectDirPath = new Path(projectDir.getParent());
-
-         final String projectName = projectDirPath.lastSegment();
-         label.append(projectName);
-
-         final IPath styledProjectDirPath = projectDirPath.removeLastSegments(1);
-         label.append("  (" + styledProjectDirPath.toOSString() + ")", StyledString.DECORATIONS_STYLER);
-
-
-         cell.setImage(PlatformUI.getWorkbench().getSharedImages()
-            .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
-
-      }
       cell.setText(label.toString());
       cell.setStyleRanges(label.getStyleRanges());
 
