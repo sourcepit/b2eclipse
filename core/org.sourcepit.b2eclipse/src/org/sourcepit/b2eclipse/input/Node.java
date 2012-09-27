@@ -26,7 +26,7 @@ public class Node
 
    public enum Type
    {
-      MODULE, PROJECT
+      MODULE, PROJECT, WORKINGSET
    }
 
    /**
@@ -37,14 +37,15 @@ public class Node
       children = new ArrayList<Node>();
    }
 
-   public Node(Node _parent, Node _copy)
-   {
-      parent = _parent;
-      file = _copy.getFile();
-      name = file.getName();
-      children = _copy.getChildren();
-      type = _copy.getType();
-   }
+   // sinnvoll??
+   // public Node(Node _parent, Node _copy)
+   // {
+   // parent = _parent;
+   // file = _copy.getFile();
+   // name = file.getName();
+   // children = _copy.getChildren();
+   // type = _copy.getType();
+   // }
 
    /**
     * Creates a new Node under the <code>_parent</code> Node.
@@ -56,7 +57,6 @@ public class Node
    public Node(Node _parent, File _file, Type _type)
    {
       children = new ArrayList<Node>();
-
       file = _file;
       name = _file.getName();
       parent = _parent;
@@ -65,9 +65,26 @@ public class Node
    }
 
    /**
+    * Creates a new Node under the <code>_parent</code> Node. Only for WORKINGSET Nodes.
+    * 
+    * @param _parent the parent element
+    * @param _file the given File
+    * @param _type the given Type
+    */
+   public Node(Node _parent, File _file, Type _type, String _name)
+   {
+      children = new ArrayList<Node>();
+      file = _file;
+      name = _name;
+      parent = _parent;
+      type = _type;
+      _parent.addChild(this);
+   }
+
+   /**
     * delete the Node assigning the children to the parent.
     */
-   public void deleteNode()
+   public void deleteNodeAssigningChildrenToParent()
    {
       for (Node iter : children)
       {
@@ -80,7 +97,7 @@ public class Node
     * delete the Node and its children, the same as <code> .remove(the Node) </code>.
     * 
     */
-   public void deleteNodeAndChildren()
+   public void deleteNode()
    {
       parent.removeChild(this);
    }
@@ -157,30 +174,89 @@ public class Node
          }
       }
    }
-   
+
    /**
     * Returns the Node which is equal to <code>equal</code>.
-    *  
-    * @param equal the to be searched node
+    * 
+    * @param node the, to be searched node
     * @return the node
     */
-   public Node getEqualNode(Node equal)
-   {      
-      return searchEqual(equal, this);
+   public Node getEqualNode(Node node)
+   {
+      return searchEqual(node, this);
    }
-   
+
+   /**
+    * Checks only the equality of the <code>file</code> field.
+    * 
+    * @param equal
+    * @param search
+    * @return
+    */
    private Node searchEqual(Node equal, Node search)
-   {    
-      Node result = new Node();
-      for(Node iter : search.getChildren()){
-         if(iter.equals(equal))
-            result =  iter;      
+   {
+      Node result = null;
+
+      for (Node iter : search.getChildren())
+      {
+
+         if (iter.getFile().equals(equal.getFile()))
+
+            return iter;
+
          else
          {
             result = searchEqual(equal, iter);
+            if (result != null)
+            {
+               return result;
+            }
          }
       }
-      return result;      
+      return result;
    }
 
+   /**
+    * The existing Parent, which is a representation of a Model, not the "abstract" root. If its already the rootModel
+    * returns null.
+    * 
+    * @return the root Model
+    */
+
+   public Node getRootModel()
+   {
+      Node result = null;
+      if (parent == null)
+      {
+         return null;
+      }
+      if (parent.getParent() == null)
+         result = this;
+      else
+      {
+         result = parent.getRootModel();
+         if (result != null)
+            return result;
+      }
+      return result;
+   }
+   
+   /**
+    * Returns the Name for a Working Set. //Gehört hier iwie nicht hin.
+    * @param node
+    * @return
+    */
+   public String getWSName(Node node)
+   {
+      // IS WORKING !! YAY!!
+      String name = "";
+      Node mod = node.getRootModel();
+      while (node != mod)
+      {
+         name = "/" + node.getName() + name;
+         node = node.getParent();
+      }
+      name = node.getRootModel().getName() + name;
+      return name;
+   }
 }

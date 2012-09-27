@@ -33,6 +33,7 @@ import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import org.sourcepit.b2eclipse.input.Node;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 
@@ -322,28 +323,42 @@ public class B2WizardPage extends WizardPage
       
       
       
-      
+      //dirTreeViewer.add
 
       // if a category is checked in the tree, check all its children
       dirTreeViewer.addCheckStateListener(new ICheckStateListener()
       {
          public void checkStateChanged(CheckStateChangedEvent event)
-         {            
+         {         
+            System.out.println("möp");
+            // System.out.println(event.getElement().getClass()); --> erkenntnis: das ist ein Node
+            Node elementNode = (Node) event.getElement();
+            
             if (event.getChecked())
             {   
-               dirTreeViewer.setSubtreeChecked(event.getElement(), true);
+               dirTreeViewer.setSubtreeChecked(elementNode, true);
+               
+               if(elementNode.getType() == Node.Type.PROJECT)                  
+                  bckend.addProjectToPrevievTree(previewTreeViewer, elementNode);
+               else
+                  for (Node iter : elementNode.getProjectChildren()) //will noch nich arbeiten wenn das "Modul" bereits weg ist
+                     bckend.addProjectToPrevievTree(previewTreeViewer, iter);
+               
             }
             else
             {
-               dirTreeViewer.setSubtreeChecked(event.getElement(), false);
+               dirTreeViewer.setSubtreeChecked(elementNode, false);
+               //TODO eyeCandy: wenn alle unterelemente unmarkiert das Oberelement unmarkieren
+               
+               if(elementNode.getType() == Node.Type.PROJECT)
+                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);    
+               else
+                  for (Node iter : elementNode.getProjectChildren())
+                     bckend.deleteProjectFromPrevievTree(previewTreeViewer, iter);
+               
                selAll.setSelection(false);
             }
-            //setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-            // easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
-            
-            //Aktualisieren des Node System der Previev
-            //bckend.showElementsInTree(previewTreeViewer,(Node) event.getElement());
-            
+            //setPageComplete(dirTreeViewer.getCheckedElements().length > 0);            
          }
       });
 

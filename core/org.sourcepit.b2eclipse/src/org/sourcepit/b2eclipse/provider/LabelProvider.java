@@ -46,6 +46,11 @@ public class LabelProvider extends StyledCellLabelProvider
             label.append(node.getName());
             cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
             break;
+            
+         case WORKINGSET :
+            label.append(node.getName());
+            cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT));
+            break;
 
          default :
             label.append("unknown File, run for youre Life!");

@@ -16,10 +16,9 @@ import java.util.List;
 
 public class TreeViewerInput extends ViewerInput
 { 
-   public TreeViewerInput(Node _root, File path)
+   public TreeViewerInput(Node _root)
    {
       abstractRoot = _root; 
-      createMainNodeSystem(path);
    }
    
    /**
@@ -27,9 +26,10 @@ public class TreeViewerInput extends ViewerInput
     * 
     * @param path the Path that should be searched
     */
-   public void createMainNodeSystem(File path)
+   public Node createMainNodeSystem(File path)
    { 
       localizeFiles(path, abstractRoot);
+      return abstractRoot;
    }
    
    /**
@@ -74,6 +74,7 @@ public class TreeViewerInput extends ViewerInput
             localizeFiles(iter, me);
          }
       }
+      
    }
 
    /**

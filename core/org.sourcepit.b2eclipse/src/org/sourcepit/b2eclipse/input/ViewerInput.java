@@ -1,6 +1,6 @@
 package org.sourcepit.b2eclipse.input;
 
-public abstract class ViewerInput
+public abstract class ViewerInput //eventuell sinnlos
 {
    Node abstractRoot;   
    
@@ -9,7 +9,7 @@ public abstract class ViewerInput
     * 
     * @return the root Node/s
     */
-   public Object getRoot(){
+   public Object[] getRoot(){
       return abstractRoot.getChildren().toArray();
    }
    
