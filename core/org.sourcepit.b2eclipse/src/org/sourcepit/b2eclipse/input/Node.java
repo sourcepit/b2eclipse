@@ -99,7 +99,9 @@ public class Node
     */
    public void deleteNode()
    {
-      parent.removeChild(this);
+      if(parent != null){
+         parent.removeChild(this);
+      }
    }
 
    public void setParent(Node _parent)
