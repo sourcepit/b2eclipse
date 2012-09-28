@@ -13,7 +13,6 @@ import java.util.List;
 /**
  * @author WD
  */
-
 public class TreeViewerInput extends ViewerInput
 { 
    public TreeViewerInput(Node _root)

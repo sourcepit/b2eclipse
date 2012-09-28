@@ -17,7 +17,6 @@ import org.sourcepit.b2eclipse.input.Node;
 /**
  * @author WD
  */
-
 public class LabelProvider extends StyledCellLabelProvider
 {
    /**
