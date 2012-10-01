@@ -147,7 +147,12 @@ public class B2Wizard extends Wizard implements IImportWizard
     */
    public boolean testOnLocalDrive(String selectedProject)
    {
-      return !new File(selectedProject).getParentFile().equals(null);
+      if (selectedProject != null)
+         if (new File(selectedProject).getParentFile() != null)
+            return true;
+
+      return false;
+
    }
 
    /**
@@ -239,7 +244,7 @@ public class B2Wizard extends Wizard implements IImportWizard
 
       previevTreeViever.setInput(new PreviewViewerInput(root).createNodeSystemForPreviev());
    }
-   
+
    /**
     * Creates WorkingSets and Projects in the Workspace.
     */
@@ -252,11 +257,11 @@ public class B2Wizard extends Wizard implements IImportWizard
 
       Node root = page.getPreviewRootNode();
 
-      for (Node currentWS : root.getChildren())
+      for (Node currentElement : root.getChildren())
       {
-         if (currentWS.getType() == Node.Type.WORKINGSET) // Sollte immer wahr sein
+         if (currentElement.getType() == Node.Type.WORKINGSET) // Sollte immer wahr sein
          {
-            String wsName = currentWS.getName();
+            String wsName = currentElement.getName();
             IWorkingSet workingSet = wSmanager.getWorkingSet(wsName);
             if (workingSet == null)
             {
@@ -268,13 +273,13 @@ public class B2Wizard extends Wizard implements IImportWizard
                wSmanager.addWorkingSet(workingSet);
             }
 
-            for (Node currentProject : currentWS.getChildren())
+            for (Node currentSubElement : currentElement.getChildren())
             {
-               if (currentProject.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
+               if (currentSubElement.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
                {
                   try
                   {
-                     IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentProject
+                     IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentSubElement
                         .getFile().toString() + "/.project"));
                      IProject project = workspace.getRoot().getProject(projectDescription.getName());
                      JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
@@ -287,6 +292,21 @@ public class B2Wizard extends Wizard implements IImportWizard
                      // TODO Ausgabe (bsp: zugriff verweigert)
                   }
                }
+            }
+         }
+         if (currentElement.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
+         {
+            try
+            {
+               IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
+                  .getFile().toString() + "/.project"));
+               IProject project = workspace.getRoot().getProject(projectDescription.getName());
+               JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+            }
+            catch (CoreException e)
+            {
+               throw new IllegalStateException(e);
+               // TODO Ausgabe (bsp: zugriff verweigert)
             }
          }
       }

@@ -1,3 +1,9 @@
+/**
+ * Copyright (c) 2012 Sourcepit.org contributors and others. All rights reserved. This program and the accompanying
+ * materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution,
+ * and is available at http://www.eclipse.org/legal/epl-v10.html
+ */
+
 package org.sourcepit.b2eclipse.ui;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -6,39 +12,50 @@ import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.DragSourceListener;
 import org.sourcepit.b2eclipse.input.Node;
 
+/**
+ * 
+ * @author WD
+ *
+ */
 public class DragListener implements DragSourceListener
 {
    private TreeViewer viewer;
 
-   public DragListener (TreeViewer previewTreeViewer){
+   private Node node;
+
+   public DragListener(TreeViewer previewTreeViewer)
+   {
       this.viewer = previewTreeViewer;
    }
-   
+
    public void dragFinished(DragSourceEvent event)
    {
-      // TODO Auto-generated method stub
-      System.out.println("Finshed Drag");
+      if (event.doit)
+      {
+         Node parent = node.getParent();
+         node.deleteNode();
+         if (parent.getChildren().size() == 0)
+            parent.deleteNode();
+
+         viewer.refresh();
+      }
    }
-   
+
 
    public void dragSetData(DragSourceEvent event)
    {
-      // TODO Auto-generated method stub
-      System.out.println(event.getClass().toString());
-      IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
-      System.out.println(selection.getClass().toString());
-      
-      
-         
+      if (node.getType() == Node.Type.PROJECT)
+         event.data = node.getFile().toString();
+      else
+         event.data = "";
    }
 
    public void dragStart(DragSourceEvent event)
    {
-      // TODO Auto-generated method stub
-      System.out.println("Start Drag");
-      System.out.println(event.getClass().toString());
-      IStructuredSelection selection = (IStructuredSelection) viewer.getSelection();
-      System.out.println(((Node) selection.getFirstElement()).getName()); //GEHT!! Nun weiter!
+      node = (Node) ((IStructuredSelection) viewer.getSelection()).getFirstElement();
+      if (node.getType() != Node.Type.PROJECT)
+         event.doit = false;
+
    }
 
 }

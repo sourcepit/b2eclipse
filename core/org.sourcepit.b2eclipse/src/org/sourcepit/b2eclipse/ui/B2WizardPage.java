@@ -18,7 +18,7 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -197,7 +197,7 @@ public class B2WizardPage extends WizardPage
       previewTreeViewer.setLabelProvider(new LabelProvider());
       
       
-      Transfer[] transferTypes = new Transfer[]{FileTransfer.getInstance()};
+      Transfer[] transferTypes = new Transfer[]{TextTransfer.getInstance()};
       previewTreeViewer.addDragSupport(DND.DROP_MOVE, transferTypes , new DragListener(previewTreeViewer));
       previewTreeViewer.addDropSupport(DND.DROP_MOVE, transferTypes , new DropListener(previewTreeViewer));
 
@@ -280,20 +280,19 @@ public class B2WizardPage extends WizardPage
 
       workspaceTxt.addModifyListener(new ModifyListener()
       {
+         //TODO zusammenfassen mit oberem
          public void modifyText(ModifyEvent e)
          {
-            // TODO
-            // Text txt = (Text) e.widget;
-            // boolean result = testOnLocalDrive(txt.getText());
-            // if (result == true)
-            // {
-            // dirTreeViewer.setInput(new TreeViewerInput(new File(txt.getText())));
-            // dirTreeViewer.expandToLevel(2);
-            // setChecked();
-            // setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-            // easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
-            // }
+            String txt = ((Text) e.widget).getText();
 
+            if (bckend.testOnLocalDrive(txt))
+             {
+                bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);
+
+                selAll.setSelection(true);
+                
+                setPageComplete(true);
+             }
          }
       });
 
@@ -306,9 +305,7 @@ public class B2WizardPage extends WizardPage
                String text = dirTxt.getText();
                if (!new File(text).getParentFile().equals(null))
                {
-                  dirTxt.setText(text);                  
-                  // easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
-                  // setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
+                  dirTxt.setText(text);
                }
             }
          }
@@ -332,8 +329,6 @@ public class B2WizardPage extends WizardPage
       });
       
       
-      
-      //dirTreeViewer.add
 
       // if a category is checked in the tree, check all its children
       dirTreeViewer.addCheckStateListener(new ICheckStateListener()
@@ -351,7 +346,7 @@ public class B2WizardPage extends WizardPage
                if(elementNode.getType() == Node.Type.PROJECT)                  
                   bckend.addProjectToPrevievTree(previewTreeViewer, elementNode);
                else
-                  for (Node iter : elementNode.getProjectChildren()) //will noch nich arbeiten wenn das "Modul" bereits weg ist
+                  for (Node iter : elementNode.getProjectChildren()) 
                      bckend.addProjectToPrevievTree(previewTreeViewer, iter);
                
             }
@@ -367,12 +362,11 @@ public class B2WizardPage extends WizardPage
                      bckend.deleteProjectFromPrevievTree(previewTreeViewer, iter);
                
                selAll.setSelection(false);
-            }
-            //setPageComplete(dirTreeViewer.getCheckedElements().length > 0);            
+            }            
          }
       });
 
-      dirTreeViewer.setComparator(new ViewerComparator()
+      dirTreeViewer.setComparator(new ViewerComparator() //TODO check wofür?
       {
          @Override
          public int compare(Viewer viewer, Object e1, Object e2)
@@ -388,6 +382,10 @@ public class B2WizardPage extends WizardPage
 
    }
    
+   /**
+    * 
+    * @return the root Node of the Preview Viewer
+    */
    public Node getPreviewRootNode()
    {
       return (Node) previewTreeViewer.getInput();
