@@ -7,12 +7,17 @@
 package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.wizard.Wizard;
@@ -21,9 +26,10 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IImportWizard;
-import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkingSet;
+import org.eclipse.ui.IWorkingSetManager;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
@@ -37,29 +43,27 @@ import org.sourcepit.b2eclipse.input.TreeViewerInput;
  * @author WD
  */
 @SuppressWarnings("restriction")
-public class B2Wizard extends Wizard implements IImportWizard, ISelectionListener
+public class B2Wizard extends Wizard implements IImportWizard
 {
    private static String previouslyBrowsedDirectory = "";
+
+   private B2WizardPage page;
 
    public B2Wizard()
    {
       super();
-      addPage(new B2WizardPage(Messages.msgImportHeader, this));
+      page = new B2WizardPage(Messages.msgImportHeader, this);
+      addPage(page);
    }
 
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
-      // TODO diese Methode wird nach dem Konstruktor aufgerufen und vor allen anderen methoden
+      // diese Methode wird nach dem Konstruktor aufgerufen und vor allen anderen methoden
       setWindowTitle(Messages.msgImportTitle);
       Image projectFolder = Activator.getImageFromPath("icons/ProjectFolder.gif");
       setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(projectFolder));
-
-      // TODO das ist warscheinlich um dann die Projekte in workbench zu adden
-      // deswegen auch der ISelectionListener + die selectionChanged methode
-      workbench.getActiveWorkbenchWindow().getSelectionService().addSelectionListener(this);
    }
 
-  
 
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
@@ -80,20 +84,20 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    public void deleteProjectFromPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
       Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(node);
-      
+
       if (imDead != null)
       {
          Node deadDad = imDead.getRootModel();
          imDead.deleteNode();
 
-         if (deadDad.getChildren().size() == 0 )
+         if (deadDad.getChildren().size() == 0)
          {
-            deadDad.deleteNode();  
+            deadDad.deleteNode();
          }
       }
       previewTreeViewer.refresh();
    }
-   
+
    /**
     * Add the <code>node</code> to the <code>previevTreeViever</code>.
     * 
@@ -104,12 +108,12 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    {
       Node root = (Node) previewTreeViewer.getInput();
       Node module = node.getParent();
-      
+
       boolean created = false;
-      
+
       for (Node iter : root.getChildren())
       {
-         if(iter.getFile() == module.getFile())
+         if (iter.getFile() == module.getFile())
          {
             new Node(iter, node.getFile(), node.getType());
             created = true;
@@ -118,12 +122,13 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
       if (!created)
       {
-         new Node(new Node(root, module.getFile(), Node.Type.WORKINGSET, module.getWSName(module)), node.getFile(), node.getType());
+         new Node(new Node(root, module.getFile(), Node.Type.WORKINGSET, module.getWSName(module)), node.getFile(),
+            node.getType());
       }
-      
+
       previewTreeViewer.refresh();
-   }   
-   
+   }
+
    public void addNewWorkingSetNode()
    {
       // TODO legt ein neues Working Set Node an
@@ -136,6 +141,7 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
 
    /**
     * Checks if the parent file is null.
+    * 
     * @param selectedProject
     * @return
     */
@@ -143,9 +149,10 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
    {
       return !new File(selectedProject).getParentFile().equals(null);
    }
-   
+
    /**
     * Shows a directory select dialog.
+    * 
     * @param directoryName
     * @param dialogShell
     * @return
@@ -188,9 +195,10 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
       return "";
    }
-   
+
    /**
     * Shows a workspace select dialog.
+    * 
     * @param dialogShell
     * @return
     */
@@ -213,9 +221,10 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       }
       return "";
    }
-   
+
    /**
     * Handles a change in the directory Field, actual it sets a new input to the treeViewer's.
+    * 
     * @param treeViewer
     * @param previevTreeViever
     * @param txt
@@ -229,20 +238,58 @@ public class B2Wizard extends Wizard implements IImportWizard, ISelectionListene
       doCheck(treeViewer, true);
 
       previevTreeViever.setInput(new PreviewViewerInput(root).createNodeSystemForPreviev());
-
    }
    
+   /**
+    * Creates WorkingSets and Projects in the Workspace.
+    */
    @Override
    public boolean performFinish()
    {
-      // TODO do smth.
-      return false;
+      // TODO eyeCandy: mit ner Progress Bar verschönern.
+      IWorkingSetManager wSmanager = PlatformUI.getWorkbench().getWorkingSetManager();
+      IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+      Node root = page.getPreviewRootNode();
+
+      for (Node currentWS : root.getChildren())
+      {
+         if (currentWS.getType() == Node.Type.WORKINGSET) // Sollte immer wahr sein
+         {
+            String wsName = currentWS.getName();
+            IWorkingSet workingSet = wSmanager.getWorkingSet(wsName);
+            if (workingSet == null)
+            {
+               // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
+               // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
+
+               workingSet = wSmanager.createWorkingSet(wsName, new IAdaptable[] {});
+               workingSet.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
+               wSmanager.addWorkingSet(workingSet);
+            }
+
+            for (Node currentProject : currentWS.getChildren())
+            {
+               if (currentProject.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
+               {
+                  try
+                  {
+                     IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentProject
+                        .getFile().toString() + "/.project"));
+                     IProject project = workspace.getRoot().getProject(projectDescription.getName());
+                     JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+
+                     wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
+                  }
+                  catch (CoreException e)
+                  {
+                     throw new IllegalStateException(e);
+                     // TODO Ausgabe (bsp: zugriff verweigert)
+                  }
+               }
+            }
+         }
+      }
+      return true;
    }
-
-   public void selectionChanged(IWorkbenchPart arg0, ISelection arg1)
-   {
-      // TODO Auto-generated method stub
-
-   }
-
 }

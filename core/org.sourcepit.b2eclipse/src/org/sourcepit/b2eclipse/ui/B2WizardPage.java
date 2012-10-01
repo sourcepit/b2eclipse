@@ -17,6 +17,9 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
@@ -192,6 +195,11 @@ public class B2WizardPage extends WizardPage
 
       previewTreeViewer.setContentProvider(new ContentProvider());
       previewTreeViewer.setLabelProvider(new LabelProvider());
+      
+      
+      Transfer[] transferTypes = new Transfer[]{FileTransfer.getInstance()};
+      previewTreeViewer.addDragSupport(DND.DROP_MOVE, transferTypes , new DragListener(previewTreeViewer));
+      previewTreeViewer.addDropSupport(DND.DROP_MOVE, transferTypes , new DropListener(previewTreeViewer));
 
       rightContainer.setBackground(previewTreeViewer.getControl().getBackground());
 
@@ -264,6 +272,8 @@ public class B2WizardPage extends WizardPage
                bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);
 
                selAll.setSelection(true);
+               
+               setPageComplete(true);
             }
          }
       });
@@ -376,7 +386,11 @@ public class B2WizardPage extends WizardPage
          }
       });
 
-
+   }
+   
+   public Node getPreviewRootNode()
+   {
+      return (Node) previewTreeViewer.getInput();
    }
 
 }
