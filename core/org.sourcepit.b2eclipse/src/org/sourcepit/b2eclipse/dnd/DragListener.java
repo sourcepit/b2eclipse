@@ -4,7 +4,7 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-package org.sourcepit.b2eclipse.ui;
+package org.sourcepit.b2eclipse.dnd;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -20,7 +20,6 @@ import org.sourcepit.b2eclipse.input.Node;
 public class DragListener implements DragSourceListener
 {
    private TreeViewer viewer;
-
    private Node node;
 
    public DragListener(TreeViewer previewTreeViewer)
@@ -40,7 +39,6 @@ public class DragListener implements DragSourceListener
          viewer.refresh();
       }
    }
-
 
    public void dragSetData(DragSourceEvent event)
    {

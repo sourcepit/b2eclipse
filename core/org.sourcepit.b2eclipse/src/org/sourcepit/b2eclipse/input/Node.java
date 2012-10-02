@@ -89,6 +89,7 @@ public class Node
       for (Node iter : children)
       {
          iter.setParent(parent);
+         parent.addChild(iter);
       }
       parent.removeChild(this);
    }
@@ -132,6 +133,11 @@ public class Node
    public String getName()
    {
       return name;
+   }
+   
+   public void setName(String _name)
+   {
+      name = _name;
    }
 
    public Type getType()

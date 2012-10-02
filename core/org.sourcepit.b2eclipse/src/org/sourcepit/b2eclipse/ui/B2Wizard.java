@@ -36,8 +36,7 @@ import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.Node;
-import org.sourcepit.b2eclipse.input.PreviewViewerInput;
-import org.sourcepit.b2eclipse.input.TreeViewerInput;
+import org.sourcepit.b2eclipse.input.ViewerInput;
 
 /**
  * @author WD
@@ -58,7 +57,6 @@ public class B2Wizard extends Wizard implements IImportWizard
 
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
-      // diese Methode wird nach dem Konstruktor aufgerufen und vor allen anderen methoden
       setWindowTitle(Messages.msgImportTitle);
       Image projectFolder = Activator.getImageFromPath("icons/ProjectFolder.gif");
       setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(projectFolder));
@@ -71,7 +69,7 @@ public class B2Wizard extends Wizard implements IImportWizard
       {
          viewer.setSubtreeChecked(dad, state);
       }
-      // Idee: nur wenn im Modul Projecte vorhanden sind, markieren
+      // TODO eyeCandy: nur wenn im Modul Projecte vorhanden sind, markieren
    }
 
 
@@ -129,16 +127,6 @@ public class B2Wizard extends Wizard implements IImportWizard
       previewTreeViewer.refresh();
    }
 
-   public void addNewWorkingSetNode()
-   {
-      // TODO legt ein neues Working Set Node an
-   }
-
-   public void removeSelectedWorkingSetNode()
-   {
-      // TODO löscht markiertes Working Set Node
-   }
-
    /**
     * Checks if the parent file is null.
     * 
@@ -152,7 +140,6 @@ public class B2Wizard extends Wizard implements IImportWizard
             return true;
 
       return false;
-
    }
 
    /**
@@ -236,13 +223,13 @@ public class B2Wizard extends Wizard implements IImportWizard
     */
    public void handleDirTreeViever(CheckboxTreeViewer treeViewer, TreeViewer previevTreeViever, String txt)
    {
-      Node root = new Node();
+      ViewerInput in = new ViewerInput(new Node());
 
-      treeViewer.setInput(new TreeViewerInput(root).createMainNodeSystem(new File(txt)));
+      treeViewer.setInput(in.createMainNodeSystem(new File(txt)));
       treeViewer.expandToLevel(2);
       doCheck(treeViewer, true);
 
-      previevTreeViever.setInput(new PreviewViewerInput(root).createNodeSystemForPreviev());
+      previevTreeViever.setInput(in.createNodeSystemForPreviev());
    }
 
    /**
@@ -259,7 +246,7 @@ public class B2Wizard extends Wizard implements IImportWizard
 
       for (Node currentElement : root.getChildren())
       {
-         if (currentElement.getType() == Node.Type.WORKINGSET) // Sollte immer wahr sein
+         if (currentElement.getType() == Node.Type.WORKINGSET) 
          {
             String wsName = currentElement.getName();
             IWorkingSet workingSet = wSmanager.getWorkingSet(wsName);
@@ -289,12 +276,12 @@ public class B2Wizard extends Wizard implements IImportWizard
                   catch (CoreException e)
                   {
                      throw new IllegalStateException(e);
-                     // TODO Ausgabe (bsp: zugriff verweigert)
+                     // TODO EyeCandy: Ausgabe (bsp: zugriff verweigert)
                   }
                }
             }
          }
-         if (currentElement.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
+         if (currentElement.getType() == Node.Type.PROJECT) 
          {
             try
             {
@@ -306,7 +293,7 @@ public class B2Wizard extends Wizard implements IImportWizard
             catch (CoreException e)
             {
                throw new IllegalStateException(e);
-               // TODO Ausgabe (bsp: zugriff verweigert)
+               // TODO siehe oben, + evt. ein mege
             }
          }
       }

@@ -4,7 +4,7 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-package org.sourcepit.b2eclipse.ui;
+package org.sourcepit.b2eclipse.dnd;
 
 import java.io.File;
 
@@ -23,7 +23,7 @@ public class DropListener extends ViewerDropAdapter
 {
    private TreeViewer viewer;
 
-   protected DropListener(TreeViewer viewer)
+   public DropListener(TreeViewer viewer)
    {
       super(viewer);
       this.viewer = viewer;

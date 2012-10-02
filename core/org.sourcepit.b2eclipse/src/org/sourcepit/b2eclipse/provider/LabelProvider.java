@@ -31,12 +31,8 @@ public class LabelProvider extends StyledCellLabelProvider
       switch (node.getType())
       {
          case PROJECT :
-
             label.append(node.getName());
-
             label.append("  (" + node.getFile().getAbsolutePath() + ")", StyledString.DECORATIONS_STYLER);
-
-
             cell.setImage(PlatformUI.getWorkbench().getSharedImages()
                .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
             break;
@@ -49,9 +45,10 @@ public class LabelProvider extends StyledCellLabelProvider
          case WORKINGSET :
             label.append(node.getName());
             cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ELEMENT));
+            //TODO anderes Icon finden
             break;
 
-         default :
+         default : //Should never happen! 
             label.append("unknown File, run for youre Life!");
             cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJS_WARN_TSK));
             break;

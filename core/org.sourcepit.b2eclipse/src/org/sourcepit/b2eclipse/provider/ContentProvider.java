@@ -26,7 +26,6 @@ public class ContentProvider implements ITreeContentProvider
    public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
    {
       // TODO Auto-generated method stub
-      //viewer.setInput(((Node) newInput));
    }
 
    public Object[] getElements(Object inputElement)

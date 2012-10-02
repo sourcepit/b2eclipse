@@ -11,15 +11,23 @@ import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
@@ -32,10 +40,13 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import org.sourcepit.b2eclipse.dnd.DragListener;
+import org.sourcepit.b2eclipse.dnd.DropListener;
 import org.sourcepit.b2eclipse.input.Node;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
@@ -45,9 +56,6 @@ import org.sourcepit.b2eclipse.provider.ContentProvider;
  */
 public class B2WizardPage extends WizardPage
 {
-
-   private Composite widgetContainer; // viell. nutzlos
-
    private Button dirRadioBtn;
    private Text dirTxt;
    private Button dirBtn;
@@ -82,9 +90,9 @@ public class B2WizardPage extends WizardPage
 
       initializeDialogUnits(parent);
 
-      dialogShell = parent.getShell(); // überprüfen obs anders geht
+      dialogShell = parent.getShell();
 
-      widgetContainer = new Composite(parent, SWT.NONE);
+      Composite widgetContainer = new Composite(parent, SWT.NONE);
       widgetContainer.setLayout(new GridLayout());
 
       createFileChooserArea(widgetContainer);
@@ -144,7 +152,7 @@ public class B2WizardPage extends WizardPage
       container.setLayout(layout);
 
 
-      // Der CheckboxTreeViever links
+      // The CheckboxTreeViever on left side
       Composite leftContainer = new Composite(container, SWT.BORDER);
       leftContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -168,16 +176,19 @@ public class B2WizardPage extends WizardPage
       refresh = new ToolItem(toolBarLeft, SWT.PUSH);
       refresh.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
          "$nl$/icons/full/elcl16/refresh.gif").createImage());
-      refresh.setToolTipText("refresh"); // TODO Alle Tooltips global machen
+      refresh.setToolTipText(Messages.msgRestoreTt);
 
 
       selAll = new ToolItem(toolBarLeft, SWT.CHECK);
       selAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
          "$nl$/icons/full/elcl16/step_done.gif").createImage());
-      selAll.setToolTipText("select/deselect All Projects");
+      selAll.setToolTipText(Messages.msgSelectDeselectTt);
+      
+      // Zuerst den Listener anpassen
+      selAll.setEnabled(false);
 
 
-      // Der previev Treeviever rechts
+      // The preview TreeViewer on right side
       Composite rightContainer = new Composite(container, SWT.BORDER);
       rightContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
@@ -195,22 +206,21 @@ public class B2WizardPage extends WizardPage
 
       previewTreeViewer.setContentProvider(new ContentProvider());
       previewTreeViewer.setLabelProvider(new LabelProvider());
-      
-      
-      Transfer[] transferTypes = new Transfer[]{TextTransfer.getInstance()};
-      previewTreeViewer.addDragSupport(DND.DROP_MOVE, transferTypes , new DragListener(previewTreeViewer));
-      previewTreeViewer.addDropSupport(DND.DROP_MOVE, transferTypes , new DropListener(previewTreeViewer));
+
+      Transfer[] transferTypes = new Transfer[] { TextTransfer.getInstance() };
+      previewTreeViewer.addDragSupport(DND.DROP_MOVE, transferTypes, new DragListener(previewTreeViewer));
+      previewTreeViewer.addDropSupport(DND.DROP_MOVE, transferTypes, new DropListener(previewTreeViewer));
 
       rightContainer.setBackground(previewTreeViewer.getControl().getBackground());
 
       add = new ToolItem(toolBarRight, SWT.PUSH);
       add.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ADD));
-      add.setToolTipText("add a new Java Working Set");
+      add.setToolTipText(Messages.msgAddNewWSTt);
 
       delete = new ToolItem(toolBarRight, SWT.PUSH);
       delete.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE));
-      delete.setToolTipText("delete selected Working Set");
-
+      delete.setToolTipText(Messages.msgDelWSTt);
+      delete.setEnabled(false);
    }
 
    private void addListeners()
@@ -260,8 +270,9 @@ public class B2WizardPage extends WizardPage
             }
          }
       });
-
-      dirTxt.addModifyListener(new ModifyListener()
+      
+      //Listener for the Texts
+      ModifyListener modLis = new ModifyListener()
       {
          public void modifyText(ModifyEvent e)
          {
@@ -272,29 +283,13 @@ public class B2WizardPage extends WizardPage
                bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);
 
                selAll.setSelection(true);
-               
+
                setPageComplete(true);
             }
          }
-      });
-
-      workspaceTxt.addModifyListener(new ModifyListener()
-      {
-         //TODO zusammenfassen mit oberem
-         public void modifyText(ModifyEvent e)
-         {
-            String txt = ((Text) e.widget).getText();
-
-            if (bckend.testOnLocalDrive(txt))
-             {
-                bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);
-
-                selAll.setSelection(true);
-                
-                setPageComplete(true);
-             }
-         }
-      });
+      };
+      dirTxt.addModifyListener(modLis);
+      workspaceTxt.addModifyListener(modLis);
 
       refresh.addListener(SWT.Selection, new Listener()
       {
@@ -315,73 +310,152 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
+            //TODO checkStateChanged fire
             if (selAll.getSelection())
             {
-               // Alle markieren
-               bckend.doCheck(dirTreeViewer, true);
+               // check All
+                bckend.doCheck(dirTreeViewer, true);
+               
             }
             else
             {
-               // Alle unmarkieren
+               // uncheck All
                bckend.doCheck(dirTreeViewer, false);
+               
             }
          }
       });
-      
-      
+
+      // adds a new working set
+      add.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            new Node((Node) previewTreeViewer.getInput(), new File(""), Node.Type.WORKINGSET, Messages.msgDefaultWSName);
+            previewTreeViewer.refresh();
+         }
+      });
+
+      // deletes the selected working set
+      delete.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            Node selected = (Node) ((IStructuredSelection) previewTreeViewer.getSelection()).getFirstElement();
+            if (selected.getType() == Node.Type.WORKINGSET)
+               selected.deleteNodeAssigningChildrenToParent();
+
+            previewTreeViewer.refresh();
+         }
+      });
+
+      previewTreeViewer.addSelectionChangedListener(new ISelectionChangedListener()
+      {
+         public void selectionChanged(SelectionChangedEvent event)
+         {
+            Node selected = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
+            if (selected != null && selected.getType() == Node.Type.WORKINGSET)
+               delete.setEnabled(true);
+            else
+               delete.setEnabled(false);
+         }
+      });
+
+      // user can change the name of a WorkingSet after double click on it
+      previewTreeViewer.addDoubleClickListener(new IDoubleClickListener()
+      {
+         public void doubleClick(DoubleClickEvent event)
+         {
+            setPageComplete(false);
+            final Node node = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
+
+            final TreeEditor editor = new TreeEditor(previewTreeViewer.getTree());
+            editor.horizontalAlignment = SWT.LEFT;
+            editor.grabHorizontal = true;
+
+            final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
+            final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
+            txt.setText(node.getName());
+            txt.selectAll();
+            txt.setFocus();
+
+            txt.addFocusListener(new FocusListener()
+            {
+               public void focusLost(FocusEvent e)
+               {
+                  node.setName(txt.getText());
+                  txt.dispose();
+                  previewTreeViewer.refresh();
+                  setPageComplete(true);
+               }
+
+               public void focusGained(FocusEvent e)
+               {
+               }
+            });
+
+            txt.addKeyListener(new KeyListener()
+            {
+               public void keyPressed(KeyEvent e)
+               {
+                  switch (e.keyCode)
+                  {
+                     case SWT.CR :
+                        node.setName(txt.getText());
+                     case SWT.ESC :
+                        txt.dispose();
+                        previewTreeViewer.refresh();
+                        setPageComplete(true);
+                        break;
+                  }
+               }
+
+               public void keyReleased(KeyEvent e)
+               {
+               }
+
+            });
+            editor.setEditor(txt, item);
+         }
+      });
+
 
       // if a category is checked in the tree, check all its children
+      // handles also the appear/disappear of elements in the preview TreeViewer 
       dirTreeViewer.addCheckStateListener(new ICheckStateListener()
       {
          public void checkStateChanged(CheckStateChangedEvent event)
-         {         
-            System.out.println("möp");
-            // System.out.println(event.getElement().getClass()); --> erkenntnis: das ist ein Node
+         {
             Node elementNode = (Node) event.getElement();
-            
+
             if (event.getChecked())
-            {   
+            {
                dirTreeViewer.setSubtreeChecked(elementNode, true);
-               
-               if(elementNode.getType() == Node.Type.PROJECT)                  
+
+               if (elementNode.getType() == Node.Type.PROJECT)
                   bckend.addProjectToPrevievTree(previewTreeViewer, elementNode);
                else
-                  for (Node iter : elementNode.getProjectChildren()) 
+                  for (Node iter : elementNode.getProjectChildren())
                      bckend.addProjectToPrevievTree(previewTreeViewer, iter);
-               
+
             }
             else
             {
                dirTreeViewer.setSubtreeChecked(elementNode, false);
-               //TODO eyeCandy: wenn alle unterelemente unmarkiert das Oberelement unmarkieren
-               
-               if(elementNode.getType() == Node.Type.PROJECT)
-                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);    
+               // TODO eyeCandy: wenn alle unterelemente unmarkiert das Oberelement unmarkieren
+
+               if (elementNode.getType() == Node.Type.PROJECT)
+                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
                else
                   for (Node iter : elementNode.getProjectChildren())
                      bckend.deleteProjectFromPrevievTree(previewTreeViewer, iter);
-               
+
                selAll.setSelection(false);
-            }            
+            }
          }
       });
-
-      dirTreeViewer.setComparator(new ViewerComparator() //TODO check wofür?
-      {
-         @Override
-         public int compare(Viewer viewer, Object e1, Object e2)
-         {
-
-            /*
-             * if (e1 instanceof ParentCategory && e2 instanceof ParentCategory) { return ((ParentCategory)
-             * e1).getName().compareToIgnoreCase(((ParentCategory) e2).getName()); }
-             */
-            return 0;
-         }
-      });
-
    }
-   
+
    /**
     * 
     * @return the root Node of the Preview Viewer
@@ -390,5 +464,4 @@ public class B2WizardPage extends WizardPage
    {
       return (Node) previewTreeViewer.getInput();
    }
-
 }
