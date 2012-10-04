@@ -295,12 +295,27 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            if (!dirTxt.getText().equals(""))
+            boolean par = true;
+            String hold = "";
+            if(dirRadioBtn.getEnabled())
+            {    
+               hold = dirTxt.getText();
+               par = true;
+            }
+            if(workspaceRadioBtn.getEnabled())
             {
-               String text = dirTxt.getText();
-               if (!new File(text).getParentFile().equals(null))
+               hold = workspaceTxt.getText();
+               par = false;
+            }
+            
+            if (!hold.equals(""))
+            {
+               if (bckend.testOnLocalDrive(hold))
                {
-                  dirTxt.setText(text);
+                  if(par)
+                     dirTxt.setText(hold);
+                  else
+                     workspaceTxt.setText(hold);
                }
             }
          }
