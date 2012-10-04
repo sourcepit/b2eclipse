@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.svn.core.operation.CompositeOperation;
@@ -31,6 +32,7 @@ import org.eclipse.team.svn.core.resource.IRepositoryContainer;
 import org.eclipse.team.svn.core.resource.IRepositoryResource;
 import org.eclipse.team.svn.core.utility.ILoggedOperationFactory;
 import org.eclipse.team.svn.core.utility.ProgressMonitorUtility;
+import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.svn.handler.B2SVNCheckoutHandler;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
 
@@ -53,7 +55,7 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
    {
       B2Wizard wizard = new B2Wizard();
       WizardDialog dialog = new WizardDialog(shell, wizard);
-      wizard.getB2WizardPage().setPath(project.getLocation());
+      wizard.init(PlatformUI.getWorkbench(), new StructuredSelection(project.getLocation().toFile()));
       dialog.open();
    }
 

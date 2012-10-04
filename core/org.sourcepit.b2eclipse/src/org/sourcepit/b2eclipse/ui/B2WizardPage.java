@@ -7,233 +7,239 @@
 package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IAdaptable;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.PixelConverter;
-import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
+import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.IDoubleClickListener;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.DropTarget;
-import org.eclipse.swt.dnd.DropTargetAdapter;
-import org.eclipse.swt.dnd.DropTargetEvent;
-import org.eclipse.swt.dnd.FileTransfer;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.DirectoryDialog;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IWorkingSet;
-import org.eclipse.ui.IWorkingSetManager;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.TreeItem;
+import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
-import org.eclipse.ui.dialogs.WorkingSetGroup;
-import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
-import org.eclipse.ui.model.BaseWorkbenchContentProvider;
-import org.eclipse.ui.model.WorkbenchLabelProvider;
-import org.sourcepit.b2eclipse.Activator;
-import org.sourcepit.b2eclipse.input.Category;
-import org.sourcepit.b2eclipse.input.ParentCategory;
-import org.sourcepit.b2eclipse.input.TreeViewerInput;
-import org.sourcepit.b2eclipse.provider.ContentProvider;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
+
+import org.sourcepit.b2eclipse.dnd.DragListener;
+import org.sourcepit.b2eclipse.dnd.DropListener;
+import org.sourcepit.b2eclipse.input.Node;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
+import org.sourcepit.b2eclipse.provider.ContentProvider;
 
 /**
- * @author Marco Grupe <marco.grupe@googlemail.com>
+ * @author WD
  */
 public class B2WizardPage extends WizardPage
 {
+   private Button dirRadioBtn;
+   private Text dirTxt;
+   private Button dirBtn;
 
-   private Text dirTxt, workspaceTxt;
-   private Button dirBtn, workspaceBtn, dirRadioBtn, workspaceRadioBtn, selectAllBtn, deselectAllBtn, refreshBtn,
-      easyButton;
-   private Shell dialogShell;
-   private Composite modulePageWidgetContainer;
+   private Button workspaceRadioBtn;
+   private Text workspaceTxt;
+   private Button workspaceBtn;
+
    private CheckboxTreeViewer dirTreeViewer;
+   private TreeViewer previewTreeViewer;
 
-   private IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
+   private ToolItem refresh;
+   private ToolItem selAll;
+   private ToolItem add;
+   private ToolItem delete;
 
-   private String selectedDirectory, selectedProject; //$NON-NLS-1$
-   private boolean easyButtonSelection = false;
-   private IPath projectPath;
-   private TreeViewerInput treeViewerInput;
-   private static String previouslyBrowsedDirectory = "";
-   private ArrayList<String> fileList = new ArrayList<String>();
-   private Map<String, ArrayList<String>> moduleMap = new HashMap<String, ArrayList<String>>();
-   private IStructuredSelection currentSelection;
-   private WorkingSetGroup workingSetGroup;
-   private List<IProject> createdProjects = new ArrayList<IProject>();
-   private List<File> projectList;
-   private int dummy;
-   private Image imgState1, imgState2, imgState3;
+   private B2Wizard bckend;
+   private Shell dialogShell;
 
-   public B2WizardPage(String name, IStructuredSelection currentSelection)
+
+   protected B2WizardPage(String pageName, B2Wizard parent)
    {
-
-      super(name);
-      this.currentSelection = currentSelection;
+      super(pageName);
       setPageComplete(false);
       setTitle(Messages.msgImportHeader);
       setDescription(Messages.msgImportSuperscription);
-      clearArrayList();
-
+      bckend = parent;
    }
 
-   /**
-    * Create specific controls for the wizard page.
-    */
    public void createControl(Composite parent)
    {
+
       initializeDialogUnits(parent);
-      modulePageWidgetContainer = new Composite(parent, SWT.NONE);
-      setControl(modulePageWidgetContainer);
-
-      modulePageWidgetContainer.setLayout(new GridLayout());
-      modulePageWidgetContainer.setLayoutData(new GridData(GridData.FILL_BOTH | GridData.GRAB_HORIZONTAL
-         | GridData.GRAB_VERTICAL));
-
-      addWidgets(modulePageWidgetContainer);
-
-      if (getPath() != null)
-      {
-         boolean result = testOnLocalDrive(getPath().toOSString());
-         if (result == true)
-         {
-            dirTxt.setText(String.valueOf(getPath()));
-            dirTreeViewer.setInput(new TreeViewerInput(new File(String.valueOf(getPath()))));
-            dirTreeViewer.expandToLevel(2);
-            setChecked();
-         }
-      }
 
       dialogShell = parent.getShell();
 
-      treeViewerInput = new TreeViewerInput();
+      Composite widgetContainer = new Composite(parent, SWT.NONE);
+      widgetContainer.setLayout(new GridLayout());
 
-      addListener();
+      createFileChooserArea(widgetContainer);
+      createVievArea(widgetContainer);
 
-      setControl(modulePageWidgetContainer);
+      addListeners();
 
+      setControl(widgetContainer);
 
    }
 
-   /**
-    * add Widgets on Wizard Page
-    */
-   private void addWidgets(Composite workArea)
+   private void createFileChooserArea(Composite area)
    {
+      Composite container = new Composite(area, SWT.NONE);
+      container.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+      container.setLayout(new GridLayout(3, false));
 
-      createRootAndWorkspaceArea(workArea);
-      createProjectsArea(workArea);
-      createWorkingSetGroup(workArea);
-      Dialog.applyDialogFont(workArea);
+      dirRadioBtn = new Button(container, SWT.RADIO);
+      dirRadioBtn.setText(Messages.msgSelectRootRbtn);
+      dirRadioBtn.setSelection(true); // init mark
 
+      dirTxt = new Text(container, SWT.BORDER);
+      dirTxt.setToolTipText(Messages.msgSelectRootTt);
+      dirTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+      dirBtn = new Button(container, SWT.PUSH);
+      dirBtn.setText(Messages.msgBrowseBtn);
+      setButtonLayoutData(dirBtn);
+
+      workspaceRadioBtn = new Button(container, SWT.RADIO);
+      workspaceRadioBtn.setText(Messages.msgSelectWorkspaceRbtn);
+
+      workspaceTxt = new Text(container, SWT.BORDER);
+      workspaceTxt.setToolTipText(Messages.msgSelectWorkspaceTt);
+      workspaceTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+      workspaceTxt.setEnabled(false); // init mark
+
+      workspaceBtn = new Button(container, SWT.PUSH);
+      workspaceBtn.setText(Messages.msgBrowseBtn);
+      setButtonLayoutData(workspaceBtn);
+      workspaceBtn.setEnabled(false); // init mark
    }
 
-   /**
-    * add Listener to the specific widgets
-    */
-   private void addListener()
+   private void createVievArea(Composite area)
+   {
+      GridLayout layout;
+
+      Composite container = new Composite(area, SWT.NONE);
+
+      GridData data = new GridData(GridData.FILL_BOTH);
+      data.widthHint = new PixelConverter(new FontRegistry().defaultFont()).convertWidthInCharsToPixels(150);
+      data.heightHint = new PixelConverter(new FontRegistry().defaultFont()).convertHeightInCharsToPixels(35);
+      container.setLayoutData(data);
+
+      layout = new GridLayout(2, true);
+      layout.marginWidth = 0;
+      container.setLayout(layout);
+
+
+      // The CheckboxTreeViever on left side
+      Composite leftContainer = new Composite(container, SWT.BORDER);
+      leftContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+      layout = new GridLayout(1, false);
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
+      layout.verticalSpacing = 0;
+      leftContainer.setLayout(layout);
+
+      ToolBar toolBarLeft = new ToolBar(leftContainer, (SWT.HORIZONTAL | SWT.NONE));
+      toolBarLeft.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+      dirTreeViewer = new CheckboxTreeViewer(leftContainer, SWT.NONE);
+      dirTreeViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+
+      dirTreeViewer.setContentProvider(new ContentProvider());
+      dirTreeViewer.setLabelProvider(new LabelProvider());
+
+      leftContainer.setBackground(dirTreeViewer.getControl().getBackground());
+
+      refresh = new ToolItem(toolBarLeft, SWT.PUSH);
+      refresh.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
+         "$nl$/icons/full/elcl16/refresh.gif").createImage());
+      refresh.setToolTipText(Messages.msgRestoreTt);
+
+
+      selAll = new ToolItem(toolBarLeft, SWT.CHECK);
+      selAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
+         "$nl$/icons/full/elcl16/step_done.gif").createImage());
+      selAll.setToolTipText(Messages.msgSelectDeselectTt);
+      
+      // Zuerst den Listener anpassen
+      selAll.setEnabled(false);
+
+
+      // The preview TreeViewer on right side
+      Composite rightContainer = new Composite(container, SWT.BORDER);
+      rightContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+      layout = new GridLayout(1, false);
+      layout.marginHeight = 0;
+      layout.marginWidth = 0;
+      layout.verticalSpacing = 0;
+      rightContainer.setLayout(layout);
+
+      ToolBar toolBarRight = new ToolBar(rightContainer, (SWT.HORIZONTAL | SWT.NONE));
+      toolBarRight.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+      previewTreeViewer = new TreeViewer(rightContainer, SWT.NONE);
+      previewTreeViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+
+      previewTreeViewer.setContentProvider(new ContentProvider());
+      previewTreeViewer.setLabelProvider(new LabelProvider());
+
+      Transfer[] transferTypes = new Transfer[] { TextTransfer.getInstance() };
+      previewTreeViewer.addDragSupport(DND.DROP_MOVE, transferTypes, new DragListener(previewTreeViewer));
+      previewTreeViewer.addDropSupport(DND.DROP_MOVE, transferTypes, new DropListener(previewTreeViewer));
+
+      rightContainer.setBackground(previewTreeViewer.getControl().getBackground());
+
+      add = new ToolItem(toolBarRight, SWT.PUSH);
+      add.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ADD));
+      add.setToolTipText(Messages.msgAddNewWSTt);
+
+      delete = new ToolItem(toolBarRight, SWT.PUSH);
+      delete.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE));
+      delete.setToolTipText(Messages.msgDelWSTt);
+      delete.setEnabled(false);
+   }
+
+   private void addListeners()
    {
       dirBtn.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-            DirectoryDialog directoryDialog = new DirectoryDialog(dialogShell, SWT.OPEN);
-            directoryDialog.setText(Messages.msgSelectDirTitle);
-
-            String directoryName = dirTxt.getText().trim();
-            if (directoryName.length() == 0)
-            {
-               directoryName = previouslyBrowsedDirectory;
-            }
-
-            if (directoryName.length() == 0)
-            {
-               directoryDialog.setFilterPath(IDEWorkbenchPlugin.getPluginWorkspace().getRoot().getLocation()
-                  .toOSString());
-            }
-            else
-            {
-               File path = new File(directoryName);
-               if (path.exists())
-               {
-                  directoryDialog.setFilterPath(new Path(directoryName).toOSString());
-               }
-            }
-
-            selectedDirectory = directoryDialog.open();
-            if (selectedDirectory != null)
-            {
-               boolean result = testOnLocalDrive(selectedDirectory);
-               if (result == true)
-               {
-                  previouslyBrowsedDirectory = selectedDirectory;
-                  dirTxt.setText(selectedDirectory);
-                  workspaceTxt.setText(""); //$NON-NLS-1$
-               }
-            }
-
+            dirTxt.setText(bckend.showDirectorySelectDialog(dirTxt.getText(), dialogShell));
+            workspaceTxt.setText("");
          }
       });
-
 
       workspaceBtn.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-            ElementTreeSelectionDialog elementTreeSelectionDialog = new ElementTreeSelectionDialog(dialogShell,
-               new WorkbenchLabelProvider(), new BaseWorkbenchContentProvider());
-            elementTreeSelectionDialog.setTitle(Messages.msgSelectProjectTitle);
-            elementTreeSelectionDialog.setMessage(Messages.msgSelectProject);
-            elementTreeSelectionDialog.setInput(ResourcesPlugin.getWorkspace().getRoot());
-            elementTreeSelectionDialog.open();
-            if (elementTreeSelectionDialog.getFirstResult() != null)
-            {
-               selectedProject = String.valueOf(((IResource) elementTreeSelectionDialog.getFirstResult()).getLocation());
-
-               boolean result = testOnLocalDrive(selectedProject);
-               if (result == true)
-               {
-                  workspaceTxt.setText(selectedProject);
-                  dirTxt.setText(""); //$NON-NLS-1$
-               }
-            }
+            workspaceTxt.setText(bckend.showWorkspaceSelectDialog(dialogShell));
+            dirTxt.setText("");
          }
       });
 
@@ -248,16 +254,13 @@ public class B2WizardPage extends WizardPage
                workspaceTxt.setEnabled(false);
                workspaceBtn.setEnabled(false);
             }
-
          }
-
       });
 
       workspaceRadioBtn.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-
             if (workspaceRadioBtn.isEnabled())
             {
                workspaceTxt.setEnabled(true);
@@ -265,652 +268,215 @@ public class B2WizardPage extends WizardPage
                dirTxt.setEnabled(false);
                dirBtn.setEnabled(false);
             }
-
          }
-
       });
-      dirTxt.addModifyListener(new ModifyListener()
+      
+      //Listener for the Texts
+      ModifyListener modLis = new ModifyListener()
       {
-
          public void modifyText(ModifyEvent e)
          {
+            String txt = ((Text) e.widget).getText();
 
-            Text txt = (Text) e.widget;
-            boolean result = testOnLocalDrive(txt.getText());
-            if (result == true)
+            if (bckend.testOnLocalDrive(txt))
             {
-               dirTreeViewer.setInput(new TreeViewerInput(new File(txt.getText())));
-               dirTreeViewer.expandToLevel(2);
-               setChecked();
-               setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-               easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
+               bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);
+
+               selAll.setSelection(true);
+
+               setPageComplete(true);
             }
-
          }
-      });
+      };
+      dirTxt.addModifyListener(modLis);
+      workspaceTxt.addModifyListener(modLis);
 
-
-      workspaceTxt.addModifyListener(new ModifyListener()
-      {
-
-         public void modifyText(ModifyEvent e)
-         {
-
-            Text txt = (Text) e.widget;
-            boolean result = testOnLocalDrive(txt.getText());
-            if (result == true)
-            {
-               dirTreeViewer.setInput(new TreeViewerInput(new File(txt.getText())));
-               dirTreeViewer.expandToLevel(2);
-               setChecked();
-               setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-               easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
-            }
-
-         }
-      });
-
-      selectAllBtn.addListener(SWT.Selection, new Listener()
+      refresh.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-
-            if (getTreeViewerInput() != null)
+            boolean par = true;
+            String hold = "";
+            if(dirRadioBtn.getEnabled())
+            {    
+               hold = dirTxt.getText();
+               par = true;
+            }
+            if(workspaceRadioBtn.getEnabled())
             {
-               for (int i = 0; i < getTreeViewerInput().getCategories().size(); i++)
+               hold = workspaceTxt.getText();
+               par = false;
+            }
+            
+            if (!hold.equals(""))
+            {
+               if (bckend.testOnLocalDrive(hold))
                {
-
-                  dirTreeViewer.setSubtreeChecked(getTreeViewerInput().getCategories().get(i), true);
-
+                  if(par)
+                     dirTxt.setText(hold);
+                  else
+                     workspaceTxt.setText(hold);
                }
-               setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-               easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
             }
-
          }
-
       });
 
-      deselectAllBtn.addListener(SWT.Selection, new Listener()
+      selAll.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-
-            if (getTreeViewerInput() != null)
+            //TODO checkStateChanged fire
+            if (selAll.getSelection())
             {
-               dirTreeViewer.setCheckedElements(new Object[0]);
-               setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-               easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
-
+               // check All
+                bckend.doCheck(dirTreeViewer, true);
+               
+            }
+            else
+            {
+               // uncheck All
+               bckend.doCheck(dirTreeViewer, false);
+               
             }
          }
-
       });
 
-      refreshBtn.addListener(SWT.Selection, new Listener()
+      // adds a new working set
+      add.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-            if (!dirTxt.getText().equals(""))
+            new Node((Node) previewTreeViewer.getInput(), new File(""), Node.Type.WORKINGSET, Messages.msgDefaultWSName);
+            previewTreeViewer.refresh();
+         }
+      });
+
+      // deletes the selected working set
+      delete.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            Node selected = (Node) ((IStructuredSelection) previewTreeViewer.getSelection()).getFirstElement();
+            if (selected.getType() == Node.Type.WORKINGSET)
+               selected.deleteNodeAssigningChildrenToParent();
+
+            previewTreeViewer.refresh();
+         }
+      });
+
+      previewTreeViewer.addSelectionChangedListener(new ISelectionChangedListener()
+      {
+         public void selectionChanged(SelectionChangedEvent event)
+         {
+            Node selected = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
+            if (selected != null && selected.getType() == Node.Type.WORKINGSET)
+               delete.setEnabled(true);
+            else
+               delete.setEnabled(false);
+         }
+      });
+
+      // user can change the name of a WorkingSet after double click on it
+      previewTreeViewer.addDoubleClickListener(new IDoubleClickListener()
+      {
+         public void doubleClick(DoubleClickEvent event)
+         {
+            setPageComplete(false);
+            final Node node = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
+
+            final TreeEditor editor = new TreeEditor(previewTreeViewer.getTree());
+            editor.horizontalAlignment = SWT.LEFT;
+            editor.grabHorizontal = true;
+
+            final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
+            final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
+            txt.setText(node.getName());
+            txt.selectAll();
+            txt.setFocus();
+
+            txt.addFocusListener(new FocusListener()
             {
-               String text = dirTxt.getText();
-               boolean result = testOnLocalDrive(text);
-               if (result == true)
+               public void focusLost(FocusEvent e)
                {
-                  dirTxt.setText(text);
-                  dirTreeViewer.setCheckedElements(new Object[0]);
-                  easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
-                  setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-
+                  node.setName(txt.getText());
+                  txt.dispose();
+                  previewTreeViewer.refresh();
+                  setPageComplete(true);
                }
 
-            }
-         }
-
-      });
-
-      easyButton.addListener(SWT.Selection, new Listener()
-      {
-         public void handleEvent(Event event)
-         {
-            easyButton.setImage(imgState3);
-
-            easyButtonSelection = true;
-
-            List<File> projectList = getSelectedProjects();
-            for (File project : projectList)
-            {
-               String result = doParentSearch(project);
-
-               if (moduleMap.containsKey(result))
+               public void focusGained(FocusEvent e)
                {
-
-                  ArrayList<String> b = moduleMap.get(result);
-                  b.add(project.getAbsolutePath());
-                  moduleMap.put(result, b);
-
                }
-               else
-               {
-                  ArrayList<String> dummyList = new ArrayList<String>();
-                  dummyList.add(project.getAbsolutePath());
-                  moduleMap.put(result, dummyList);
-               }
+            });
 
-            }
-
-            if (((B2Wizard) getWizard()).performFinish() == true)
+            txt.addKeyListener(new KeyListener()
             {
-               ((B2Wizard) getWizard()).getShell().close();
-            }
+               public void keyPressed(KeyEvent e)
+               {
+                  switch (e.keyCode)
+                  {
+                     case SWT.CR :
+                        node.setName(txt.getText());
+                     case SWT.ESC :
+                        txt.dispose();
+                        previewTreeViewer.refresh();
+                        setPageComplete(true);
+                        break;
+                  }
+               }
 
+               public void keyReleased(KeyEvent e)
+               {
+               }
+
+            });
+            editor.setEditor(txt, item);
          }
-
-      });
-      easyButton.addListener(SWT.MouseEnter, new Listener()
-      {
-
-         public void handleEvent(Event event)
-         {
-            easyButton.setImage(imgState2);
-
-         }
-
       });
 
-      easyButton.addListener(SWT.MouseExit, new Listener()
-      {
-
-         public void handleEvent(Event event)
-         {
-            easyButton.setImage(imgState1);
-
-         }
-
-      });
 
       // if a category is checked in the tree, check all its children
+      // handles also the appear/disappear of elements in the preview TreeViewer 
       dirTreeViewer.addCheckStateListener(new ICheckStateListener()
       {
          public void checkStateChanged(CheckStateChangedEvent event)
          {
+            Node elementNode = (Node) event.getElement();
 
             if (event.getChecked())
             {
-               dirTreeViewer.setSubtreeChecked(event.getElement(), true);
+               dirTreeViewer.setSubtreeChecked(elementNode, true);
+
+               if (elementNode.getType() == Node.Type.PROJECT)
+                  bckend.addProjectToPrevievTree(previewTreeViewer, elementNode);
+               else
+                  for (Node iter : elementNode.getProjectChildren())
+                     bckend.addProjectToPrevievTree(previewTreeViewer, iter);
+
             }
             else
             {
-               dirTreeViewer.setSubtreeChecked(event.getElement(), false);
-            }
-            setPageComplete(dirTreeViewer.getCheckedElements().length > 0);
-            easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
+               dirTreeViewer.setSubtreeChecked(elementNode, false);
+               // TODO eyeCandy: wenn alle unterelemente unmarkiert das Oberelement unmarkieren
 
-         }
-      });
-
-      dirTreeViewer.setComparator(new ViewerComparator()
-      {
-         @Override
-         public int compare(Viewer viewer, Object e1, Object e2)
-         {
-
-            if (e1 instanceof ParentCategory && e2 instanceof ParentCategory)
-            {
-               return ((ParentCategory) e1).getName().compareToIgnoreCase(((ParentCategory) e2).getName());
-            }
-            return 0;
-         }
-      });
-
-
-   }
-
-   private void addDropSupport(final CheckboxTreeViewer treeviewer)
-   {
-      int style = DND.DROP_DEFAULT | DND.DROP_MOVE;
-      DropTarget target = new DropTarget(treeviewer.getTree(), style);
-      final FileTransfer fileTransfer = FileTransfer.getInstance();
-      Transfer[] types = new Transfer[] { fileTransfer };
-      target.setTransfer(types);
-
-      target.addDropListener(new DropTargetAdapter()
-      {
-         @Override
-         public void drop(DropTargetEvent event)
-         {
-            if (fileTransfer.isSupportedType(event.currentDataType))
-            {
-               String[] files = (String[]) event.data;
-               File file = new File(files[0]);
-               if (file.isDirectory())
-               {
-                  dirTxt.setText(file.getAbsolutePath());
-               }
+               if (elementNode.getType() == Node.Type.PROJECT)
+                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
                else
-               {
-                  MessageDialog.openInformation(new Shell(), "Information",
-                     "Unsupported Type! Dropping directories are only allowed!");
-               }
+                  for (Node iter : elementNode.getProjectChildren())
+                     bckend.deleteProjectFromPrevievTree(previewTreeViewer, iter);
 
+               selAll.setSelection(false);
             }
          }
       });
-
    }
 
    /**
     * 
-    * @return the selected projects in TreeViewer
+    * @return the root Node of the Preview Viewer
     */
-   private List<File> getSelectedProjects()
+   public Node getPreviewRootNode()
    {
-      Object[] getCheckedElements = dirTreeViewer.getCheckedElements();
-      ArrayList<File> getSelectedProjects = new ArrayList<File>();
-
-      for (final Object checkedElement : getCheckedElements)
-      {
-         if (checkedElement instanceof Category)
-         {
-            continue;
-         }
-         getSelectedProjects.add(new File(checkedElement.toString()));
-      }
-      getSelectedProjects.trimToSize();
-      return getSelectedProjects;
+      return (Node) previewTreeViewer.getInput();
    }
-
-   private IWorkingSetManager getWorkingSetManager()
-   {
-      return workingSetManager;
-
-   }
-
-   private boolean getEasyButtonSelection()
-   {
-      return easyButtonSelection;
-   }
-
-   private IPath getPath()
-   {
-      return projectPath;
-   }
-
-   private TreeViewerInput getTreeViewerInput()
-   {
-      treeViewerInput = (TreeViewerInput) dirTreeViewer.getInput();
-      return treeViewerInput;
-   }
-
-   private Map<String, ArrayList<String>> getModuleMap()
-   {
-      return moduleMap;
-   }
-
-   private ArrayList<String> getFileList()
-   {
-      return fileList;
-   }
-
-   private File getProject(int position)
-   {
-      return projectList.get(position);
-
-   }
-
-   public void setPath(IPath projectPath)
-   {
-      if (projectPath == null)
-      {
-         throw new IllegalArgumentException();
-      }
-      else
-      {
-         this.projectPath = projectPath;
-      }
-
-   }
-
-   private void setChecked()
-   {
-      if (getTreeViewerInput() != null)
-      {
-         for (int i = 0; i < getTreeViewerInput().getCategories().size(); i++)
-         {
-
-            dirTreeViewer.setSubtreeChecked(getTreeViewerInput().getCategories().get(i), true);
-
-         }
-      }
-
-   }
-
-   public void clearArrayList()
-   {
-      if (treeViewerInput != null)
-         treeViewerInput.clearArrayList();
-   }
-
-   private String doParentSearch(File file)
-   {
-
-      File[] elementList = file.getParentFile().listFiles();
-      getFileList().clear();
-
-      for (File fileElement : elementList)
-      {
-         addFiletoFilelist(fileElement.getName());
-      }
-
-      if (fileList.contains("module.xml"))
-      {
-         for (File element : elementList)
-         {
-            if (element.getName().equals("module.xml"))
-            {
-               return element.getParentFile().getName();
-            }
-         }
-      }
-
-
-      return doParentSearch(file.getParentFile());
-
-   }
-
-   private void addFiletoFilelist(String file)
-   {
-      fileList.add(file);
-   }
-
-   private void createRootAndWorkspaceArea(Composite workArea)
-   {
-      Composite rootAndWorkspaceComposite = new Composite(workArea, SWT.NONE);
-      GridLayout layout = new GridLayout();
-      layout.numColumns = 3;
-      layout.makeColumnsEqualWidth = false;
-      layout.marginWidth = 0;
-      rootAndWorkspaceComposite.setLayout(layout);
-      rootAndWorkspaceComposite.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-      dirRadioBtn = new Button(rootAndWorkspaceComposite, SWT.RADIO);
-      dirRadioBtn.setText(Messages.msgSelectRootRbtn);
-      dirRadioBtn.setSelection(true);
-
-      dirTxt = new Text(rootAndWorkspaceComposite, SWT.BORDER);
-      dirTxt.setToolTipText(Messages.msgSelectRootTt);
-
-      GridData directoryPathData = new GridData(SWT.FILL, SWT.FILL, true, true);
-      directoryPathData.widthHint = new PixelConverter(dirTxt).convertWidthInCharsToPixels(25);
-      dirTxt.setLayoutData(directoryPathData);
-
-      dirBtn = new Button(rootAndWorkspaceComposite, SWT.PUSH);
-      dirBtn.setText(Messages.msgBrowseBtn);
-      setButtonLayoutData(dirBtn);
-
-      workspaceRadioBtn = new Button(rootAndWorkspaceComposite, SWT.RADIO);
-      workspaceRadioBtn.setText(Messages.msgSelectWorkspaceRbtn);
-
-      workspaceTxt = new Text(rootAndWorkspaceComposite, SWT.BORDER);
-      workspaceTxt.setToolTipText(Messages.msgSelectWorkspaceTt);
-      workspaceTxt.setEnabled(false);
-
-      GridData workspaceData = new GridData(SWT.FILL, SWT.FILL, true, true);
-      workspaceData.widthHint = new PixelConverter(workspaceTxt).convertWidthInCharsToPixels(25);
-      workspaceTxt.setLayoutData(workspaceData);
-
-      workspaceBtn = new Button(rootAndWorkspaceComposite, SWT.PUSH);
-      workspaceBtn.setText(Messages.msgBrowseBtn);
-      workspaceBtn.setEnabled(false);
-      setButtonLayoutData(workspaceBtn);
-   }
-
-   private void createProjectsArea(Composite workArea)
-   {
-      Composite treeViewerComposite = new Composite(workArea, SWT.NONE);
-      GridLayout layout = new GridLayout();
-      layout.numColumns = 2;
-      layout.marginWidth = 0;
-      layout.makeColumnsEqualWidth = false;
-      treeViewerComposite.setLayout(layout);
-
-      treeViewerComposite.setLayoutData(new GridData(GridData.GRAB_HORIZONTAL | GridData.GRAB_VERTICAL
-         | GridData.FILL_BOTH));
-
-      dirTreeViewer = new CheckboxTreeViewer(treeViewerComposite, SWT.BORDER);
-      GridData gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
-      gridData.widthHint = new PixelConverter(dirTreeViewer.getControl()).convertWidthInCharsToPixels(100);
-      gridData.heightHint = new PixelConverter(dirTreeViewer.getControl()).convertHeightInCharsToPixels(25);
-      dirTreeViewer.getControl().setLayoutData(gridData);
-
-      dirTreeViewer.setContentProvider(new ContentProvider());
-      dirTreeViewer.setLabelProvider(new LabelProvider());
-      addDropSupport(dirTreeViewer);
-      createSelectionButtonsArea(treeViewerComposite);
-   }
-
-   private void createSelectionButtonsArea(Composite workArea)
-   {
-      Composite buttonsComposite = new Composite(workArea, SWT.NONE);
-      GridLayout layout = new GridLayout();
-      layout.marginWidth = 0;
-      layout.marginHeight = 0;
-      buttonsComposite.setLayout(layout);
-
-      buttonsComposite.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
-
-      selectAllBtn = new Button(buttonsComposite, SWT.PUSH);
-      selectAllBtn.setText(Messages.msgSelectAllBtn);
-      selectAllBtn.setToolTipText(Messages.msgDeselectAllTt);
-      Dialog.applyDialogFont(selectAllBtn);
-      setButtonLayoutData(selectAllBtn);
-
-      deselectAllBtn = new Button(buttonsComposite, SWT.PUSH);
-      deselectAllBtn.setText(Messages.msgDeselectAllBtn);
-      deselectAllBtn.setToolTipText(Messages.msgSelectAllTt);
-      Dialog.applyDialogFont(deselectAllBtn);
-      setButtonLayoutData(deselectAllBtn);
-
-      refreshBtn = new Button(buttonsComposite, SWT.PUSH);
-      refreshBtn.setText(Messages.msgRefreshBtn);
-      refreshBtn.setToolTipText(Messages.msgRefreshTt);
-      Dialog.applyDialogFont(refreshBtn);
-      setButtonLayoutData(refreshBtn);
-
-
-      easyButton = new Button(buttonsComposite, SWT.PUSH);
-      easyButton.setToolTipText(Messages.msgEasyTt);
-      imgState1 = Activator.getImageFromPath("icons/State1.png");
-      imgState2 = Activator.getImageFromPath("icons/State2.png");
-      imgState3 = Activator.getImageFromPath("icons/State3.png");
-      easyButton.setImage(imgState1);
-      easyButton.setEnabled(dirTreeViewer.getCheckedElements().length > 0);
-      Dialog.applyDialogFont(easyButton);
-      setButtonLayoutData(easyButton);
-
-   }
-
-   private void createWorkingSetGroup(Composite workArea)
-   {
-      String[] workingSetIds = new String[] { "org.eclipse.ui.resourceWorkingSetPage", //$NON-NLS-1$
-         "org.eclipse.jdt.ui.JavaWorkingSetPage" }; //$NON-NLS-1$
-      workingSetGroup = new WorkingSetGroup(workArea, currentSelection, workingSetIds);
-
-
-   }
-
-   public boolean doPerformFinish()
-   {
-
-      projectList = getSelectedProjects();
-      removeAllCreatedProjectsInList();
-
-      final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
-      {
-         public void run(IProgressMonitor monitor) throws InvocationTargetException
-         {
-            try
-            {
-               ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable()
-               {
-                  public void run(IProgressMonitor monitor) throws CoreException
-                  {
-                     monitor.beginTask(Messages.msgSelectRootRbtn, projectList.size());
-                     try
-                     {
-                        for (int i = 0; i < projectList.size(); i++)
-                        {
-                           dummy = i;
-                           monitor.subTask(Messages.msgBrowseBtn + " " + getProject(i).getParent());
-                           Display.getDefault().syncExec(new Runnable()
-                           {
-
-                              public void run()
-                              {
-                                 linkProjects(dummy);
-                              }
-                           });
-
-                           monitor.worked(1);
-
-                        }
-                     }
-                     finally
-                     {
-                        monitor.done();
-                     }
-                  }
-               }, monitor);
-            }
-            catch (OperationCanceledException e)
-            {
-               // ignore
-            }
-            catch (CoreException e)
-            {
-               throw new InvocationTargetException(e);
-            }
-         }
-      };
-
-      runWithProgress(runnableWithProgress);
-
-      return true;
-   }
-
-   private void runWithProgress(final IRunnableWithProgress runnable)
-   {
-      try
-      {
-         getContainer().run(true, true, runnable);
-      }
-      catch (InvocationTargetException e)
-      {
-         throw new IllegalStateException(e);
-      }
-      catch (InterruptedException e)
-      {
-         throw new IllegalStateException(e);
-      }
-
-      if (!getEasyButtonSelection())
-         addToWorkingSets();
-
-
-   }
-
-   private void linkProjects(int projectsListPosition)
-   {
-
-      try
-      {
-         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-         final IPath projectFile = new Path(String.valueOf(getProject(projectsListPosition)));
-         IProjectDescription projectDescription = workspace.loadProjectDescription(projectFile);
-         IProject project = workspace.getRoot().getProject(projectDescription.getName());
-         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-
-         if (getEasyButtonSelection())
-         {
-            easyAddToWorkingSets(projectsListPosition, project);
-
-         }
-         addCreatedProject(project);
-      }
-      catch (CoreException e)
-      {
-         throw new IllegalStateException(e);
-      }
-
-   }
-
-   private void addToWorkingSets()
-   {
-      IWorkingSet[] selectedWorkingSets = workingSetGroup.getSelectedWorkingSets();
-      if (selectedWorkingSets == null || selectedWorkingSets.length == 0)
-         return;
-      IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
-      for (Iterator<IProject> i = createdProjects.iterator(); i.hasNext();)
-      {
-         IProject project = (IProject) i.next();
-         workingSetManager.addToWorkingSets(project, selectedWorkingSets);
-      }
-   }
-
-   private void easyAddToWorkingSets(int filePosition, IProject project)
-   {
-
-      Iterator<String> it = getModuleMap().keySet().iterator();
-      while (it.hasNext())
-      {
-         final String workingsetName = it.next();
-         final List<String> projectPaths = getModuleMap().get(workingsetName);
-         for (String projectPath : projectPaths)
-         {
-            if (projectPath.equals(getProject(filePosition).getAbsolutePath()))
-            {
-               final IWorkingSetManager manager = getWorkingSetManager();
-
-               // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
-               // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
-               IWorkingSet workingSet = manager.getWorkingSet(workingsetName);
-               if (workingSet == null)
-               {
-                  workingSet = manager.createWorkingSet(workingsetName, new IAdaptable[] { project });
-                  workingSet.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
-                  manager.addWorkingSet(workingSet);
-
-               }
-               else
-               {
-                  manager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
-               }
-
-            }
-         }
-      }
-
-
-   }
-
-   private void removeAllCreatedProjectsInList()
-   {
-      createdProjects.removeAll(createdProjects);
-   }
-
-   private boolean testOnLocalDrive(String path)
-   {
-      File filePath = new File(path);
-      if (filePath.getParentFile() != null)
-         return true;
-      else
-         return false;
-   }
-
-   private void addCreatedProject(IProject project)
-   {
-      createdProjects.add(project);
-   }
-
-
 }

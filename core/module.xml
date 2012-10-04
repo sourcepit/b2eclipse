@@ -31,11 +31,6 @@
 			<url>http://p2.sourcepit.org/eclipse/juno/</url>
 			<layout>p2</layout>
 		</repository>
-		<repository>
-			<id>swtbot-helios</id>
-			<url>http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site/</url>
-			<layout>p2</layout>
-		</repository>
 	</repositories>
 
 	<pluginRepositories>
