@@ -57,6 +57,7 @@ public class B2Wizard extends Wizard implements IImportWizard
 
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
+      // TODO pass selection to wizard page and pre-initialize UI (selection could contain an IResource or a Java IO File)
       setWindowTitle(Messages.msgImportTitle);
       Image projectFolder = Activator.getImageFromPath("icons/ProjectFolder.gif");
       setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(projectFolder));
