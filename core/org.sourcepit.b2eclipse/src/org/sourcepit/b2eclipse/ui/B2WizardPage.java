@@ -7,6 +7,8 @@
 package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
+
+import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
@@ -74,15 +76,17 @@ public class B2WizardPage extends WizardPage
 
    private B2Wizard bckend;
    private Shell dialogShell;
+   private IStructuredSelection preSelect;
 
 
-   protected B2WizardPage(String pageName, B2Wizard parent)
+   protected B2WizardPage(String pageName, B2Wizard parent, IStructuredSelection selection)
    {
       super(pageName);
       setPageComplete(false);
       setTitle(Messages.msgImportHeader);
       setDescription(Messages.msgImportSuperscription);
       bckend = parent;
+      preSelect = selection;
    }
 
    public void createControl(Composite parent)
@@ -112,7 +116,6 @@ public class B2WizardPage extends WizardPage
 
       dirRadioBtn = new Button(container, SWT.RADIO);
       dirRadioBtn.setText(Messages.msgSelectRootRbtn);
-      dirRadioBtn.setSelection(true); // init mark
 
       dirTxt = new Text(container, SWT.BORDER);
       dirTxt.setToolTipText(Messages.msgSelectRootTt);
@@ -128,12 +131,10 @@ public class B2WizardPage extends WizardPage
       workspaceTxt = new Text(container, SWT.BORDER);
       workspaceTxt.setToolTipText(Messages.msgSelectWorkspaceTt);
       workspaceTxt.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-      workspaceTxt.setEnabled(false); // init mark
 
       workspaceBtn = new Button(container, SWT.PUSH);
       workspaceBtn.setText(Messages.msgBrowseBtn);
       setButtonLayoutData(workspaceBtn);
-      workspaceBtn.setEnabled(false); // init mark
    }
 
    private void createVievArea(Composite area)
@@ -183,7 +184,7 @@ public class B2WizardPage extends WizardPage
       selAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
          "$nl$/icons/full/elcl16/step_done.gif").createImage());
       selAll.setToolTipText(Messages.msgSelectDeselectTt);
-      
+
       // Zuerst den Listener anpassen
       selAll.setEnabled(false);
 
@@ -221,6 +222,51 @@ public class B2WizardPage extends WizardPage
       delete.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE));
       delete.setToolTipText(Messages.msgDelWSTt);
       delete.setEnabled(false);
+      
+      preSelect();
+   }
+   
+   private void preSelect()
+   {
+      if (!preSelect.isEmpty())
+      {
+         String txt = "";
+         if (preSelect.getFirstElement() instanceof IResource)
+         {
+            dirRadioBtn.setSelection(false);
+            dirTxt.setEnabled(false);
+            dirBtn.setEnabled(false);
+            workspaceRadioBtn.setSelection(true);
+            workspaceTxt.setEnabled(true);
+            workspaceBtn.setEnabled(true);
+            txt = ((IResource) preSelect.getFirstElement()).getLocation().toString();
+            workspaceTxt.setText(txt);
+         }
+         if (preSelect.getFirstElement() instanceof File)
+         {
+            dirRadioBtn.setSelection(true);
+            dirTxt.setEnabled(true);
+            dirBtn.setEnabled(true);
+            workspaceRadioBtn.setSelection(false);
+            workspaceTxt.setEnabled(false);
+            workspaceBtn.setEnabled(false);
+            txt = ((File) preSelect.getFirstElement()).getPath();
+            dirTxt.setText(txt);
+         }
+         
+         if (bckend.testOnLocalDrive(txt))
+         {
+            bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);
+            selAll.setSelection(true);
+            setPageComplete(true);
+         }
+      }
+      else
+      {
+         dirRadioBtn.setSelection(true);
+         workspaceTxt.setEnabled(false);
+         workspaceBtn.setEnabled(false);
+      }
    }
 
    private void addListeners()
@@ -270,8 +316,8 @@ public class B2WizardPage extends WizardPage
             }
          }
       });
-      
-      //Listener for the Texts
+
+      // Listener for the Texts
       ModifyListener modLis = new ModifyListener()
       {
          public void modifyText(ModifyEvent e)
@@ -297,22 +343,22 @@ public class B2WizardPage extends WizardPage
          {
             boolean par = true;
             String hold = "";
-            if(dirRadioBtn.getEnabled())
-            {    
+            if (dirRadioBtn.getEnabled())
+            {
                hold = dirTxt.getText();
                par = true;
             }
-            if(workspaceRadioBtn.getEnabled())
+            if (workspaceRadioBtn.getEnabled())
             {
                hold = workspaceTxt.getText();
                par = false;
             }
-            
+
             if (!hold.equals(""))
             {
                if (bckend.testOnLocalDrive(hold))
                {
-                  if(par)
+                  if (par)
                      dirTxt.setText(hold);
                   else
                      workspaceTxt.setText(hold);
@@ -325,18 +371,18 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            //TODO checkStateChanged fire
+            // TODO checkStateChanged fire
             if (selAll.getSelection())
             {
                // check All
-                bckend.doCheck(dirTreeViewer, true);
-               
+               bckend.doCheck(dirTreeViewer, true);
+
             }
             else
             {
                // uncheck All
                bckend.doCheck(dirTreeViewer, false);
-               
+
             }
          }
       });
@@ -436,7 +482,7 @@ public class B2WizardPage extends WizardPage
 
 
       // if a category is checked in the tree, check all its children
-      // handles also the appear/disappear of elements in the preview TreeViewer 
+      // handles also the appear/disappear of elements in the preview TreeViewer
       dirTreeViewer.addCheckStateListener(new ICheckStateListener()
       {
          public void checkStateChanged(CheckStateChangedEvent event)

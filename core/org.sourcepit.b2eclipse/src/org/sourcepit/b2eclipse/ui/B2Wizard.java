@@ -45,24 +45,24 @@ import org.sourcepit.b2eclipse.input.ViewerInput;
 public class B2Wizard extends Wizard implements IImportWizard
 {
    private static String previouslyBrowsedDirectory = "";
-
+   
    private B2WizardPage page;
 
    public B2Wizard()
    {
       super();
-      page = new B2WizardPage(Messages.msgImportHeader, this);
-      addPage(page);
    }
 
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
-      // TODO pass selection to wizard page and pre-initialize UI (selection could contain an IResource or a Java IO File)
+      // TODO pass selection to wizard page and pre-initialize UI (selection could contain an IResource or a Java IO File)      
+      page = new B2WizardPage(Messages.msgImportHeader, this, selection);
+      addPage(page);
+      
       setWindowTitle(Messages.msgImportTitle);
       Image projectFolder = Activator.getImageFromPath("icons/ProjectFolder.gif");
       setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(projectFolder));
    }
-
 
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
