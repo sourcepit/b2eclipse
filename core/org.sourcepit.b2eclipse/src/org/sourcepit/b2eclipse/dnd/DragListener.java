@@ -12,6 +12,7 @@ import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.DragSourceListener;
 import org.sourcepit.b2eclipse.input.Node;
 
+
 /**
  * 
  * @author WD
@@ -29,15 +30,7 @@ public class DragListener implements DragSourceListener
 
    public void dragFinished(DragSourceEvent event)
    {
-      if (event.doit)
-      {
-         Node parent = node.getParent();
-         node.deleteNode();
-         if (parent.getChildren().size() == 0)
-            parent.deleteNode();
-
-         viewer.refresh();
-      }
+      //do nothing
    }
 
    public void dragSetData(DragSourceEvent event)

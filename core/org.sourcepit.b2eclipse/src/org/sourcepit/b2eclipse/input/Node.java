@@ -189,9 +189,9 @@ public class Node
     * @param node the, to be searched node
     * @return the node
     */
-   public Node getEqualNode(Node node)
+   public Node getEqualNode(File file)
    {
-      return searchEqual(node, this);
+      return searchEqual(file, this);
    }
 
    /**
@@ -201,14 +201,14 @@ public class Node
     * @param search
     * @return
     */
-   private Node searchEqual(Node equal, Node search)
+   private Node searchEqual(File equal, Node search)
    {
       Node result = null;
 
       for (Node iter : search.getChildren())
       {
 
-         if (iter.getFile().equals(equal.getFile()))
+         if (iter.getFile().equals(equal))
 
             return iter;
 

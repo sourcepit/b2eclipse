@@ -208,9 +208,9 @@ public class B2WizardPage extends WizardPage
       previewTreeViewer.setContentProvider(new ContentProvider());
       previewTreeViewer.setLabelProvider(new LabelProvider());
 
-      Transfer[] transferTypes = new Transfer[] { TextTransfer.getInstance() };
-      previewTreeViewer.addDragSupport(DND.DROP_MOVE, transferTypes, new DragListener(previewTreeViewer));
-      previewTreeViewer.addDropSupport(DND.DROP_MOVE, transferTypes, new DropListener(previewTreeViewer));
+      Transfer[] transfer = new Transfer[] { TextTransfer.getInstance() };
+      previewTreeViewer.addDragSupport(DND.DROP_MOVE, transfer, new DragListener(previewTreeViewer));
+      previewTreeViewer.addDropSupport(DND.DROP_MOVE, transfer, new DropListener(previewTreeViewer));
 
       rightContainer.setBackground(previewTreeViewer.getControl().getBackground());
 

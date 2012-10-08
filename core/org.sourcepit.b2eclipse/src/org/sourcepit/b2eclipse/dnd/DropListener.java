@@ -11,21 +11,22 @@ import java.io.File;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.swt.dnd.TransferData;
-
 import org.sourcepit.b2eclipse.input.Node;
 
 /**
  * 
  * @author WD
- *
+ * 
  */
 public class DropListener extends ViewerDropAdapter
 {
    private TreeViewer viewer;
 
+
    public DropListener(TreeViewer viewer)
    {
       super(viewer);
+      setFeedbackEnabled(false);
       this.viewer = viewer;
    }
 
@@ -33,30 +34,42 @@ public class DropListener extends ViewerDropAdapter
    public boolean performDrop(Object data)
    {
       Node target = (Node) this.getCurrentTarget();
+
       if (data != "" && target != null)
       {
-         if (target.getType() == Node.Type.WORKINGSET)
+
+         Node selected = ((Node) viewer.getInput()).getEqualNode(new File((String) data));
+         if (selected.getType() == Node.Type.PROJECT)
          {
-            new Node(target, new File((String) data), Node.Type.PROJECT);
-            return true;
+
+            if (target.getType() == Node.Type.WORKINGSET)
+            {
+               selected.getParent().removeChild(selected);
+               selected.setParent(target);
+               target.addChild(selected);
+            }
+            else if (target.getType() == Node.Type.PROJECT)
+            {
+               selected.getParent().removeChild(selected);
+               selected.setParent(target.getParent());
+               target.getParent().addChild(selected);
+            }
          }
-         else if (target.getType() == Node.Type.PROJECT)
-         {
-            new Node(target.getParent(), new File((String) data), Node.Type.PROJECT);
-            return true;
-         }
+         viewer.refresh();
+         return true;
       }
-      if (target == null)
+      else
       {
-         new Node((Node) viewer.getInput(), new File((String) data), Node.Type.PROJECT);
-      }
-      return false;
+         return false;
+      }      
    }
 
    @Override
    public boolean validateDrop(Object _target, int operation, TransferData transferType)
    {
-      return true;
+      if (_target instanceof Node)
+         return true;
+      return false;
    }
 
 }

@@ -82,7 +82,7 @@ public class B2Wizard extends Wizard implements IImportWizard
     */
    public void deleteProjectFromPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
-      Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(node);
+      Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(node.getFile());
 
       if (imDead != null)
       {
