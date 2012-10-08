@@ -7,15 +7,21 @@
 package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -239,65 +245,109 @@ public class B2Wizard extends Wizard implements IImportWizard
    @Override
    public boolean performFinish()
    {
-      // TODO eyeCandy: mit ner Progress Bar verschönern.
-      IWorkingSetManager wSmanager = PlatformUI.getWorkbench().getWorkingSetManager();
-      IWorkspace workspace = ResourcesPlugin.getWorkspace();
-
-      Node root = page.getPreviewRootNode();
-
-      for (Node currentElement : root.getChildren())
+      final IWorkingSetManager wSmanager = PlatformUI.getWorkbench().getWorkingSetManager();
+      final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      final Node root = page.getPreviewRootNode();
+      
+      final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
       {
-         if (currentElement.getType() == Node.Type.WORKINGSET) 
-         {
-            String wsName = currentElement.getName();
-            IWorkingSet workingSet = wSmanager.getWorkingSet(wsName);
-            if (workingSet == null)
-            {
-               // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
-               // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
-
-               workingSet = wSmanager.createWorkingSet(wsName, new IAdaptable[] {});
-               workingSet.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
-               wSmanager.addWorkingSet(workingSet);
-            }
-
-            for (Node currentSubElement : currentElement.getChildren())
-            {
-               if (currentSubElement.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
-               {
-                  try
-                  {
-                     IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentSubElement
-                        .getFile().toString() + "/.project"));
-                     IProject project = workspace.getRoot().getProject(projectDescription.getName());
-                     JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-
-                     wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
-                  }
-                  catch (CoreException e)
-                  {
-                     throw new IllegalStateException(e);
-                     // TODO EyeCandy: Ausgabe (bsp: zugriff verweigert)
-                  }
-               }
-            }
-         }
-         if (currentElement.getType() == Node.Type.PROJECT) 
+         public void run(IProgressMonitor monitor) throws InvocationTargetException
          {
             try
             {
-               IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
-                  .getFile().toString() + "/.project"));
-               IProject project = workspace.getRoot().getProject(projectDescription.getName());
-               JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+               ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable()
+               {
+                  public void run(IProgressMonitor monitor) throws CoreException
+                  {
+                     monitor.beginTask(Messages.msgSelectRootRbtn, root.getProjectChildren().size());
+                     try
+                     {
+                        for (Node currentElement : root.getChildren())
+                        {
+                           monitor.subTask(Messages.msgBrowseBtn + " " + currentElement.getName());
+                           if (currentElement.getType() == Node.Type.WORKINGSET) 
+                           {
+                              String wsName = currentElement.getName();
+                              IWorkingSet workingSet = wSmanager.getWorkingSet(wsName);
+                              if (workingSet == null)
+                              {
+                                 // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
+                                 // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
+
+                                 workingSet = wSmanager.createWorkingSet(wsName, new IAdaptable[] {});
+                                 workingSet.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
+                                 wSmanager.addWorkingSet(workingSet);
+                              }
+
+                              for (Node currentSubElement : currentElement.getChildren())
+                              {
+                                 if (currentSubElement.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
+                                 {
+                                    try
+                                    {
+                                       IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentSubElement
+                                          .getFile().toString() + "/.project"));
+                                       IProject project = workspace.getRoot().getProject(projectDescription.getName());
+                                       JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+
+                                       wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
+                                    }
+                                    catch (CoreException e)
+                                    {
+                                       throw new IllegalStateException(e);
+                                       // TODO EyeCandy: Ausgabe (bsp: zugriff verweigert)
+                                    }
+                                 }
+                              }
+                           }
+                           if (currentElement.getType() == Node.Type.PROJECT) //Fall tritt eig. nicht mehr auf
+                           {
+                              try
+                              {
+                                 IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
+                                    .getFile().toString() + "/.project"));
+                                 IProject project = workspace.getRoot().getProject(projectDescription.getName());
+                                 JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+                              }
+                              catch (CoreException e)
+                              {
+                                 throw new IllegalStateException(e);
+                                 // TODO siehe oben, + evt. ein mege
+                              }
+                           }                           
+                           monitor.worked(1);
+                        }
+                     }
+                     finally
+                     {
+                        monitor.done();
+                     }
+                  }
+               }, monitor);
+            }
+            catch (OperationCanceledException e)
+            {
+               //TODO implement and not ignore
             }
             catch (CoreException e)
             {
-               throw new IllegalStateException(e);
-               // TODO siehe oben, + evt. ein mege
+               throw new InvocationTargetException(e);
             }
          }
+      };
+
+      try
+      {
+         getContainer().run(true, true, runnableWithProgress);
       }
+      catch (InvocationTargetException e)
+      {
+         throw new IllegalStateException(e);
+      }
+      catch (InterruptedException e)
+      {
+         throw new IllegalStateException(e);
+      } 
       return true;
    }
 }
