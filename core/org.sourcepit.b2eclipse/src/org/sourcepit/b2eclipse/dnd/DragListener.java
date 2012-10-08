@@ -6,6 +6,8 @@
 
 package org.sourcepit.b2eclipse.dnd;
 
+import java.util.ArrayList;
+
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.dnd.DragSourceEvent;
@@ -16,12 +18,12 @@ import org.sourcepit.b2eclipse.input.Node;
 /**
  * 
  * @author WD
- *
+ * 
  */
 public class DragListener implements DragSourceListener
 {
    private TreeViewer viewer;
-   private Node node;
+   private ArrayList<String> transferData;
 
    public DragListener(TreeViewer previewTreeViewer)
    {
@@ -30,23 +32,25 @@ public class DragListener implements DragSourceListener
 
    public void dragFinished(DragSourceEvent event)
    {
-      //do nothing
+      /* do nothing */
    }
 
    public void dragSetData(DragSourceEvent event)
    {
-      if (node.getType() == Node.Type.PROJECT)
-         event.data = node.getFile().toString();
-      else
-         event.data = "";
+      event.data = transferData.toArray(new String[0]);
    }
 
    public void dragStart(DragSourceEvent event)
    {
-      node = (Node) ((IStructuredSelection) viewer.getSelection()).getFirstElement();
-      if (node.getType() != Node.Type.PROJECT)
-         event.doit = false;
-
+      transferData = new ArrayList<String>();
+      for (Object iter : ((IStructuredSelection) viewer.getSelection()).toArray())
+      {
+         if (((Node) iter).getType() != Node.Type.PROJECT)
+            event.doit = false;
+         else
+         {
+            transferData.add(((Node) iter).getFile().toString());
+         }
+      }
    }
-
 }

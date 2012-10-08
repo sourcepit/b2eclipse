@@ -37,16 +37,6 @@ public class Node
       children = new ArrayList<Node>();
    }
 
-   // sinnvoll??
-   // public Node(Node _parent, Node _copy)
-   // {
-   // parent = _parent;
-   // file = _copy.getFile();
-   // name = file.getName();
-   // children = _copy.getChildren();
-   // type = _copy.getType();
-   // }
-
    /**
     * Creates a new Node under the <code>_parent</code> Node.
     * 
@@ -184,14 +174,15 @@ public class Node
    }
 
    /**
-    * Returns the Node which is equal to <code>equal</code>.
+    * Returns the Node which is equal to <code>_file</code>.
+    * Checks the file field. Searches recursive through the children. 
     * 
-    * @param node the, to be searched node
+    * @param file 
     * @return the node
     */
-   public Node getEqualNode(File file)
+   public Node getEqualNode(File _file)
    {
-      return searchEqual(file, this);
+      return searchEqual(_file, this);
    }
 
    /**
@@ -230,7 +221,6 @@ public class Node
     * 
     * @return the root Model
     */
-
    public Node getRootModel()
    {
       Node result = null;
@@ -250,13 +240,12 @@ public class Node
    }
    
    /**
-    * Returns the Name for a Working Set. //Gehört hier iwie nicht hin.
+    * Returns the Name for a Working Set.
     * @param node
     * @return
     */
    public String getWSName(Node node)
    {
-      // IS WORKING !! YAY!!
       String name = "";
       Node mod = node.getRootModel();
       while (node != mod)

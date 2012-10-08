@@ -24,7 +24,7 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.dnd.DND;
-import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.FocusEvent;
 import org.eclipse.swt.events.FocusListener;
@@ -202,15 +202,16 @@ public class B2WizardPage extends WizardPage
       ToolBar toolBarRight = new ToolBar(rightContainer, (SWT.HORIZONTAL | SWT.NONE));
       toolBarRight.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-      previewTreeViewer = new TreeViewer(rightContainer, SWT.NONE);
+      previewTreeViewer = new TreeViewer(rightContainer, SWT.NONE | SWT.MULTI);
       previewTreeViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
 
       previewTreeViewer.setContentProvider(new ContentProvider());
       previewTreeViewer.setLabelProvider(new LabelProvider());
 
-      Transfer[] transfer = new Transfer[] { TextTransfer.getInstance() };
+      Transfer[] transfer = new Transfer[] { FileTransfer.getInstance() };
       previewTreeViewer.addDragSupport(DND.DROP_MOVE, transfer, new DragListener(previewTreeViewer));
       previewTreeViewer.addDropSupport(DND.DROP_MOVE, transfer, new DropListener(previewTreeViewer));
+
 
       rightContainer.setBackground(previewTreeViewer.getControl().getBackground());
 
@@ -222,10 +223,10 @@ public class B2WizardPage extends WizardPage
       delete.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE));
       delete.setToolTipText(Messages.msgDelWSTt);
       delete.setEnabled(false);
-      
+
       preSelect();
    }
-   
+
    private void preSelect()
    {
       if (!preSelect.isEmpty())
@@ -253,7 +254,7 @@ public class B2WizardPage extends WizardPage
             txt = ((File) preSelect.getFirstElement()).getPath();
             dirTxt.setText(txt);
          }
-         
+
          if (bckend.testOnLocalDrive(txt))
          {
             bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);

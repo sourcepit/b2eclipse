@@ -22,7 +22,6 @@ public class DropListener extends ViewerDropAdapter
 {
    private TreeViewer viewer;
 
-
    public DropListener(TreeViewer viewer)
    {
       super(viewer);
@@ -35,33 +34,30 @@ public class DropListener extends ViewerDropAdapter
    {
       Node target = (Node) this.getCurrentTarget();
 
-      if (data != "" && target != null)
+      for (String iter : (String[]) data)
       {
-
-         Node selected = ((Node) viewer.getInput()).getEqualNode(new File((String) data));
-         if (selected.getType() == Node.Type.PROJECT)
+         if (iter != "" && target != null)
          {
-
-            if (target.getType() == Node.Type.WORKINGSET)
+            Node selected = ((Node) viewer.getInput()).getEqualNode(new File(iter));
+            if (selected != null && selected.getType() == Node.Type.PROJECT)
             {
-               selected.getParent().removeChild(selected);
-               selected.setParent(target);
-               target.addChild(selected);
-            }
-            else if (target.getType() == Node.Type.PROJECT)
-            {
-               selected.getParent().removeChild(selected);
-               selected.setParent(target.getParent());
-               target.getParent().addChild(selected);
+               if (target.getType() == Node.Type.WORKINGSET)
+               {
+                  selected.getParent().removeChild(selected);
+                  selected.setParent(target);
+                  target.addChild(selected);
+               }
+               else if (target.getType() == Node.Type.PROJECT)
+               {
+                  selected.getParent().removeChild(selected);
+                  selected.setParent(target.getParent());
+                  target.getParent().addChild(selected);
+               }
             }
          }
-         viewer.refresh();
-         return true;
       }
-      else
-      {
-         return false;
-      }      
+      viewer.refresh();
+      return true;
    }
 
    @Override
