@@ -51,7 +51,7 @@ import org.sourcepit.b2eclipse.input.ViewerInput;
 public class B2Wizard extends Wizard implements IImportWizard
 {
    private static String previouslyBrowsedDirectory = "";
-   
+
    private B2WizardPage page;
 
    public B2Wizard()
@@ -61,13 +61,17 @@ public class B2Wizard extends Wizard implements IImportWizard
 
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
-      // TODO pass selection to wizard page and pre-initialize UI (selection could contain an IResource or a Java IO File)      
+      // TODO pass selection to wizard page and pre-initialize UI (selection could contain an IResource or a Java IO
+      // File)
       page = new B2WizardPage(Messages.msgImportHeader, this, selection);
       addPage(page);
-      
+
       setWindowTitle(Messages.msgImportTitle);
       Image projectFolder = Activator.getImageFromPath("icons/ProjectFolder.gif");
       setDefaultPageImageDescriptor(ImageDescriptor.createFromImage(projectFolder));
+
+      setHelpAvailable(false);
+      setNeedsProgressMonitor(true);
    }
 
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
@@ -245,11 +249,7 @@ public class B2Wizard extends Wizard implements IImportWizard
    @Override
    public boolean performFinish()
    {
-      final IWorkingSetManager wSmanager = PlatformUI.getWorkbench().getWorkingSetManager();
-      final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-      final Node root = page.getPreviewRootNode();
-      
-      final IRunnableWithProgress runnableWithProgress = new IRunnableWithProgress()
+      IRunnableWithProgress dialogRunnable = new IRunnableWithProgress()
       {
          public void run(IProgressMonitor monitor) throws InvocationTargetException
          {
@@ -259,75 +259,13 @@ public class B2Wizard extends Wizard implements IImportWizard
                {
                   public void run(IProgressMonitor monitor) throws CoreException
                   {
-                     monitor.beginTask(Messages.msgSelectRootRbtn, root.getProjectChildren().size());
-                     try
-                     {
-                        for (Node currentElement : root.getChildren())
-                        {
-                           monitor.subTask(Messages.msgBrowseBtn + " " + currentElement.getName());
-                           if (currentElement.getType() == Node.Type.WORKINGSET) 
-                           {
-                              String wsName = currentElement.getName();
-                              IWorkingSet workingSet = wSmanager.getWorkingSet(wsName);
-                              if (workingSet == null)
-                              {
-                                 // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
-                                 // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
-
-                                 workingSet = wSmanager.createWorkingSet(wsName, new IAdaptable[] {});
-                                 workingSet.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
-                                 wSmanager.addWorkingSet(workingSet);
-                              }
-
-                              for (Node currentSubElement : currentElement.getChildren())
-                              {
-                                 if (currentSubElement.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
-                                 {
-                                    try
-                                    {
-                                       IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentSubElement
-                                          .getFile().toString() + "/.project"));
-                                       IProject project = workspace.getRoot().getProject(projectDescription.getName());
-                                       JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-
-                                       wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
-                                    }
-                                    catch (CoreException e)
-                                    {
-                                       throw new IllegalStateException(e);
-                                       // TODO EyeCandy: Ausgabe (bsp: zugriff verweigert)
-                                    }
-                                 }
-                              }
-                           }
-                           if (currentElement.getType() == Node.Type.PROJECT) //Fall tritt eig. nicht mehr auf
-                           {
-                              try
-                              {
-                                 IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
-                                    .getFile().toString() + "/.project"));
-                                 IProject project = workspace.getRoot().getProject(projectDescription.getName());
-                                 JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-                              }
-                              catch (CoreException e)
-                              {
-                                 throw new IllegalStateException(e);
-                                 // TODO siehe oben, + evt. ein mege
-                              }
-                           }                           
-                           monitor.worked(1);
-                        }
-                     }
-                     finally
-                     {
-                        monitor.done();
-                     }
+                     doStuff(monitor);
                   }
                }, monitor);
             }
             catch (OperationCanceledException e)
             {
-               //TODO implement and not ignore
+               // TODO implement and not ignore
             }
             catch (CoreException e)
             {
@@ -338,16 +276,74 @@ public class B2Wizard extends Wizard implements IImportWizard
 
       try
       {
-         getContainer().run(true, true, runnableWithProgress);
+         getContainer().run(true, true, dialogRunnable);
       }
       catch (InvocationTargetException e)
       {
-         throw new IllegalStateException(e);
+         throw new IllegalStateException(e.getTargetException());
       }
       catch (InterruptedException e)
       {
          throw new IllegalStateException(e);
-      } 
+      }
       return true;
+   }
+
+   private void doStuff(IProgressMonitor monitor) throws CoreException
+   {
+      final IWorkingSetManager wSmanager = PlatformUI.getWorkbench().getWorkingSetManager();
+      final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+      final Node root = page.getPreviewRootNode();
+
+      final int length = root.getProjectChildren().size();
+
+      try
+      {
+         monitor.beginTask(Messages.msgSelectRootRbtn, length);
+         for (Node currentElement : root.getChildren())
+         {
+            monitor.subTask(Messages.msgBrowseBtn + " " + currentElement.getName());
+            if (currentElement.getType() == Node.Type.WORKINGSET)
+            {
+               String wsName = currentElement.getName();
+               IWorkingSet workingSet = wSmanager.getWorkingSet(wsName);
+               if (workingSet == null)
+               {
+                  // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
+                  // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
+
+                  workingSet = wSmanager.createWorkingSet(wsName, new IAdaptable[] {});
+                  workingSet.setId("org.eclipse.jdt.ui.JavaWorkingSetPage");
+                  wSmanager.addWorkingSet(workingSet);
+               }
+
+               for (Node currentSubElement : currentElement.getChildren())
+               {
+                  if (currentSubElement.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
+                  {
+                     IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(
+                        currentSubElement.getFile().toString() + "/.project"));
+                     IProject project = workspace.getRoot().getProject(projectDescription.getName());
+                     JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+
+                     wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
+                  }
+                  monitor.worked(1);
+               }
+            }
+            
+            // if (currentElement.getType() == Node.Type.PROJECT) // Fall tritt eig. nicht mehr auf
+            // {
+            // IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
+            // .getFile().toString() + "/.project"));
+            // IProject project = workspace.getRoot().getProject(projectDescription.getName());
+            // JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+            // }
+         }
+      }
+      finally
+      {
+         monitor.done();
+      }
    }
 }
