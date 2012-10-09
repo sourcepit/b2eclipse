@@ -124,17 +124,33 @@ public class B2Wizard extends Wizard implements IImportWizard
 
       for (Node iter : root.getChildren())
       {
-         if (iter.getFile() == module.getFile())
+         if (mode == Mode.SIMPLE)
          {
-            new Node(iter, node.getFile(), node.getType());
-            created = true;
-            break;
+            if (iter.getFile() == node.getRootModel().getFile())
+            {
+               new Node(iter, node.getFile(), node.getType());
+               created = true;
+               break;
+            }
+         }
+         if (mode == Mode.STRUCTURED)
+         {
+            if (iter.getFile() == module.getFile())
+            {
+               new Node(iter, node.getFile(), node.getType());
+               created = true;
+               break;
+            }
          }
       }
       if (!created)
       {
-         new Node(new Node(root, module.getFile(), Node.Type.WORKINGSET, module.getWSName(module)), node.getFile(),
-            node.getType());
+         if(mode == Mode.SIMPLE)
+            new Node(new Node(root, node.getRootModel().getFile(), Node.Type.WORKINGSET), node.getFile(), node.getType());
+         
+         if (mode == Mode.STRUCTURED)
+            new Node(new Node(root, module.getFile(), Node.Type.WORKINGSET, module.getWSName(module)), node.getFile(),
+               node.getType());
       }
 
       previewTreeViewer.refresh();
