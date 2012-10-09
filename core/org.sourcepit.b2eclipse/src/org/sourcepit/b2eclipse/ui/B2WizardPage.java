@@ -50,6 +50,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.sourcepit.b2eclipse.dnd.DragListener;
 import org.sourcepit.b2eclipse.dnd.DropListener;
 import org.sourcepit.b2eclipse.input.Node;
+import org.sourcepit.b2eclipse.input.ViewerInput.Mode;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 
@@ -73,10 +74,12 @@ public class B2WizardPage extends WizardPage
    private ToolItem selAll;
    private ToolItem add;
    private ToolItem delete;
+   private ToolItem toggleMode;
 
    private B2Wizard bckend;
    private Shell dialogShell;
    private IStructuredSelection preSelect;
+   private String currentDirectory;
 
 
    protected B2WizardPage(String pageName, B2Wizard parent, IStructuredSelection selection)
@@ -100,7 +103,7 @@ public class B2WizardPage extends WizardPage
       widgetContainer.setLayout(new GridLayout());
 
       createFileChooserArea(widgetContainer);
-      createVievArea(widgetContainer);
+      createViewArea(widgetContainer);
 
       addListeners();
 
@@ -137,7 +140,7 @@ public class B2WizardPage extends WizardPage
       setButtonLayoutData(workspaceBtn);
    }
 
-   private void createVievArea(Composite area)
+   private void createViewArea(Composite area)
    {
       GridLayout layout;
 
@@ -224,6 +227,10 @@ public class B2WizardPage extends WizardPage
       delete.setToolTipText(Messages.msgDelWSTt);
       delete.setEnabled(false);
 
+      toggleMode = new ToolItem(toolBarRight, SWT.CHECK);
+      toggleMode.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_UP));
+      toggleMode.setToolTipText(Messages.msgToggleModeTt);
+
       preSelect();
    }
 
@@ -231,7 +238,7 @@ public class B2WizardPage extends WizardPage
    {
       if (!preSelect.isEmpty())
       {
-         String txt = "";
+         currentDirectory = "";
          if (preSelect.getFirstElement() instanceof IResource)
          {
             dirRadioBtn.setSelection(false);
@@ -240,8 +247,8 @@ public class B2WizardPage extends WizardPage
             workspaceRadioBtn.setSelection(true);
             workspaceTxt.setEnabled(true);
             workspaceBtn.setEnabled(true);
-            txt = ((IResource) preSelect.getFirstElement()).getLocation().toString();
-            workspaceTxt.setText(txt);
+            currentDirectory = ((IResource) preSelect.getFirstElement()).getLocation().toString();
+            workspaceTxt.setText(currentDirectory);
          }
          if (preSelect.getFirstElement() instanceof File)
          {
@@ -251,13 +258,13 @@ public class B2WizardPage extends WizardPage
             workspaceRadioBtn.setSelection(false);
             workspaceTxt.setEnabled(false);
             workspaceBtn.setEnabled(false);
-            txt = ((File) preSelect.getFirstElement()).getPath();
-            dirTxt.setText(txt);
+            currentDirectory = ((File) preSelect.getFirstElement()).getPath();
+            dirTxt.setText(currentDirectory);
          }
 
-         if (bckend.testOnLocalDrive(txt))
+         if (bckend.testOnLocalDrive(currentDirectory))
          {
-            bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);
+            bckend.handleDirTreeViewer(dirTreeViewer, previewTreeViewer, currentDirectory);
             selAll.setSelection(true);
             setPageComplete(true);
          }
@@ -276,8 +283,9 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            dirTxt.setText(bckend.showDirectorySelectDialog(dirTxt.getText(), dialogShell));
             workspaceTxt.setText("");
+            dirTxt.setText(bckend.showDirectorySelectDialog(dirTxt.getText(), dialogShell));
+
          }
       });
 
@@ -285,8 +293,9 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            workspaceTxt.setText(bckend.showWorkspaceSelectDialog(dialogShell));
             dirTxt.setText("");
+            workspaceTxt.setText(bckend.showWorkspaceSelectDialog(dialogShell));
+
          }
       });
 
@@ -323,11 +332,11 @@ public class B2WizardPage extends WizardPage
       {
          public void modifyText(ModifyEvent e)
          {
-            String txt = ((Text) e.widget).getText();
+            currentDirectory = ((Text) e.widget).getText();
 
-            if (bckend.testOnLocalDrive(txt))
+            if (bckend.testOnLocalDrive(currentDirectory))
             {
-               bckend.handleDirTreeViever(dirTreeViewer, previewTreeViewer, txt);
+               bckend.handleDirTreeViewer(dirTreeViewer, previewTreeViewer, currentDirectory);
 
                selAll.setSelection(true);
 
@@ -408,6 +417,21 @@ public class B2WizardPage extends WizardPage
                selected.deleteNodeAssigningChildrenToParent();
 
             previewTreeViewer.refresh();
+         }
+      });
+
+      toggleMode.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            if (toggleMode.getSelection())
+            {
+               bckend.setPreviewMode(Mode.SIMPLE, previewTreeViewer);
+            }
+            else
+            {
+               bckend.setPreviewMode(Mode.STRUCTURED, previewTreeViewer);
+            }
          }
       });
 

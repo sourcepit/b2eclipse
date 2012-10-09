@@ -10,13 +10,25 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
+
 /**
  * @author WD
  */
 public class ViewerInput
 {
-   Node dirViewerRoot;    
-   
+   public enum Mode
+   {
+      STRUCTURED, SIMPLE
+   }
+
+   Node dirViewerRoot;
+
    public ViewerInput(Node _root)
    {
       dirViewerRoot = _root;
@@ -62,7 +74,9 @@ public class ViewerInput
 
          if (fileList.contains("module.xml"))
          {
-            me = new Node(parent, path, Node.Type.MODULE);
+            String name = loadModuleXml(path);
+
+            me = new Node(parent, path, Node.Type.MODULE, name);
 
             for (File iter : pathList)
             {
@@ -83,6 +97,41 @@ public class ViewerInput
             }
          }
       }
+   }
+
+   private String loadModuleXml(File xmlPath)
+   {
+      String name = xmlPath.getName();
+
+      File xmlFile = new File(xmlPath.getPath() + "/module.xml");
+      if (xmlFile.exists() && xmlFile.canRead())
+      {
+         try
+         {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(xmlFile);
+            doc.getDocumentElement().normalize();
+            NodeList nodes = doc.getElementsByTagName("artifactId");
+
+            for (int i = 0; i < nodes.getLength(); i++)
+            {
+               if (nodes.item(i).getParentNode().equals(doc.getElementsByTagName("project").item(0)))
+                  name = nodes.item(i).getTextContent();
+            }
+
+            if (nodes.getLength() > 0)
+            {
+               // TODO was wenn mehrere?
+               // -->mommentan wird immer die erste genommen
+            }
+         }
+         catch (Exception e)
+         {
+            // ignore
+         }
+      }
+      return name;
    }
 
    /**
@@ -114,7 +163,8 @@ public class ViewerInput
 
       if (fileList.contains("module.xml"))
       {
-         Node me = new Node(root, path, Node.Type.MODULE);
+         String name = loadModuleXml(path);
+         Node me = new Node(root, path, Node.Type.MODULE, name);
          for (File iter : pathList)
          {
             empty = searchForProjects(me, iter);
@@ -190,32 +240,41 @@ public class ViewerInput
       else
          return false;
    }
-   
+
    /**
     * Returns a initial Node System that is representing the Preview
     * 
     * @return the Node (system)
     */
-   public Node createNodeSystemForPreviev()
+   public Node createNodeSystemForPreview(Mode mode)
    {
       Node preViewerRoot = new Node();
-      
+
       List<Node> parentList = new ArrayList<Node>();
-      for (Node i : dirViewerRoot.getChildren()) //vom Linken Viewer die kiddis des roots
+      for (Node i : dirViewerRoot.getChildren())
       {
          Node ws = preViewerRoot;
-         for (Node j : i.getProjectChildren()) //Die projekt kiddies eines root kiddi
+         if (mode == Mode.SIMPLE)
+            ws = new Node(preViewerRoot, i.getFile(), Node.Type.WORKINGSET, i.getName());
+
+         for (Node j : i.getProjectChildren())
          {
-            if (!parentList.contains(j.getParent())) //Trifft beim ersten Mal immer zu
+            if (mode == Mode.SIMPLE)
+               new Node(ws, j.getFile(), j.getType());
+            if (mode == Mode.STRUCTURED)
             {
-               parentList.add(j.getParent());
-               ws = new Node(preViewerRoot, j.getParent().getFile(), Node.Type.WORKINGSET, j.getWSName(j.getParent()));
+               if (!parentList.contains(j.getParent()))
+               {
+                  parentList.add(j.getParent());
+                  ws = new Node(preViewerRoot, j.getParent().getFile(), Node.Type.WORKINGSET,
+                     j.getWSName(j.getParent()));
+               }
+               new Node(ws, j.getFile(), j.getType());
             }
-            new Node(ws, j.getFile(), j.getType());
          }
       }
       return preViewerRoot;
    }
-   
+
 
 }

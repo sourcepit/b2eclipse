@@ -43,6 +43,7 @@ public class Messages extends NLS
    public static String msgAddNewWSTt;
    public static String msgDelWSTt;
    public static String msgDefaultWSName;
+   public static String msgToggleModeTt;
 
    static
    {

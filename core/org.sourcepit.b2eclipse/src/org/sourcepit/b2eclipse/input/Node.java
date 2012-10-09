@@ -55,7 +55,7 @@ public class Node
    }
 
    /**
-    * Creates a new Node under the <code>_parent</code> Node. Only for WORKINGSET Nodes.
+    * Creates a new Node under the <code>_parent</code> Node. 
     * 
     * @param _parent the parent element
     * @param _file the given File
@@ -166,7 +166,7 @@ public class Node
          {
             list.add(iter);
          }
-         if (iter.getType() == Type.MODULE)
+         if (iter.getType() == Type.MODULE ||iter.getType() == Type.WORKINGSET)
          {
             listProjects(iter, list);
          }

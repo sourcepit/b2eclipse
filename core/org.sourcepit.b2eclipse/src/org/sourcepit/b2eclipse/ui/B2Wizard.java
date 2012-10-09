@@ -43,6 +43,7 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.Node;
 import org.sourcepit.b2eclipse.input.ViewerInput;
+import org.sourcepit.b2eclipse.input.ViewerInput.Mode;
 
 /**
  * @author WD
@@ -53,6 +54,8 @@ public class B2Wizard extends Wizard implements IImportWizard
    private static String previouslyBrowsedDirectory = "";
 
    private B2WizardPage page;
+   private ViewerInput input;
+   private Mode mode;
 
    public B2Wizard()
    {
@@ -61,8 +64,7 @@ public class B2Wizard extends Wizard implements IImportWizard
 
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
-      // TODO pass selection to wizard page and pre-initialize UI (selection could contain an IResource or a Java IO
-      // File)
+      mode = Mode.STRUCTURED;
       page = new B2WizardPage(Messages.msgImportHeader, this, selection);
       addPage(page);
 
@@ -229,18 +231,30 @@ public class B2Wizard extends Wizard implements IImportWizard
     * Handles a change in the directory Field, actual it sets a new input to the treeViewer's.
     * 
     * @param treeViewer
-    * @param previevTreeViever
+    * @param previewTreeViewer
     * @param txt
     */
-   public void handleDirTreeViever(CheckboxTreeViewer treeViewer, TreeViewer previevTreeViever, String txt)
+   public void handleDirTreeViewer(CheckboxTreeViewer treeViewer, TreeViewer previewTreeViewer, String txt)
    {
-      ViewerInput in = new ViewerInput(new Node());
+      input = new ViewerInput(new Node());
 
-      treeViewer.setInput(in.createMainNodeSystem(new File(txt)));
+      treeViewer.setInput(input.createMainNodeSystem(new File(txt)));
       treeViewer.expandToLevel(2);
       doCheck(treeViewer, true);
 
-      previevTreeViever.setInput(in.createNodeSystemForPreviev());
+      previewTreeViewer.setInput(input.createNodeSystemForPreview(mode));
+
+      treeViewer.refresh();
+      previewTreeViewer.refresh();
+   }
+
+   public void setPreviewMode(Mode _mode, TreeViewer viewer)
+   {
+      mode = _mode;
+      if (input != null)
+         viewer.setInput(input.createNodeSystemForPreview(mode));
+
+      viewer.refresh();
    }
 
    /**
@@ -331,14 +345,13 @@ public class B2Wizard extends Wizard implements IImportWizard
                   monitor.worked(1);
                }
             }
-            
-            // if (currentElement.getType() == Node.Type.PROJECT) // Fall tritt eig. nicht mehr auf
-            // {
-            // IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
-            // .getFile().toString() + "/.project"));
-            // IProject project = workspace.getRoot().getProject(projectDescription.getName());
-            // JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-            // }
+            if (currentElement.getType() == Node.Type.PROJECT)
+            {
+               IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
+                  .getFile().toString() + "/.project"));
+               IProject project = workspace.getRoot().getProject(projectDescription.getName());
+               JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+            }
          }
       }
       finally
