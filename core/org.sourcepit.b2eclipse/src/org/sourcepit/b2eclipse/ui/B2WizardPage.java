@@ -234,6 +234,9 @@ public class B2WizardPage extends WizardPage
       preSelect();
    }
 
+   /**
+    * Will select an Directory and put it in the correct Widget if any directory was given.
+    */
    private void preSelect()
    {
       if (!preSelect.isEmpty())

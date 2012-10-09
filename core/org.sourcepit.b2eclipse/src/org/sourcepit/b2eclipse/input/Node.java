@@ -12,7 +12,7 @@ import java.util.List;
 
 
 /**
- * Class that represents the elements(Nodes) in a tree
+ * Class that represents the elements(Nodes).
  * 
  * @author WD
  */
@@ -29,9 +29,6 @@ public class Node
       MODULE, PROJECT, WORKINGSET
    }
 
-   /**
-    * default Constructor
-    */
    public Node()
    {
       children = new ArrayList<Node>();
@@ -56,6 +53,7 @@ public class Node
 
    /**
     * Creates a new Node under the <code>_parent</code> Node.
+    * Is mainly used for WS and Modules.
     * 
     * @param _parent the parent element
     * @param _file the given File

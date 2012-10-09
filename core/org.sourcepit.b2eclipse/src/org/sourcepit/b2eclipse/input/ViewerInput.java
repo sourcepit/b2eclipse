@@ -19,6 +19,7 @@ import org.w3c.dom.NodeList;
 
 
 /**
+ * The Input for the two Viewers in B2WizardPage.
  * @author WD
  */
 public class ViewerInput
@@ -28,7 +29,7 @@ public class ViewerInput
       DETAIL, SIMPLE
    }
 
-   Node dirViewerRoot;
+   private Node dirViewerRoot;
 
    public ViewerInput(Node _root)
    {
@@ -100,6 +101,12 @@ public class ViewerInput
       }
    }
 
+   /**
+    * Is searching for the <code>artifactId</code> Tag in the module.xml file.
+    * 
+    * @param xmlPath path to module.xml
+    * @return the content of the <code>artifactId</code> tag.
+    */
    private String loadModuleXml(File xmlPath)
    {
       String name = xmlPath.getName();
@@ -119,12 +126,6 @@ public class ViewerInput
             {
                if (nodes.item(i).getParentNode().equals(doc.getElementsByTagName("project").item(0)))
                   name = nodes.item(i).getTextContent();
-            }
-
-            if (nodes.getLength() > 0)
-            {
-               // TODO was wenn mehrere?
-               // -->mommentan wird immer die erste genommen
             }
          }
          catch (Exception e)
@@ -243,8 +244,11 @@ public class ViewerInput
    }
 
    /**
-    * Returns a initial Node System that is representing the Preview
+    * Returns a initial Node System that is representing the Preview.
+    * Only checked Elements in <code>viewer</code> are added.
     * 
+    * @param mode the mode simple / detail
+    * @param viewer the CheckBoxTreeViewer 
     * @return the Node (system)
     */
    public Node createNodeSystemForPreview(Mode mode, CheckboxTreeViewer viewer)
@@ -282,6 +286,4 @@ public class ViewerInput
       }
       return preViewerRoot;
    }
-
-
 }

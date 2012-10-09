@@ -10,6 +10,7 @@ import org.eclipse.osgi.util.NLS;
 
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
+ * @author WD
  */
 
 public class Messages extends NLS
