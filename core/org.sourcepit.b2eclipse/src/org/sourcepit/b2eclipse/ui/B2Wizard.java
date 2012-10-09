@@ -42,7 +42,6 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.Node;
 import org.sourcepit.b2eclipse.input.ViewerInput;
-import org.sourcepit.b2eclipse.input.ViewerInput.Mode;
 
 /**
  * @author WD
@@ -54,7 +53,7 @@ public class B2Wizard extends Wizard implements IImportWizard
 
    private B2WizardPage page;
    private ViewerInput input;
-   private Mode mode;
+   private boolean simpleMode;
 
    public B2Wizard()
    {
@@ -63,7 +62,7 @@ public class B2Wizard extends Wizard implements IImportWizard
 
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
-      mode = Mode.DETAIL;
+      simpleMode = false;
       page = new B2WizardPage(Messages.msgImportHeader, this, selection);
       addPage(page);
 
@@ -117,24 +116,23 @@ public class B2Wizard extends Wizard implements IImportWizard
    public void addProjectToPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
       Node root = (Node) previewTreeViewer.getInput();
-      Node module = node.getParent();
-
       boolean created = false;
+
+
+      Node parent = node.getParent();
+      if (simpleMode)
+      {
+         if (parent.getType() == Node.Type.FOLDER)
+            parent = node.getParent().getParent();
+      }
+
+      String wsName = node.getWSName(parent);
 
       for (Node iter : root.getChildren())
       {
-         if (mode == Mode.SIMPLE)
+         if (iter.getType() == Node.Type.WORKINGSET)
          {
-            if (iter.getFile() == node.getRootModel().getFile())
-            {
-               new Node(iter, node.getFile(), node.getType());
-               created = true;
-               break;
-            }
-         }
-         if (mode == Mode.DETAIL)
-         {
-            if (iter.getFile() == module.getFile())
+            if (iter.getName().equals(wsName))
             {
                new Node(iter, node.getFile(), node.getType());
                created = true;
@@ -142,15 +140,10 @@ public class B2Wizard extends Wizard implements IImportWizard
             }
          }
       }
+
       if (!created)
       {
-         if (mode == Mode.SIMPLE)
-            new Node(new Node(root, node.getRootModel().getFile(), Node.Type.WORKINGSET), node.getFile(),
-               node.getType());
-
-         if (mode == Mode.DETAIL)
-            new Node(new Node(root, module.getFile(), Node.Type.WORKINGSET, module.getWSName(module)), node.getFile(),
-               node.getType());
+         new Node(new Node(root, parent.getFile(), Node.Type.WORKINGSET, wsName), node.getFile(), node.getType());
       }
 
       previewTreeViewer.refresh();
@@ -258,17 +251,17 @@ public class B2Wizard extends Wizard implements IImportWizard
       treeViewer.expandToLevel(2);
       doCheck(treeViewer, true);
 
-      previewTreeViewer.setInput(input.createNodeSystemForPreview(mode, treeViewer));
+      previewTreeViewer.setInput(input.createNodeSystemForPreview(simpleMode, treeViewer));
 
       treeViewer.refresh();
       previewTreeViewer.refresh();
    }
 
-   public void setPreviewMode(Mode _mode, TreeViewer viewer, CheckboxTreeViewer treeViewer)
+   public void setPreviewMode(boolean _simpleMode, TreeViewer viewer, CheckboxTreeViewer treeViewer)
    {
-      mode = _mode;
+      simpleMode = _simpleMode;
       if (input != null)
-         viewer.setInput(input.createNodeSystemForPreview(mode, treeViewer));
+         viewer.setInput(input.createNodeSystemForPreview(simpleMode, treeViewer));
 
       viewer.refresh();
    }

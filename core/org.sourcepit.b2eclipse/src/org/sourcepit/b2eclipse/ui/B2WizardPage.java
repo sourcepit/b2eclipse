@@ -20,6 +20,8 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.TreeEditor;
@@ -50,7 +52,6 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.sourcepit.b2eclipse.dnd.DragListener;
 import org.sourcepit.b2eclipse.dnd.DropListener;
 import org.sourcepit.b2eclipse.input.Node;
-import org.sourcepit.b2eclipse.input.ViewerInput.Mode;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 
@@ -225,6 +226,22 @@ public class B2WizardPage extends WizardPage
       toggleMode = new ToolItem(toolBarRight, SWT.CHECK);
       toggleMode.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_UP));
       toggleMode.setToolTipText(Messages.msgToggleModeTt);
+
+      // Comparator for the Viewers
+      ViewerComparator compa = new ViewerComparator()
+      {
+         @SuppressWarnings("unchecked")
+         public int compare(Viewer viewer, Object o1, Object o2)
+         {
+            String name1 = ((Node) o1).getName();
+            String name2 = ((Node) o2).getName();
+            //TODO order of Project/ Module
+
+            return getComparator().compare(name1, name2);
+         }
+      };
+      previewTreeViewer.setComparator(compa);
+      dirTreeViewer.setComparator(compa);
 
       preSelect();
    }
@@ -424,11 +441,11 @@ public class B2WizardPage extends WizardPage
          {
             if (toggleMode.getSelection())
             {
-               bckend.setPreviewMode(Mode.SIMPLE, previewTreeViewer, dirTreeViewer);
+               bckend.setPreviewMode(true, previewTreeViewer, dirTreeViewer);
             }
             else
             {
-               bckend.setPreviewMode(Mode.DETAIL, previewTreeViewer, dirTreeViewer);
+               bckend.setPreviewMode(false, previewTreeViewer, dirTreeViewer);
             }
          }
       });

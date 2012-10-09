@@ -26,7 +26,7 @@ public class Node
 
    public enum Type
    {
-      MODULE, PROJECT, WORKINGSET
+      MODULE, PROJECT, WORKINGSET, FOLDER
    }
 
    public Node()
@@ -165,7 +165,7 @@ public class Node
          {
             list.add(iter);
          }
-         if (iter.getType() == Type.MODULE || iter.getType() == Type.WORKINGSET)
+         else
          {
             listProjects(iter, list);
          }

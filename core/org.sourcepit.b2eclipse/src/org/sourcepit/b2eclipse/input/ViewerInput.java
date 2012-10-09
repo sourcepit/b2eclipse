@@ -24,11 +24,6 @@ import org.w3c.dom.NodeList;
  */
 public class ViewerInput
 {
-   public enum Mode
-   {
-      DETAIL, SIMPLE
-   }
-
    private Node dirViewerRoot;
 
    public ViewerInput(Node _root)
@@ -101,40 +96,6 @@ public class ViewerInput
       }
    }
 
-   /**
-    * Is searching for the <code>artifactId</code> Tag in the module.xml file.
-    * 
-    * @param xmlPath path to module.xml
-    * @return the content of the <code>artifactId</code> tag.
-    */
-   private String loadModuleXml(File xmlPath)
-   {
-      String name = xmlPath.getName();
-
-      File xmlFile = new File(xmlPath.getPath() + "/module.xml");
-      if (xmlFile.exists() && xmlFile.canRead())
-      {
-         try
-         {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            Document doc = dBuilder.parse(xmlFile);
-            doc.getDocumentElement().normalize();
-            NodeList nodes = doc.getElementsByTagName("artifactId");
-
-            for (int i = 0; i < nodes.getLength(); i++)
-            {
-               if (nodes.item(i).getParentNode().equals(doc.getElementsByTagName("project").item(0)))
-                  name = nodes.item(i).getTextContent();
-            }
-         }
-         catch (Exception e)
-         {
-            // ignore
-         }
-      }
-      return name;
-   }
 
    /**
     * Returns false if Projects were found, at allowed positions. The return statement is only useful for recursion.
@@ -204,7 +165,7 @@ public class ViewerInput
                   }
                }
                if (!exist)
-                  parent = new Node(root, currentPath.getParentFile(), Node.Type.MODULE);
+                  parent = new Node(root, currentPath.getParentFile(), Node.Type.FOLDER);
 
                for (File content : currentPath.listFiles())
                {
@@ -244,14 +205,52 @@ public class ViewerInput
    }
 
    /**
+    * Is searching for the <code>artifactId</code> Tag in the module.xml file.
+    * 
+    * @param xmlPath path to module.xml
+    * @return the content of the <code>artifactId</code> tag.
+    */
+   private String loadModuleXml(File xmlPath)
+   {
+      String name = xmlPath.getName();
+
+      File xmlFile = new File(xmlPath.getPath() + "/module.xml");
+      if (xmlFile.exists() && xmlFile.canRead())
+      {
+         try
+         {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(xmlFile);
+            doc.getDocumentElement().normalize();
+            NodeList nodes = doc.getElementsByTagName("artifactId");
+
+            for (int i = 0; i < nodes.getLength(); i++)
+            {
+               if (nodes.item(i).getParentNode().equals(doc.getElementsByTagName("project").item(0)))
+                  name = nodes.item(i).getTextContent();
+            }
+            
+         }
+         catch (Exception e)
+         {
+            // ignore
+            System.err.println("ERROR XML FILE");
+         }
+         
+      }
+      return name;
+   }
+
+   /**
     * Returns a initial Node System that is representing the Preview.
     * Only checked Elements in <code>viewer</code> are added.
     * 
-    * @param mode the mode simple / detail
+    * @param simpleMode 
     * @param viewer the CheckBoxTreeViewer 
     * @return the Node (system)
     */
-   public Node createNodeSystemForPreview(Mode mode, CheckboxTreeViewer viewer)
+   public Node createNodeSystemForPreview(boolean simpleMode, CheckboxTreeViewer viewer)
    {
       Node preViewerRoot = new Node();
 
@@ -261,25 +260,25 @@ public class ViewerInput
          if (viewer.getChecked(i))
          {
             Node ws = preViewerRoot;
-            if (mode == Mode.SIMPLE)
-               ws = new Node(preViewerRoot, i.getFile(), Node.Type.WORKINGSET, i.getName());
 
             for (Node j : i.getProjectChildren())
             {
                if (viewer.getChecked(j))
                {
-                  if (mode == Mode.SIMPLE)
-                     new Node(ws, j.getFile(), j.getType());
-                  if (mode == Mode.DETAIL)
+                  Node parent = j.getParent();
+                  if(simpleMode)
                   {
-                     if (!parentList.contains(j.getParent()))
+                     if(j.getParent().getType() == Node.Type.FOLDER)
                      {
-                        parentList.add(j.getParent());
-                        ws = new Node(preViewerRoot, j.getParent().getFile(), Node.Type.WORKINGSET, j.getWSName(j
-                           .getParent()));
+                        parent = j.getParent().getParent();
                      }
-                     new Node(ws, j.getFile(), j.getType());
                   }
+                  if (!parentList.contains(parent))
+                  {
+                     parentList.add(parent);
+                     ws = new Node(preViewerRoot, parent.getFile(), Node.Type.WORKINGSET, j.getWSName(parent));
+                  }
+                  new Node(ws, j.getFile(), j.getType());
                }
             }
          }

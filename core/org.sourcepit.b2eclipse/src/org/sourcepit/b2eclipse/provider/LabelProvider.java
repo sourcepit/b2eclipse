@@ -41,6 +41,7 @@ public class LabelProvider extends StyledCellLabelProvider
             break;
 
          case MODULE :
+         case FOLDER :
             label.append(node.getName());
             cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
             break;
