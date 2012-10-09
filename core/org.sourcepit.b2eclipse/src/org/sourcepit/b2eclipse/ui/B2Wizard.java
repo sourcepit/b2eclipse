@@ -8,7 +8,6 @@ package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -64,7 +63,7 @@ public class B2Wizard extends Wizard implements IImportWizard
 
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
-      mode = Mode.STRUCTURED;
+      mode = Mode.DETAIL;
       page = new B2WizardPage(Messages.msgImportHeader, this, selection);
       addPage(page);
 
@@ -133,7 +132,7 @@ public class B2Wizard extends Wizard implements IImportWizard
                break;
             }
          }
-         if (mode == Mode.STRUCTURED)
+         if (mode == Mode.DETAIL)
          {
             if (iter.getFile() == module.getFile())
             {
@@ -145,10 +144,11 @@ public class B2Wizard extends Wizard implements IImportWizard
       }
       if (!created)
       {
-         if(mode == Mode.SIMPLE)
-            new Node(new Node(root, node.getRootModel().getFile(), Node.Type.WORKINGSET), node.getFile(), node.getType());
-         
-         if (mode == Mode.STRUCTURED)
+         if (mode == Mode.SIMPLE)
+            new Node(new Node(root, node.getRootModel().getFile(), Node.Type.WORKINGSET), node.getFile(),
+               node.getType());
+
+         if (mode == Mode.DETAIL)
             new Node(new Node(root, module.getFile(), Node.Type.WORKINGSET, module.getWSName(module)), node.getFile(),
                node.getType());
       }
@@ -258,17 +258,17 @@ public class B2Wizard extends Wizard implements IImportWizard
       treeViewer.expandToLevel(2);
       doCheck(treeViewer, true);
 
-      previewTreeViewer.setInput(input.createNodeSystemForPreview(mode));
+      previewTreeViewer.setInput(input.createNodeSystemForPreview(mode, treeViewer));
 
       treeViewer.refresh();
       previewTreeViewer.refresh();
    }
 
-   public void setPreviewMode(Mode _mode, TreeViewer viewer)
+   public void setPreviewMode(Mode _mode, TreeViewer viewer, CheckboxTreeViewer treeViewer)
    {
       mode = _mode;
       if (input != null)
-         viewer.setInput(input.createNodeSystemForPreview(mode));
+         viewer.setInput(input.createNodeSystemForPreview(mode, treeViewer));
 
       viewer.refresh();
    }

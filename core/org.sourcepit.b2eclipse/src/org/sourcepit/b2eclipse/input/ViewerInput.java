@@ -13,6 +13,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -24,7 +25,7 @@ public class ViewerInput
 {
    public enum Mode
    {
-      STRUCTURED, SIMPLE
+      DETAIL, SIMPLE
    }
 
    Node dirViewerRoot;
@@ -246,30 +247,36 @@ public class ViewerInput
     * 
     * @return the Node (system)
     */
-   public Node createNodeSystemForPreview(Mode mode)
+   public Node createNodeSystemForPreview(Mode mode, CheckboxTreeViewer viewer)
    {
       Node preViewerRoot = new Node();
 
       List<Node> parentList = new ArrayList<Node>();
       for (Node i : dirViewerRoot.getChildren())
       {
-         Node ws = preViewerRoot;
-         if (mode == Mode.SIMPLE)
-            ws = new Node(preViewerRoot, i.getFile(), Node.Type.WORKINGSET, i.getName());
-
-         for (Node j : i.getProjectChildren())
+         if (viewer.getChecked(i))
          {
+            Node ws = preViewerRoot;
             if (mode == Mode.SIMPLE)
-               new Node(ws, j.getFile(), j.getType());
-            if (mode == Mode.STRUCTURED)
+               ws = new Node(preViewerRoot, i.getFile(), Node.Type.WORKINGSET, i.getName());
+
+            for (Node j : i.getProjectChildren())
             {
-               if (!parentList.contains(j.getParent()))
+               if (viewer.getChecked(j))
                {
-                  parentList.add(j.getParent());
-                  ws = new Node(preViewerRoot, j.getParent().getFile(), Node.Type.WORKINGSET,
-                     j.getWSName(j.getParent()));
+                  if (mode == Mode.SIMPLE)
+                     new Node(ws, j.getFile(), j.getType());
+                  if (mode == Mode.DETAIL)
+                  {
+                     if (!parentList.contains(j.getParent()))
+                     {
+                        parentList.add(j.getParent());
+                        ws = new Node(preViewerRoot, j.getParent().getFile(), Node.Type.WORKINGSET, j.getWSName(j
+                           .getParent()));
+                     }
+                     new Node(ws, j.getFile(), j.getType());
+                  }
                }
-               new Node(ws, j.getFile(), j.getType());
             }
          }
       }

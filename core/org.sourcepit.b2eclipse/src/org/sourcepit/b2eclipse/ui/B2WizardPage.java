@@ -426,11 +426,11 @@ public class B2WizardPage extends WizardPage
          {
             if (toggleMode.getSelection())
             {
-               bckend.setPreviewMode(Mode.SIMPLE, previewTreeViewer);
+               bckend.setPreviewMode(Mode.SIMPLE, previewTreeViewer, dirTreeViewer);
             }
             else
             {
-               bckend.setPreviewMode(Mode.STRUCTURED, previewTreeViewer);
+               bckend.setPreviewMode(Mode.DETAIL, previewTreeViewer, dirTreeViewer);
             }
          }
       });

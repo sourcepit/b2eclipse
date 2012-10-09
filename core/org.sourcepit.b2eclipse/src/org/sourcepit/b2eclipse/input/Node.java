@@ -55,7 +55,7 @@ public class Node
    }
 
    /**
-    * Creates a new Node under the <code>_parent</code> Node. 
+    * Creates a new Node under the <code>_parent</code> Node.
     * 
     * @param _parent the parent element
     * @param _file the given File
@@ -90,7 +90,8 @@ public class Node
     */
    public void deleteNode()
    {
-      if(parent != null){
+      if (parent != null)
+      {
          parent.removeChild(this);
       }
    }
@@ -124,7 +125,7 @@ public class Node
    {
       return name;
    }
-   
+
    public void setName(String _name)
    {
       name = _name;
@@ -166,7 +167,7 @@ public class Node
          {
             list.add(iter);
          }
-         if (iter.getType() == Type.MODULE ||iter.getType() == Type.WORKINGSET)
+         if (iter.getType() == Type.MODULE || iter.getType() == Type.WORKINGSET)
          {
             listProjects(iter, list);
          }
@@ -174,10 +175,10 @@ public class Node
    }
 
    /**
-    * Returns the Node which is equal to <code>_file</code>.
-    * Checks the file field. Searches recursive through the children. 
+    * Returns the Node which is equal to <code>_file</code>. Checks the file field. Searches recursive through the
+    * children.
     * 
-    * @param file 
+    * @param file
     * @return the node
     */
    public Node getEqualNode(File _file)
@@ -238,9 +239,10 @@ public class Node
       }
       return result;
    }
-   
+
    /**
     * Returns the Name for a Working Set.
+    * 
     * @param node
     * @return
     */
