@@ -76,6 +76,7 @@ public class B2WizardPage extends WizardPage
    private ToolItem add;
    private ToolItem delete;
    private ToolItem toggleMode;
+   private ToolItem expandAll;
 
    private B2Wizard bckend;
    private Shell dialogShell;
@@ -222,6 +223,10 @@ public class B2WizardPage extends WizardPage
       delete.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE));
       delete.setToolTipText(Messages.msgDelWSTt);
       delete.setEnabled(false);
+      
+      expandAll = new ToolItem(toolBarRight, SWT.PUSH);
+      expandAll.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_REDO));
+      //TODO tooltip & other Image
 
       toggleMode = new ToolItem(toolBarRight, SWT.CHECK);
       toggleMode.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_UP));
@@ -366,37 +371,15 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            boolean par = true;
-            String hold = "";
-            if (dirRadioBtn.getEnabled())
-            {
-               hold = dirTxt.getText();
-               par = true;
-            }
-            if (workspaceRadioBtn.getEnabled())
-            {
-               hold = workspaceTxt.getText();
-               par = false;
-            }
-
-            if (!hold.equals(""))
-            {
-               if (bckend.testOnLocalDrive(hold))
-               {
-                  if (par)
-                     dirTxt.setText(hold);
-                  else
-                     workspaceTxt.setText(hold);
-               }
-            }
+            bckend.handleDirTreeViewer(dirTreeViewer, previewTreeViewer, currentDirectory);
          }
-      });
+      });  
 
       selAll.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-            // TODO checkStateChanged fire
+            // TODO checkStateChanged fire / or sth else
             if (selAll.getSelection())
             {
                // check All
@@ -433,6 +416,15 @@ public class B2WizardPage extends WizardPage
 
             previewTreeViewer.refresh();
          }
+      });
+      
+      expandAll.addListener(SWT.Selection, new Listener(){
+
+         public void handleEvent(Event event)
+         {
+           previewTreeViewer.expandAll();
+         }
+         
       });
 
       toggleMode.addListener(SWT.Selection, new Listener()
