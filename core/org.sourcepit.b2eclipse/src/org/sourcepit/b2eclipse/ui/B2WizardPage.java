@@ -175,8 +175,6 @@ public class B2WizardPage extends WizardPage
       dirTreeViewer.setContentProvider(new ContentProvider());
       dirTreeViewer.setLabelProvider(new LabelProvider());
 
-      leftContainer.setBackground(dirTreeViewer.getControl().getBackground());
-
       refresh = new ToolItem(toolBarLeft, SWT.PUSH);
       refresh.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
          "$nl$/icons/full/elcl16/refresh.gif").createImage());
@@ -214,9 +212,6 @@ public class B2WizardPage extends WizardPage
       Transfer[] transfer = new Transfer[] { FileTransfer.getInstance() };
       previewTreeViewer.addDragSupport(DND.DROP_MOVE, transfer, new DragListener(previewTreeViewer));
       previewTreeViewer.addDropSupport(DND.DROP_MOVE, transfer, new DropListener(previewTreeViewer));
-
-
-      rightContainer.setBackground(previewTreeViewer.getControl().getBackground());
 
       add = new ToolItem(toolBarRight, SWT.PUSH);
       add.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ADD));

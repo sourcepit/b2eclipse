@@ -36,22 +36,36 @@ public class DropListener extends ViewerDropAdapter
 
       for (String iter : (String[]) data)
       {
-         if (iter != "" && target != null)
+         if (iter != "")
          {
             Node selected = ((Node) viewer.getInput()).getEqualNode(new File(iter));
             if (selected != null && selected.getType() == Node.Type.PROJECT)
             {
-               if (target.getType() == Node.Type.WORKINGSET)
+               if (target != null)
                {
-                  selected.getParent().removeChild(selected);
-                  selected.setParent(target);
-                  target.addChild(selected);
+                  switch (target.getType())
+                  {
+                     case WORKINGSET :
+                        selected.getParent().removeChild(selected);
+                        selected.setParent(target);
+                        target.addChild(selected);
+                        break;
+
+                     case PROJECT :
+                        selected.getParent().removeChild(selected);
+                        selected.setParent(target.getParent());
+                        target.getParent().addChild(selected);
+                        break;
+
+                     default :
+                        break;
+                  }
                }
-               else if (target.getType() == Node.Type.PROJECT)
+               if (target == null)
                {
                   selected.getParent().removeChild(selected);
-                  selected.setParent(target.getParent());
-                  target.getParent().addChild(selected);
+                  selected.setParent((Node) viewer.getInput());
+                  ((Node) viewer.getInput()).addChild(selected);
                }
             }
          }
@@ -63,9 +77,9 @@ public class DropListener extends ViewerDropAdapter
    @Override
    public boolean validateDrop(Object _target, int operation, TransferData transferType)
    {
-      if (_target instanceof Node)
-         return true;
-      return false;
+      // if (_target instanceof Node)
+      return true;
+      // return false;
    }
 
 }
