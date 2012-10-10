@@ -24,7 +24,7 @@ public class Node
    private List<Node> children;
    private Type type;
 
-   public enum Type
+   public static enum Type
    {
       MODULE, PROJECT, WORKINGSET, FOLDER
    }
@@ -37,9 +37,9 @@ public class Node
    /**
     * Creates a new Node under the <code>_parent</code> Node.
     * 
-    * @param _parent the parent element
-    * @param _file the given File
-    * @param _type the given Type
+    * @param _parent
+    * @param _file
+    * @param _type
     */
    public Node(Node _parent, File _file, Type _type)
    {
@@ -52,12 +52,13 @@ public class Node
    }
 
    /**
-    * Creates a new Node under the <code>_parent</code> Node.
-    * Is mainly used for WS and Modules.
+    * Creates a new Node under the <code>_parent</code> Node. Is mainly used for WS and Modules. Where the Name is
+    * different to File.
     * 
-    * @param _parent the parent element
-    * @param _file the given File
-    * @param _type the given Type
+    * @param _parent
+    * @param _file
+    * @param _type
+    * @param _name
     */
    public Node(Node _parent, File _file, Type _type, String _name)
    {
@@ -83,8 +84,7 @@ public class Node
    }
 
    /**
-    * delete the Node and its children, the same as <code> .remove(the Node) </code>.
-    * 
+    * Deletes the Node and its children.
     */
    public void deleteNode()
    {
@@ -176,7 +176,7 @@ public class Node
     * Returns the Node which is equal to <code>_file</code>. Checks the file field. Searches recursive through the
     * children.
     * 
-    * @param file
+    * @param _file
     * @return the node
     */
    public Node getEqualNode(File _file)

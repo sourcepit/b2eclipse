@@ -32,10 +32,12 @@ public class Messages extends NLS
    public static String msgRestoreTt;
    public static String msgSelectDeselectTt;
    public static String msgAddNewWSTt;
-   public static String msgDelWSTt;
-   public static String msgDefaultWSName;
+   public static String msgDelWSTt;   
    public static String msgToggleModeTt;
    public static String msgExpandAllTt;
+   
+   public static String msgDefaultWSName;   
+   public static String msgTask;
 
    static
    {

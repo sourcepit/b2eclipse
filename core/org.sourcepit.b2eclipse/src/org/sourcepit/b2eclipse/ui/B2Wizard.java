@@ -49,10 +49,9 @@ import org.sourcepit.b2eclipse.input.ViewerInput;
 @SuppressWarnings("restriction")
 public class B2Wizard extends Wizard implements IImportWizard
 {
-   private static String previouslyBrowsedDirectory = "";
-
    private B2WizardPage page;
    private ViewerInput input;
+   private String prevBrowsedDirectory;
    private boolean simpleMode;
 
    public B2Wizard()
@@ -63,8 +62,7 @@ public class B2Wizard extends Wizard implements IImportWizard
    public void init(IWorkbench workbench, IStructuredSelection selection)
    {
       simpleMode = false;
-      page = new B2WizardPage(Messages.msgImportHeader, this, selection);
-      addPage(page);
+      prevBrowsedDirectory = "";
 
       setWindowTitle(Messages.msgImportTitle);
       Image projectFolder = Activator.getImageFromPath("icons/ProjectFolder.gif");
@@ -72,88 +70,103 @@ public class B2Wizard extends Wizard implements IImportWizard
 
       setHelpAvailable(false);
       setNeedsProgressMonitor(true);
+
+      page = new B2WizardPage(Messages.msgImportHeader, this, selection);
+      addPage(page);
    }
 
+   /**
+    * Checks or unchecks all Elements in the Tree.
+    * 
+    * @param viewer
+    * @param state check or not?
+    */
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
       for (Node dad : ((Node) viewer.getInput()).getChildren())
       {
          viewer.setSubtreeChecked(dad, state);
       }
-      // TODO eyeCandy: nur wenn im Modul Projecte vorhanden sind, markieren
    }
 
 
    /**
-    * Delete the <code>node</code> from the <code>previevTreeViever</code>.
+    * Delete the <code>project</code> from the <code>previevTreeViever</code>.
     * 
     * @param previevTreeViever
-    * @param node
+    * @param project
     */
-   public void deleteProjectFromPrevievTree(TreeViewer previewTreeViewer, Node node)
+   public void deleteProjectFromPrevievTree(TreeViewer previewTreeViewer, Node project)
    {
-      Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(node.getFile());
-
-      if (imDead != null)
+      if (project.getType() == Node.Type.PROJECT) // Should always be true
       {
-         Node deadDad = imDead.getRootModel();
-         imDead.deleteNode();
+         Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(project.getFile());
 
-         if (deadDad.getChildren().size() == 0)
+         if (imDead != null)
          {
-            deadDad.deleteNode();
-         }
-      }
-      previewTreeViewer.refresh();
-   }
+            Node deadDad = imDead.getRootModel();
+            imDead.deleteNode();
 
-   /**
-    * Add the <code>node</code> to the <code>previevTreeViever</code>.
-    * 
-    * @param previevTreeViever
-    * @param node
-    */
-   public void addProjectToPrevievTree(TreeViewer previewTreeViewer, Node node)
-   {
-      Node root = (Node) previewTreeViewer.getInput();
-      boolean created = false;
-
-
-      Node parent = node.getParent();
-      if (simpleMode)
-      {
-         if (parent.getType() == Node.Type.FOLDER)
-            parent = node.getParent().getParent();
-      }
-
-      String wsName = node.getWSName(parent);
-
-      for (Node iter : root.getChildren())
-      {
-         if (iter.getType() == Node.Type.WORKINGSET)
-         {
-            if (iter.getName().equals(wsName))
+            if (deadDad.getChildren().size() == 0)
             {
-               new Node(iter, node.getFile(), node.getType());
-               created = true;
-               break;
+               deadDad.deleteNode();
             }
          }
+         previewTreeViewer.refresh();
       }
+   }
 
-      if (!created)
+   /**
+    * Add the <code>project</code> to the <code>previevTreeViever</code>. Also it checks if there is a corresponding
+    * Working Set for this Project, if not it also creates it.
+    * 
+    * @param previevTreeViever
+    * @param project
+    */
+   public void addProjectToPrevievTree(TreeViewer previewTreeViewer, Node project)
+   {
+      if (project.getType() == Node.Type.PROJECT) // Should always be true
       {
-         new Node(new Node(root, parent.getFile(), Node.Type.WORKINGSET, wsName), node.getFile(), node.getType());
-      }
+         Node root = (Node) previewTreeViewer.getInput();
+         boolean created = false;
 
-      previewTreeViewer.refresh();
+         Node parent = project.getParent();
+         if (simpleMode)
+         {
+            if (parent.getType() == Node.Type.FOLDER)
+               parent = project.getParent().getParent();
+         }
+
+         String wsName = project.getWSName(parent);
+
+         for (Node iter : root.getChildren())
+         {
+            if (iter.getType() == Node.Type.WORKINGSET)
+            {
+               if (iter.getName().equals(wsName))
+               {
+                  new Node(iter, project.getFile(), project.getType());
+                  created = true;
+                  break;
+               }
+            }
+         }
+
+         if (!created)
+         {
+            new Node(new Node(root, parent.getFile(), Node.Type.WORKINGSET, wsName), project.getFile(),
+               project.getType());
+         }
+
+         previewTreeViewer.refresh();
+      }
    }
 
    /**
     * Checks if the parent file is null.
     * 
     * @param selectedProject
-    * @return
+    * @return true if the parent file is not null, else false.
     */
    public boolean testOnLocalDrive(String selectedProject)
    {
@@ -169,12 +182,12 @@ public class B2Wizard extends Wizard implements IImportWizard
     * 
     * @param directoryName
     * @param dialogShell
-    * @return
+    * @return the chosen Directory or ""
     */
-   public String showDirectorySelectDialog(String directoryName, Shell dialogShell)
+   public String showDirectorySelectDialog(String directoryName, Shell parent)
    {
 
-      DirectoryDialog directoryDialog = new DirectoryDialog(dialogShell, SWT.OPEN);
+      DirectoryDialog directoryDialog = new DirectoryDialog(parent, SWT.OPEN);
 
       directoryDialog.setText(Messages.msgSelectDirTitle);
 
@@ -182,13 +195,13 @@ public class B2Wizard extends Wizard implements IImportWizard
       if (directoryName.length() == 0)
       {
 
-         if (previouslyBrowsedDirectory.length() == 0)
+         if (prevBrowsedDirectory.length() == 0)
          {
             directoryName = IDEWorkbenchPlugin.getPluginWorkspace().getRoot().getLocation().toOSString();
          }
          else
          {
-            directoryName = previouslyBrowsedDirectory;
+            directoryName = prevBrowsedDirectory;
          }
       }
       if (!new File(directoryName).exists())
@@ -203,7 +216,7 @@ public class B2Wizard extends Wizard implements IImportWizard
       {
          if (testOnLocalDrive(selectedDirectory))
          {
-            previouslyBrowsedDirectory = selectedDirectory;
+            prevBrowsedDirectory = selectedDirectory;
             return selectedDirectory;
          }
       }
@@ -214,11 +227,11 @@ public class B2Wizard extends Wizard implements IImportWizard
     * Shows a workspace select dialog.
     * 
     * @param dialogShell
-    * @return
+    * @return the chosen Directory or ""
     */
-   public String showWorkspaceSelectDialog(Shell dialogShell)
+   public String showWorkspaceSelectDialog(Shell parent)
    {
-      ElementTreeSelectionDialog dialog = new ElementTreeSelectionDialog(dialogShell, new WorkbenchLabelProvider(),
+      ElementTreeSelectionDialog dialog = new ElementTreeSelectionDialog(parent, new WorkbenchLabelProvider(),
          new BaseWorkbenchContentProvider());
       dialog.setTitle(Messages.msgSelectProjectTitle);
       dialog.setMessage(Messages.msgSelectProject);
@@ -257,11 +270,23 @@ public class B2Wizard extends Wizard implements IImportWizard
       previewTreeViewer.refresh();
    }
 
+   /**
+    * Sets the <code>simpleMode</code> flag, if in simple mode, ordinary folders will not be added as a WS entry in the
+    * <code>PreviewViewer</code>.
+    * 
+    * @param _simpleMode
+    */
    public void setPreviewMode(boolean _simpleMode)
    {
-      simpleMode = _simpleMode;      
+      simpleMode = _simpleMode;
    }
-   
+
+   /**
+    * Update the <code>PreviewViewer</code>, considering the checked elements in the <code>DirViewer</code>.
+    * 
+    * @param viewer the PreviewViewer
+    * @param treeViewer the DirViewer
+    */
    public void refreshPreviewViewer(TreeViewer viewer, CheckboxTreeViewer treeViewer)
    {
       if (input != null)
@@ -271,7 +296,9 @@ public class B2Wizard extends Wizard implements IImportWizard
    }
 
    /**
-    * Creates WorkingSets and Projects in the Workspace.
+    * Performs the finish of this Wizard. 
+    *  
+    * <br><br>{@inheritDoc}
     */
    @Override
    public boolean performFinish()
@@ -286,7 +313,7 @@ public class B2Wizard extends Wizard implements IImportWizard
                {
                   public void run(IProgressMonitor monitor) throws CoreException
                   {
-                     doStuff(monitor);
+                     doFinish(monitor);
                   }
                }, monitor);
             }
@@ -316,7 +343,13 @@ public class B2Wizard extends Wizard implements IImportWizard
       return true;
    }
 
-   private void doStuff(IProgressMonitor monitor) throws CoreException
+   /**
+    * Creates WorkingSets and Projects in the Workspace.
+    * 
+    * @param monitor
+    * @throws CoreException
+    */
+   private void doFinish(IProgressMonitor monitor) throws CoreException
    {
       final IWorkingSetManager wSmanager = PlatformUI.getWorkbench().getWorkingSetManager();
       final IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -326,16 +359,17 @@ public class B2Wizard extends Wizard implements IImportWizard
 
       try
       {
-         monitor.beginTask(Messages.msgSelectRootRbtn, length);
+         monitor.beginTask(Messages.msgTask, length);
          for (Node currentElement : root.getChildren())
          {
-            monitor.subTask(Messages.msgBrowseBtn + " " + currentElement.getName());
             if (currentElement.getType() == Node.Type.WORKINGSET)
             {
                String wsName = currentElement.getName();
+               monitor.subTask(wsName);
                IWorkingSet workingSet = wSmanager.getWorkingSet(wsName);
                if (workingSet == null)
                {
+                  // info:
                   // org.eclipse.ui.resourceWorkingSetPage = Resource WorkingSet
                   // org.eclipse.jdt.ui.JavaWorkingSetPage = Java WorkingSet
 
@@ -346,7 +380,8 @@ public class B2Wizard extends Wizard implements IImportWizard
 
                for (Node currentSubElement : currentElement.getChildren())
                {
-                  if (currentSubElement.getType() == Node.Type.PROJECT) // Sollte immer wahr sein
+                  monitor.subTask(currentSubElement.getName());
+                  if (currentSubElement.getType() == Node.Type.PROJECT) // Should always be true
                   {
                      IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(
                         currentSubElement.getFile().toString() + "/.project"));
@@ -354,16 +389,18 @@ public class B2Wizard extends Wizard implements IImportWizard
                      JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
 
                      wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
+                     monitor.worked(1);
                   }
-                  monitor.worked(1);
                }
             }
             if (currentElement.getType() == Node.Type.PROJECT)
             {
+               monitor.subTask(currentElement.getName());
                IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
                   .getFile().toString() + "/.project"));
                IProject project = workspace.getRoot().getProject(projectDescription.getName());
                JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+               monitor.worked(1);
             }
          }
       }

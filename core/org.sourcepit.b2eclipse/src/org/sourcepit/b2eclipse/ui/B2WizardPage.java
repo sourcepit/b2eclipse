@@ -182,7 +182,6 @@ public class B2WizardPage extends WizardPage
          "$nl$/icons/full/elcl16/refresh.gif").createImage());
       refresh.setToolTipText(Messages.msgRestoreTt);
 
-
       selAll = new ToolItem(toolBarLeft, SWT.CHECK);
       selAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
          "$nl$/icons/full/elcl16/step_done.gif").createImage());
@@ -261,7 +260,7 @@ public class B2WizardPage extends WizardPage
    }
 
    /**
-    * Will select an Directory and put it in the correct Widget if any directory was given.
+    * Will select an Directory and put it in the correct Widget, if any directory was given.
     */
    private void preSelect()
    {
@@ -545,7 +544,7 @@ public class B2WizardPage extends WizardPage
             else
             {
                dirTreeViewer.setSubtreeChecked(elementNode, false);
-               // TODO eyeCandy: wenn alle unterelemente unmarkiert das Oberelement unmarkieren
+               // TODO eyeCandy: if all sub elements are unchecked, uncheck the element 
 
                if (elementNode.getType() == Node.Type.PROJECT)
                   bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
@@ -560,7 +559,6 @@ public class B2WizardPage extends WizardPage
    }
 
    /**
-    * 
     * @return the root Node of the Preview Viewer
     */
    public Node getPreviewRootNode()
