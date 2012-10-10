@@ -223,10 +223,11 @@ public class B2WizardPage extends WizardPage
       delete.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE));
       delete.setToolTipText(Messages.msgDelWSTt);
       delete.setEnabled(false);
-      
+
       expandAll = new ToolItem(toolBarRight, SWT.PUSH);
-      expandAll.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_REDO));
-      //TODO tooltip & other Image
+      expandAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
+         "$nl$/icons/full/elcl16/expandall.gif").createImage());
+      expandAll.setToolTipText(Messages.msgExpandAllTt);
 
       toggleMode = new ToolItem(toolBarRight, SWT.CHECK);
       toggleMode.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_UP));
@@ -238,11 +239,22 @@ public class B2WizardPage extends WizardPage
          @SuppressWarnings("unchecked")
          public int compare(Viewer viewer, Object o1, Object o2)
          {
-            String name1 = ((Node) o1).getName();
-            String name2 = ((Node) o2).getName();
-            //TODO order of Project/ Module
+            Node n1 = ((Node) o1);
+            Node n2 = ((Node) o2);
 
-            return getComparator().compare(name1, name2);
+            if (n1.getType() == Node.Type.PROJECT && n2.getType() == Node.Type.PROJECT)
+            {
+               return getComparator().compare(n1.getName(), n2.getName());
+            }
+            if (n1.getType() == Node.Type.PROJECT)
+            {
+               return o2.hashCode();
+            }
+            if (n2.getType() == Node.Type.PROJECT)
+            {
+               return o1.hashCode();
+            }
+            return getComparator().compare(n1.getName(), n2.getName());
          }
       };
       previewTreeViewer.setComparator(compa);
@@ -373,7 +385,7 @@ public class B2WizardPage extends WizardPage
          {
             bckend.handleDirTreeViewer(dirTreeViewer, previewTreeViewer, currentDirectory);
          }
-      });  
+      });
 
       selAll.addListener(SWT.Selection, new Listener()
       {
@@ -417,14 +429,15 @@ public class B2WizardPage extends WizardPage
             previewTreeViewer.refresh();
          }
       });
-      
-      expandAll.addListener(SWT.Selection, new Listener(){
+
+      expandAll.addListener(SWT.Selection, new Listener()
+      {
 
          public void handleEvent(Event event)
          {
-           previewTreeViewer.expandAll();
+            previewTreeViewer.expandAll();
          }
-         
+
       });
 
       toggleMode.addListener(SWT.Selection, new Listener()

@@ -41,14 +41,19 @@ public class LabelProvider extends StyledCellLabelProvider
             break;
 
          case MODULE :
+            label.append(node.getName());
+            cell.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
+               "$nl$/icons/full/obj16/packagefolder_obj.gif").createImage());
+            break;
+
          case FOLDER :
             label.append(node.getName());
             cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
             break;
 
          case WORKINGSET :
-            DecorationOverlayIcon icon = new DecorationOverlayIcon(
-               AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui", "$nl$/icons/full/obj16/fldr_obj.gif").createImage(),
+            DecorationOverlayIcon icon = new DecorationOverlayIcon(AbstractUIPlugin.imageDescriptorFromPlugin(
+               "org.eclipse.ui", "$nl$/icons/full/obj16/fldr_obj.gif").createImage(),
                AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui", "$nl$/icons/full/ovr16/java_ovr.gif"),
                IDecoration.TOP_LEFT);
             label.append(node.getName());
