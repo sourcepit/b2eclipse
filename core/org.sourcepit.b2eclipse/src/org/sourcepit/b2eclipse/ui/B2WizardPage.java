@@ -187,11 +187,8 @@ public class B2WizardPage extends WizardPage
       selAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
          "$nl$/icons/full/elcl16/step_done.gif").createImage());
       selAll.setToolTipText(Messages.msgSelectDeselectTt);
-
-      // Zuerst den Listener anpassen
-      selAll.setEnabled(false);
-
-
+      
+      
       // The preview TreeViewer on right side
       Composite rightContainer = new Composite(container, SWT.BORDER);
       rightContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -391,19 +388,17 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            // TODO checkStateChanged fire / or sth else
             if (selAll.getSelection())
             {
                // check All
                bckend.doCheck(dirTreeViewer, true);
-
             }
             else
             {
-               // uncheck All
+               // un-check All
                bckend.doCheck(dirTreeViewer, false);
-
             }
+            bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
          }
       });
 
@@ -446,11 +441,13 @@ public class B2WizardPage extends WizardPage
          {
             if (toggleMode.getSelection())
             {
-               bckend.setPreviewMode(true, previewTreeViewer, dirTreeViewer);
+               bckend.setPreviewMode(true);
+               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
             }
             else
             {
-               bckend.setPreviewMode(false, previewTreeViewer, dirTreeViewer);
+               bckend.setPreviewMode(false);
+               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
             }
          }
       });

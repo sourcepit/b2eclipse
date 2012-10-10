@@ -12,7 +12,6 @@ import org.eclipse.osgi.util.NLS;
  * @author Marco Grupe <marco.grupe@googlemail.com>
  * @author WD
  */
-
 public class Messages extends NLS
 {
    private static final String BUNDLE_NAME = "org.sourcepit.b2eclipse.ui.messages"; //$NON-NLS-1$
@@ -29,15 +28,6 @@ public class Messages extends NLS
    public static String msgSelectProjectTitle;
    public static String msgSelectProject;
    public static String msgBrowseBtn;
-
-
-   public static String msgSelectAllBtn;
-   public static String msgSelectAllTt;
-   public static String msgDeselectAllBtn;
-   public static String msgDeselectAllTt;
-   public static String msgRefreshBtn;
-   public static String msgRefreshTt;
-   public static String msgEasyTt;
    
    public static String msgRestoreTt;
    public static String msgSelectDeselectTt;

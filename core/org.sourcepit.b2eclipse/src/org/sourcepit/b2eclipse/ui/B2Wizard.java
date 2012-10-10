@@ -257,9 +257,13 @@ public class B2Wizard extends Wizard implements IImportWizard
       previewTreeViewer.refresh();
    }
 
-   public void setPreviewMode(boolean _simpleMode, TreeViewer viewer, CheckboxTreeViewer treeViewer)
+   public void setPreviewMode(boolean _simpleMode)
    {
-      simpleMode = _simpleMode;
+      simpleMode = _simpleMode;      
+   }
+   
+   public void refreshPreviewViewer(TreeViewer viewer, CheckboxTreeViewer treeViewer)
+   {
       if (input != null)
          viewer.setInput(input.createNodeSystemForPreview(simpleMode, treeViewer));
 
