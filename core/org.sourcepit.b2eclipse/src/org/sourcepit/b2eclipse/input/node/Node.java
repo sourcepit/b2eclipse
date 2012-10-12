@@ -4,11 +4,10 @@
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
 
-package org.sourcepit.b2eclipse.input;
+package org.sourcepit.b2eclipse.input.node;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -18,16 +17,18 @@ import java.util.List;
  */
 public class Node
 {
-   private String name;
-   private File file;
-   private Node parent;
-   private List<Node> children;
-   private Type type;
-
-   public static enum Type
-   {
-      MODULE, PROJECT, WORKINGSET, FOLDER
-   }
+   protected String name;
+   protected File file;
+   protected Node parent;
+   protected ArrayList<Node> children;
+   
+   
+//   protected Type type;
+//
+//   public static enum Type
+//   {
+//      MODULE, PROJECT, WORKINGSET, FOLDER
+//   }
 
    public Node()
    {
@@ -41,15 +42,15 @@ public class Node
     * @param _file
     * @param _type
     */
-   public Node(Node _parent, File _file, Type _type)
-   {
-      children = new ArrayList<Node>();
-      file = _file;
-      name = _file.getName();
-      parent = _parent;
-      type = _type;
-      _parent.addChild(this);
-   }
+//   public Node(Node _parent, File _file, Type _type)
+//   {
+//      children = new ArrayList<Node>();
+//      file = _file;
+//      name = _file.getName();
+//      parent = _parent;
+//      type = _type;
+//      _parent.addChild(this);
+//   }
 
    /**
     * Creates a new Node under the <code>_parent</code> Node. Is mainly used for WS and Modules. Where the Name is
@@ -60,15 +61,15 @@ public class Node
     * @param _type
     * @param _name
     */
-   public Node(Node _parent, File _file, Type _type, String _name)
-   {
-      children = new ArrayList<Node>();
-      file = _file;
-      name = _name;
-      parent = _parent;
-      type = _type;
-      _parent.addChild(this);
-   }
+//   public Node(Node _parent, File _file, Type _type, String _name)
+//   {
+//      children = new ArrayList<Node>();
+//      file = _file;
+//      name = _name;
+//      parent = _parent;
+//      type = _type;
+//      _parent.addChild(this);
+//   }
 
    /**
     * delete the Node assigning the children to the parent.
@@ -109,7 +110,7 @@ public class Node
       children.remove(_child);
    }
 
-   public List<Node> getChildren()
+   public ArrayList<Node> getChildren()
    {
       return children;
    }
@@ -129,10 +130,10 @@ public class Node
       name = _name;
    }
 
-   public Type getType()
-   {
-      return type;
-   }
+//   public Type getType()
+//   {
+//      return type;
+//   }
 
    public File getFile()
    {
@@ -144,9 +145,9 @@ public class Node
     * 
     * @return the list with "Project" Nodes
     */
-   public List<Node> getProjectChildren()
+   public ArrayList<Node> getProjectChildren()
    {
-      List<Node> list = new ArrayList<Node>();
+      ArrayList<Node> list = new ArrayList<Node>();
       listProjects(this, list);
       return list;
    }
@@ -157,11 +158,11 @@ public class Node
     * @param node the root Node
     * @param list the List for the "Project" Nodes
     */
-   private void listProjects(Node node, List<Node> list)
+   protected void listProjects(Node node, ArrayList<Node> list)
    {
       for (Node iter : node.getChildren())
       {
-         if (iter.getType() == Type.PROJECT)
+         if (iter instanceof NodeProject)
          {
             list.add(iter);
          }
@@ -191,7 +192,7 @@ public class Node
     * @param search
     * @return
     */
-   private Node searchEqual(File equal, Node search)
+   protected Node searchEqual(File equal, Node search)
    {
       Node result = null;
 

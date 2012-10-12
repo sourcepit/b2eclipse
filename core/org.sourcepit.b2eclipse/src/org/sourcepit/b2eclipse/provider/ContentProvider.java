@@ -8,7 +8,7 @@ package org.sourcepit.b2eclipse.provider;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.sourcepit.b2eclipse.input.Node;
+import org.sourcepit.b2eclipse.input.node.Node;
 
 /**
  * 

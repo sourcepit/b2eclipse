@@ -14,6 +14,12 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
+import org.sourcepit.b2eclipse.input.node.Node;
+import org.sourcepit.b2eclipse.input.node.NodeFolder;
+import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeProject;
+import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
+import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -73,7 +79,7 @@ public class ViewerInput
          {
             String name = loadModuleXml(path);
 
-            me = new Node(parent, path, Node.Type.MODULE, name);
+            me = new NodeModule(parent, path, name); 
 
             for (File iter : pathList)
             {
@@ -98,7 +104,7 @@ public class ViewerInput
 
 
    /**
-    * Returns false if Projects were found, at allowed positions. The return statement is only useful for recursion.
+    * Returns false if Projects were found, at allowed positions. The return statement is only used for recursion.
     * 
     * @param root the model root Node
     * @param path the path where should be searched (should be direct under the Model)
@@ -127,7 +133,7 @@ public class ViewerInput
       if (fileList.contains("module.xml"))
       {
          String name = loadModuleXml(path);
-         Node me = new Node(root, path, Node.Type.MODULE, name);
+         Node me = new NodeModule(root, path, name);
          for (File iter : pathList)
          {
             empty = searchForProjects(me, iter);
@@ -144,7 +150,7 @@ public class ViewerInput
          {
             if (iter.getName().equals("META-INF"))
             {
-               new Node(root, iter.getParentFile(), Node.Type.PROJECT);
+               new NodeProject(root, iter.getParentFile(), ProjectType.PDIR);
                empty = false;
             }
          }
@@ -165,14 +171,14 @@ public class ViewerInput
                   }
                }
                if (!exist)
-                  parent = new Node(root, currentPath.getParentFile(), Node.Type.FOLDER);
+                  parent = new NodeFolder(root, currentPath.getParentFile());
 
                for (File content : currentPath.listFiles())
                {
                   if (content.getName().equals("META-INF"))
                   {
                      // heist darunter ist ein Projekt
-                     new Node(parent, currentPath, Node.Type.PROJECT);
+                     new NodeProject(parent, currentPath, ProjectType.PDIR);
                      empty = false;
                   }
                }
@@ -268,7 +274,7 @@ public class ViewerInput
                   Node parent = j.getParent();
                   if(simpleMode)
                   {
-                     if(j.getParent().getType() == Node.Type.FOLDER)
+                     if(j.getParent() instanceof NodeFolder)
                      {
                         parent = j.getParent().getParent();
                      }
@@ -276,9 +282,9 @@ public class ViewerInput
                   if (!parentList.contains(parent))
                   {
                      parentList.add(parent);
-                     ws = new Node(preViewerRoot, parent.getFile(), Node.Type.WORKINGSET, j.getWSName(parent));
+                     ws = new NodeWorkingSet(preViewerRoot, j.getParent() );
                   }
-                  new Node(ws, j.getFile(), j.getType());
+                  new NodeProject(ws, j.getFile(), ProjectType.PWS);
                }
             }
          }

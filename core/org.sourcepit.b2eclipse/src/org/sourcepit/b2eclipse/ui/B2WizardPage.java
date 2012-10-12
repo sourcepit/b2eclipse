@@ -51,7 +51,9 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.sourcepit.b2eclipse.dnd.DragListener;
 import org.sourcepit.b2eclipse.dnd.DropListener;
-import org.sourcepit.b2eclipse.input.Node;
+import org.sourcepit.b2eclipse.input.node.Node;
+import org.sourcepit.b2eclipse.input.node.NodeProject;
+import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 
@@ -186,8 +188,8 @@ public class B2WizardPage extends WizardPage
       selAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
          "$nl$/icons/full/elcl16/step_done.gif").createImage());
       selAll.setToolTipText(Messages.msgSelectDeselectTt);
-      
-      
+
+
       // The preview TreeViewer on right side
       Composite rightContainer = new Composite(container, SWT.BORDER);
       rightContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -238,15 +240,15 @@ public class B2WizardPage extends WizardPage
             Node n1 = ((Node) o1);
             Node n2 = ((Node) o2);
 
-            if (n1.getType() == Node.Type.PROJECT && n2.getType() == Node.Type.PROJECT)
+            if (n1 instanceof NodeProject && n2 instanceof NodeProject)
             {
                return getComparator().compare(n1.getName(), n2.getName());
             }
-            if (n1.getType() == Node.Type.PROJECT)
+            if (n1 instanceof NodeProject)
             {
                return o2.hashCode();
             }
-            if (n2.getType() == Node.Type.PROJECT)
+            if (n2 instanceof NodeProject)
             {
                return o1.hashCode();
             }
@@ -406,7 +408,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            new Node((Node) previewTreeViewer.getInput(), new File(""), Node.Type.WORKINGSET, Messages.msgDefaultWSName);
+            new NodeWorkingSet((Node) previewTreeViewer.getInput(), Messages.msgDefaultWSName);
             previewTreeViewer.refresh();
          }
       });
@@ -417,7 +419,7 @@ public class B2WizardPage extends WizardPage
          public void handleEvent(Event event)
          {
             Node selected = (Node) ((IStructuredSelection) previewTreeViewer.getSelection()).getFirstElement();
-            if (selected.getType() == Node.Type.WORKINGSET)
+            if (selected instanceof NodeWorkingSet)
                selected.deleteNodeAssigningChildrenToParent();
 
             previewTreeViewer.refresh();
@@ -456,7 +458,7 @@ public class B2WizardPage extends WizardPage
          public void selectionChanged(SelectionChangedEvent event)
          {
             Node selected = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
-            if (selected != null && selected.getType() == Node.Type.WORKINGSET)
+            if (selected != null && selected instanceof NodeWorkingSet)
                delete.setEnabled(true);
             else
                delete.setEnabled(false);
@@ -534,7 +536,7 @@ public class B2WizardPage extends WizardPage
             {
                dirTreeViewer.setSubtreeChecked(elementNode, true);
 
-               if (elementNode.getType() == Node.Type.PROJECT)
+               if (elementNode instanceof NodeProject)
                   bckend.addProjectToPrevievTree(previewTreeViewer, elementNode);
                else
                   for (Node iter : elementNode.getProjectChildren())
@@ -544,9 +546,9 @@ public class B2WizardPage extends WizardPage
             else
             {
                dirTreeViewer.setSubtreeChecked(elementNode, false);
-               // TODO eyeCandy: if all sub elements are unchecked, uncheck the element 
+               // TODO eyeCandy: if all sub elements are unchecked, uncheck the element
 
-               if (elementNode.getType() == Node.Type.PROJECT)
+               if (elementNode instanceof NodeProject)
                   bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
                else
                   for (Node iter : elementNode.getProjectChildren())

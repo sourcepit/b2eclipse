@@ -40,7 +40,11 @@ import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
 import org.eclipse.ui.model.BaseWorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
 import org.sourcepit.b2eclipse.Activator;
-import org.sourcepit.b2eclipse.input.Node;
+import org.sourcepit.b2eclipse.input.node.Node;
+import org.sourcepit.b2eclipse.input.node.NodeFolder;
+import org.sourcepit.b2eclipse.input.node.NodeProject;
+import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
+import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
 import org.sourcepit.b2eclipse.input.ViewerInput;
 
 /**
@@ -98,7 +102,7 @@ public class B2Wizard extends Wizard implements IImportWizard
     */
    public void deleteProjectFromPrevievTree(TreeViewer previewTreeViewer, Node project)
    {
-      if (project.getType() == Node.Type.PROJECT) // Should always be true
+      if (project instanceof NodeProject) // Should always be true
       {
          Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(project.getFile());
 
@@ -125,7 +129,7 @@ public class B2Wizard extends Wizard implements IImportWizard
     */
    public void addProjectToPrevievTree(TreeViewer previewTreeViewer, Node project)
    {
-      if (project.getType() == Node.Type.PROJECT) // Should always be true
+      if (project instanceof NodeProject) // Should always be true
       {
          Node root = (Node) previewTreeViewer.getInput();
          boolean created = false;
@@ -133,7 +137,7 @@ public class B2Wizard extends Wizard implements IImportWizard
          Node parent = project.getParent();
          if (simpleMode)
          {
-            if (parent.getType() == Node.Type.FOLDER)
+            if (parent instanceof NodeFolder)
                parent = project.getParent().getParent();
          }
 
@@ -141,11 +145,11 @@ public class B2Wizard extends Wizard implements IImportWizard
 
          for (Node iter : root.getChildren())
          {
-            if (iter.getType() == Node.Type.WORKINGSET)
+            if (iter instanceof NodeWorkingSet)
             {
                if (iter.getName().equals(wsName))
                {
-                  new Node(iter, project.getFile(), project.getType());
+                  new NodeProject(iter, project.getFile(), ProjectType.PWS);
                   created = true;
                   break;
                }
@@ -154,8 +158,7 @@ public class B2Wizard extends Wizard implements IImportWizard
 
          if (!created)
          {
-            new Node(new Node(root, parent.getFile(), Node.Type.WORKINGSET, wsName), project.getFile(),
-               project.getType());
+            new NodeProject(new NodeWorkingSet(root, parent), project.getFile(), ProjectType.PWS);
          }
 
          previewTreeViewer.refresh();
@@ -296,9 +299,11 @@ public class B2Wizard extends Wizard implements IImportWizard
    }
 
    /**
-    * Performs the finish of this Wizard. 
-    *  
-    * <br><br>{@inheritDoc}
+    * Performs the finish of this Wizard.
+    * 
+    * <br>
+    * <br>
+    * {@inheritDoc}
     */
    @Override
    public boolean performFinish()
@@ -362,7 +367,7 @@ public class B2Wizard extends Wizard implements IImportWizard
          monitor.beginTask(Messages.msgTask, length);
          for (Node currentElement : root.getChildren())
          {
-            if (currentElement.getType() == Node.Type.WORKINGSET)
+            if (currentElement instanceof NodeWorkingSet)
             {
                String wsName = currentElement.getName();
                monitor.subTask(wsName);
@@ -381,7 +386,7 @@ public class B2Wizard extends Wizard implements IImportWizard
                for (Node currentSubElement : currentElement.getChildren())
                {
                   monitor.subTask(currentSubElement.getName());
-                  if (currentSubElement.getType() == Node.Type.PROJECT) // Should always be true
+                  if (currentSubElement instanceof NodeProject) // Should always be true
                   {
                      IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(
                         currentSubElement.getFile().toString() + "/.project"));
@@ -393,7 +398,7 @@ public class B2Wizard extends Wizard implements IImportWizard
                   }
                }
             }
-            if (currentElement.getType() == Node.Type.PROJECT)
+            if (currentElement instanceof NodeProject)
             {
                monitor.subTask(currentElement.getName());
                IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement

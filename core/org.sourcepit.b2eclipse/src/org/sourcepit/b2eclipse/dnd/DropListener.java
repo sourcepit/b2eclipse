@@ -11,7 +11,9 @@ import java.io.File;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.swt.dnd.TransferData;
-import org.sourcepit.b2eclipse.input.Node;
+import org.sourcepit.b2eclipse.input.node.Node;
+import org.sourcepit.b2eclipse.input.node.NodeProject;
+import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 
 /**
  * 
@@ -39,33 +41,28 @@ public class DropListener extends ViewerDropAdapter
          if (iter != "")
          {
             Node selected = ((Node) viewer.getInput()).getEqualNode(new File(iter));
-            if (selected != null && selected.getType() == Node.Type.PROJECT)
+            if (selected != null && selected instanceof NodeProject)
             {
                if (target != null)
                {
-                  switch (target.getType())
+                  if (target instanceof NodeWorkingSet)
                   {
-                     case WORKINGSET :
-                        selected.getParent().removeChild(selected);
-                        selected.setParent(target);
-                        target.addChild(selected);
-                        break;
-
-                     case PROJECT :
-                        selected.getParent().removeChild(selected);
-                        selected.setParent(target.getParent());
-                        target.getParent().addChild(selected);
-                        break;
-
-                     default :
-                        break;
+                     selected.getParent().removeChild(selected);
+                     selected.setParent(target);
+                     target.addChild((NodeProject)selected);
+                  }
+                  if (target instanceof NodeProject)
+                  {
+                     selected.getParent().removeChild(selected);
+                     selected.setParent(target.getParent());
+                     target.getParent().addChild((NodeProject)selected);
                   }
                }
                if (target == null)
                {
                   selected.getParent().removeChild(selected);
                   selected.setParent((Node) viewer.getInput());
-                  ((Node) viewer.getInput()).addChild(selected);
+                  ((Node) viewer.getInput()).addChild((NodeProject)selected);
                }
             }
          }

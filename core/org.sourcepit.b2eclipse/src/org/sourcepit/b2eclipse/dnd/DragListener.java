@@ -12,7 +12,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.dnd.DragSourceEvent;
 import org.eclipse.swt.dnd.DragSourceListener;
-import org.sourcepit.b2eclipse.input.Node;
+import org.sourcepit.b2eclipse.input.node.Node;
+import org.sourcepit.b2eclipse.input.node.NodeProject;
 
 
 /**
@@ -45,11 +46,11 @@ public class DragListener implements DragSourceListener
       transferData = new ArrayList<String>();
       for (Object iter : ((IStructuredSelection) viewer.getSelection()).toArray())
       {
-         if (((Node) iter).getType() != Node.Type.PROJECT)
-            event.doit = false;
+         if (((Node) iter) instanceof NodeProject)
+            transferData.add(((NodeProject) iter).getFile().toString());
          else
          {
-            transferData.add(((Node) iter).getFile().toString());
+            event.doit = false;
          }
       }
    }
