@@ -21,4 +21,9 @@ public class NodeProject extends Node
       parent = _parent;
       _parent.addChild(this);
    }
+   
+   public ProjectType getType()
+   {
+      return type;
+   }
 }

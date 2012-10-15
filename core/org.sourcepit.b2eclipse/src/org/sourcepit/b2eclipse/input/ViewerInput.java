@@ -20,6 +20,7 @@ import org.sourcepit.b2eclipse.input.node.NodeModule;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
+import org.sourcepit.b2eclipse.ui.Backend;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -282,7 +283,7 @@ public class ViewerInput
                   if (!parentList.contains(parent))
                   {
                      parentList.add(parent);
-                     ws = new NodeWorkingSet(preViewerRoot, j.getParent() );
+                     ws = new NodeWorkingSet(preViewerRoot, new Backend().getWSName(j.getParent()));
                   }
                   new NodeProject(ws, j.getFile(), ProjectType.PWS);
                }

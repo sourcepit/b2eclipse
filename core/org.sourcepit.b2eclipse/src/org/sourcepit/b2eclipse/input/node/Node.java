@@ -221,7 +221,7 @@ public class Node
     * 
     * @return the root Model
     */
-   public Node getRootModel()
+   public Node getRootModule()
    {
       Node result = null;
       if (parent == null)
@@ -232,29 +232,10 @@ public class Node
          result = this;
       else
       {
-         result = parent.getRootModel();
+         result = parent.getRootModule();
          if (result != null)
             return result;
       }
       return result;
-   }
-
-   /**
-    * Returns the Name for a Working Set.
-    * 
-    * @param node
-    * @return
-    */
-   public String getWSName(Node node)
-   {
-      String name = "";
-      Node mod = node.getRootModel();
-      while (node != mod)
-      {
-         name = "/" + node.getName() + name;
-         node = node.getParent();
-      }
-      name = node.getRootModel().getName() + name;
-      return name;
    }
 }

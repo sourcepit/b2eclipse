@@ -15,15 +15,18 @@ public class NodeModule extends Node
       parent = _parent;
       _parent.addChild(this);
       
-      prefix = "";
+      prefix = null;
    }
    
    public void setPrefix(String _prefix)
    {
-      prefix = _prefix;
+      if(_prefix != null)
+         prefix = new String(_prefix);
+      else 
+         prefix = null;
    }
    
-   public String setPrefix()
+   public String getPrefix()
    {
       return prefix;
    }  

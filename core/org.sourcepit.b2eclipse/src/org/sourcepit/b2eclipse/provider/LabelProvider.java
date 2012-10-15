@@ -46,6 +46,9 @@ public class LabelProvider extends StyledCellLabelProvider
       if (node instanceof NodeModule)
       {
          label.append(node.getName());
+         String fix = ((NodeModule) node).getPrefix();
+         if (fix != null)
+            label.append("  (" + fix + ")", StyledString.DECORATIONS_STYLER);
          cell.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
             "$nl$/icons/full/obj16/packagefolder_obj.gif").createImage());
       }
@@ -64,14 +67,8 @@ public class LabelProvider extends StyledCellLabelProvider
             IDecoration.TOP_LEFT);
          label.append(node.getName());
          cell.setImage(icon.createImage());
-         // TODO anderes Icon finden
+         // TODO maybe find a better icon
       }
-
-//      else // Should never happen!
-//      {
-//         label.append("unknown File, run for youre Life!");
-//         cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJS_WARN_TSK));
-//      }
 
       cell.setText(label.toString());
       cell.setStyleRanges(label.getStyleRanges());
