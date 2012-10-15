@@ -283,7 +283,7 @@ public class ViewerInput
                   if (!parentList.contains(parent))
                   {
                      parentList.add(parent);
-                     ws = new NodeWorkingSet(preViewerRoot, new Backend().getWSName(j.getParent()));
+                     ws = new NodeWorkingSet(preViewerRoot, new Backend().getWSName(parent));
                   }
                   new NodeProject(ws, j.getFile(), ProjectType.PWS);
                }
