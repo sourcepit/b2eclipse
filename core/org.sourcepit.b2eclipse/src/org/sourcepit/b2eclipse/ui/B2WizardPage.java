@@ -578,6 +578,7 @@ public class B2WizardPage extends WizardPage
             {
                dirTreeViewer.setSubtreeChecked(elementNode, true);
 
+//               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
                if (elementNode instanceof NodeProject)
                   bckend.addProjectToPrevievTree(previewTreeViewer, elementNode);
                else
@@ -590,7 +591,7 @@ public class B2WizardPage extends WizardPage
                dirTreeViewer.setSubtreeChecked(elementNode, false);
                // TODO eyeCandy: if all sub elements are unchecked, uncheck the element
                // TODO or remove the WS only if the Module is unchecked
-               
+//               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
 
                if (elementNode instanceof NodeProject)
                   bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);

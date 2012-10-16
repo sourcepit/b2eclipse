@@ -85,13 +85,13 @@ public class Backend
     * Delete the <code>project</code> from the <code>previevTreeViever</code>.
     * 
     * @param previevTreeViever
-    * @param project
+    * @param node
     */
-   public void deleteProjectFromPrevievTree(TreeViewer previewTreeViewer, Node project)
+   public void deleteProjectFromPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
-      if (project instanceof NodeProject) // Should always be true
+      if (node instanceof NodeProject || node instanceof NodeModule) // Should always be true
       {
-         Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(project.getFile());
+         Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(node.getFile());
 
          if (imDead != null)
          {
@@ -112,20 +112,20 @@ public class Backend
     * Working Set for this Project, if not it also creates it.
     * 
     * @param previevTreeViever
-    * @param project
+    * @param node
     */
-   public void addProjectToPrevievTree(TreeViewer previewTreeViewer, Node project)
+   public void addProjectToPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
-      if (project instanceof NodeProject) // Should always be true
+      if (node instanceof NodeProject ) // Should always be true
       {
          Node root = (Node) previewTreeViewer.getInput();
          boolean created = false;
 
-         Node parent = project.getParent();
+         Node parent = node.getParent();
          if (simpleMode)
          {
             if (parent instanceof NodeFolder)
-               parent = project.getParent().getParent();
+               parent = node.getParent().getParent();
          }
 
          String wsName = getWSName(parent);
@@ -136,7 +136,7 @@ public class Backend
             {
                if (iter.getName().equals(wsName))
                {
-                  new NodeProject(iter, project.getFile(), ProjectType.PWS);
+                  new NodeProject(iter, node.getFile(), ProjectType.PWS);
                   created = true;
                   break;
                }
@@ -145,7 +145,7 @@ public class Backend
 
          if (!created)
          {
-            new NodeProject(new NodeWorkingSet(root, getWSName(parent)), project.getFile(), ProjectType.PWS);
+            new NodeProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), ProjectType.PWS);
          }
 
          previewTreeViewer.refresh();
@@ -272,46 +272,40 @@ public class Backend
 
 
    /**
-    * Returns the Name for a Working Set. The given Node should be the Parent of the project Node.
+    * Returns the Name for a Working Set.
     * 
     * @param node
     * @return
     */
    public String getWSName(Node node)
    {
+      // If a Project Node was given
+      if (node instanceof NodeProject)
+         node = node.getParent();      
+      
       String name = "";
-      if (node instanceof NodeFolder)
+      
+      while (node.getParent() != null)
       {
-         name = "/" + node.getName();
+         if(node.getName() != null)
+         {
+            //Prefix check on Module Nodes
+            if (node instanceof NodeModule)
+            {
+               String fix = ((NodeModule) node).getPrefix();
+               if (fix != null)
+                  name = "/" + fix + name;
+               else
+                  name = "/" + node.getName() + name;
+            }
+            else
+               name = "/" + node.getName() + name;
+         }
          node = node.getParent();
       }
-
-      NodeModule mod = (NodeModule) node.getRootModule();
-
-      // Up to the top (But not to root only to ModuleRoot)
-      while (node != mod)
-      {
-         // Checks if there is a Prefix on this node
-         String fix = ((NodeModule) node).getPrefix();
-         if (fix != null)
-            name = "/" + fix + name;
-         else
-            name = "/" + node.getName() + name;
-
-         node = node.getParent();
-      }
-
-      // For removing the Module name if there is only one Root Module
-      if (mod.getParent().getChildren().size() > 1)
-      {
-         String fix = ((NodeModule) node).getPrefix();
-         if (fix != null)
-            name = "/" + fix + name;
-         else
-            name = "/" + node.getName() + name;
-      }
-      name = name.substring(1);
-      return name;
+      
+      // Substring because the first "/" 
+      return name.substring(1);
    }
 
    public String showInputDialog(Shell dialogShell)
