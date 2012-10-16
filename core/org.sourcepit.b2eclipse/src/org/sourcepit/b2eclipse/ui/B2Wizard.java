@@ -6,7 +6,9 @@
 
 package org.sourcepit.b2eclipse.ui;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
@@ -30,6 +32,7 @@ import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.node.Node;
+import org.sourcepit.b2eclipse.input.node.NodeModule;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 
@@ -146,25 +149,19 @@ public class B2Wizard extends Wizard implements IImportWizard
                for (Node currentSubElement : currentElement.getChildren())
                {
                   monitor.subTask(currentSubElement.getName());
-                  if (currentSubElement instanceof NodeProject) // Should always be true
+                  if (currentSubElement instanceof NodeProject || currentSubElement instanceof NodeModule)
                   {
-                     IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(
-                        currentSubElement.getFile().toString() + "/.project"));
-                     IProject project = workspace.getRoot().getProject(projectDescription.getName());
-                     JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-
+                     IProject project = createOrOpenProject(currentSubElement.getFile().toString(),
+                        currentSubElement.getName(), workspace);
                      wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
                      monitor.worked(1);
                   }
                }
             }
-            if (currentElement instanceof NodeProject)
+            if (currentElement instanceof NodeProject || currentElement instanceof NodeModule)
             {
                monitor.subTask(currentElement.getName());
-               IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(currentElement
-                  .getFile().toString() + "/.project"));
-               IProject project = workspace.getRoot().getProject(projectDescription.getName());
-               JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+               createOrOpenProject(currentElement.getFile().toString(), currentElement.getName(), workspace);
                monitor.worked(1);
             }
          }
@@ -173,5 +170,24 @@ public class B2Wizard extends Wizard implements IImportWizard
       {
          monitor.done();
       }
+   }
+
+   private IProject createOrOpenProject(String path, String name, IWorkspace workspace) throws CoreException
+   {
+      IProject project;
+      if (new File(path + "/.project").exists())
+      {
+         IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(path + "/.project"));
+         project = workspace.getRoot().getProject(projectDescription.getName());
+         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+      }
+      else
+      {
+         IProjectDescription projectDescription = workspace.newProjectDescription(name);
+         projectDescription.setLocation(new Path(path));
+         project = workspace.getRoot().getProject(projectDescription.getName());
+         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+      }
+      return project;
    }
 }

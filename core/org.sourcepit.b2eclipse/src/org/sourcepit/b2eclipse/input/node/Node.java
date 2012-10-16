@@ -238,4 +238,20 @@ public class Node
       }
       return result;
    }
+   
+   public ArrayList<Node> getAllSubNodes()
+   {
+      ArrayList<Node> tree = new ArrayList<Node>();
+      search(tree, this);      
+      return tree;
+   }
+   
+   protected void search(ArrayList<Node> tree, Node node)
+   {
+      for (Node iter : node.getChildren())
+      {
+         tree.add(iter);
+         search(tree, iter);
+      }
+   }
 }

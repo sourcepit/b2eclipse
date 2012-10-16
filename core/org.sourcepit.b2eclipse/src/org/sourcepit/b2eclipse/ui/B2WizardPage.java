@@ -593,12 +593,12 @@ public class B2WizardPage extends WizardPage
                // TODO or remove the WS only if the Module is unchecked
 //               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
 
-               if (elementNode instanceof NodeProject)
-                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
-               else
-                  for (Node iter : elementNode.getProjectChildren())
+//               if (elementNode instanceof NodeProject )
+//                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
+//               else
+                  for (Node iter : elementNode.getAllSubNodes())
                      bckend.deleteProjectFromPrevievTree(previewTreeViewer, iter);
-
+                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
                selAll.setSelection(false);
             }
          }
