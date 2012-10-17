@@ -19,6 +19,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
 
+@SuppressWarnings("restriction")
 public abstract class B2GitCheckoutHandler extends AbstractHandler
 {
    public Object getSelectedNode(ExecutionEvent event) throws ExecutionException

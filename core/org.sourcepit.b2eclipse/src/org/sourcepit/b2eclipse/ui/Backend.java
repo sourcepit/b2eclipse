@@ -331,8 +331,7 @@ public class Backend
 
    public String showInputDialog(Shell dialogShell)
    {
-      // TODO add some Messages
-      InputDialog dialog = new InputDialog(dialogShell, null, null, null, null);
+      InputDialog dialog = new InputDialog(dialogShell, Messages.msgInDialogTitle, Messages.msgInDialogMessage, null, null);
       if (dialog.open() == Window.OK)
          return dialog.getValue();
       else

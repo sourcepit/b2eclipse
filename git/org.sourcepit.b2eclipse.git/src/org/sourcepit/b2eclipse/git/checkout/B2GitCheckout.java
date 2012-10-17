@@ -10,8 +10,6 @@ import java.io.File;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.egit.ui.internal.repository.tree.FolderNode;
 import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNode;
 import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNodeType;
@@ -25,6 +23,7 @@ import org.sourcepit.b2eclipse.ui.B2Wizard;
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
 
+@SuppressWarnings("restriction")
 public class B2GitCheckout extends B2GitCheckoutHandler
 {
 

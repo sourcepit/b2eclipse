@@ -47,8 +47,7 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
-
+import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.dnd.DragListener;
 import org.sourcepit.b2eclipse.dnd.DropListener;
 import org.sourcepit.b2eclipse.input.node.Node;
@@ -182,19 +181,17 @@ public class B2WizardPage extends WizardPage
       dirTreeViewer.setLabelProvider(new LabelProvider());
 
       refresh = new ToolItem(toolBarLeft, SWT.PUSH);
-      refresh.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
-         "$nl$/icons/full/elcl16/refresh.gif").createImage());
+      refresh.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/elcl16/refresh.gif"));
       refresh.setToolTipText(Messages.msgRestoreTt);
 
       selAll = new ToolItem(toolBarLeft, SWT.CHECK);
-      selAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
-         "$nl$/icons/full/elcl16/step_done.gif").createImage());
+      selAll.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/step_done.gif"));
       selAll.setToolTipText(Messages.msgSelectDeselectTt);
 
       addPrefix = new ToolItem(toolBarLeft, SWT.PUSH);
-      addPrefix.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
-         "$nl$/icons/full/obj16/change.gif").createImage());
-      // TODO Tooltip
+      addPrefix.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/obj16/change.gif"));
+      //TODO find a better icon
+      addPrefix.setToolTipText(Messages.msgAddPrefixTt);
       addPrefix.setEnabled(false);
 
       // The preview TreeViewer on right side
@@ -230,8 +227,7 @@ public class B2WizardPage extends WizardPage
       delete.setEnabled(false);
 
       expandAll = new ToolItem(toolBarRight, SWT.PUSH);
-      expandAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
-         "$nl$/icons/full/elcl16/expandall.gif").createImage());
+      expandAll.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/expandall.gif"));
       expandAll.setToolTipText(Messages.msgExpandAllTt);
 
       toggleMode = new ToolItem(toolBarRight, SWT.CHECK);

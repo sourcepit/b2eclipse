@@ -43,6 +43,7 @@ import org.sourcepit.b2eclipse.ui.B2Wizard;
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
  */
+@SuppressWarnings("restriction")
 public class B2SVNCheckout extends B2SVNCheckoutHandler
 {
 

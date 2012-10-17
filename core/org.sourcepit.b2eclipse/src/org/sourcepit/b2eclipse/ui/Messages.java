@@ -35,6 +35,10 @@ public class Messages extends NLS
    public static String msgDelWSTt;   
    public static String msgToggleModeTt;
    public static String msgExpandAllTt;
+   public static String msgAddPrefixTt;
+   
+   public static String msgInDialogTitle;
+   public static String msgInDialogMessage;
    
    public static String msgDefaultWSName;   
    public static String msgTask;
