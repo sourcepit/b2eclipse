@@ -240,6 +240,7 @@ public class B2WizardPage extends WizardPage
          @SuppressWarnings("unchecked")
          public int compare(Viewer viewer, Object o1, Object o2)
          {
+            //TODO compare Modules
             Node n1 = ((Node) o1);
             Node n2 = ((Node) o2);
 

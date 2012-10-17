@@ -28,14 +28,14 @@ public class DropListener extends ViewerDropAdapter
    public DropListener(TreeViewer viewer)
    {
       super(viewer);
-      setFeedbackEnabled(false);
       this.viewer = viewer;
    }
 
    @Override
    public boolean performDrop(Object data)
    {
-      Node target = (Node) this.getCurrentTarget();
+      Node target = (Node) this.getCurrentTarget();      
+      int loc = this.getCurrentLocation();
 
       for (String iter : (String[]) data)
       {
@@ -59,7 +59,7 @@ public class DropListener extends ViewerDropAdapter
                      target.getParent().addChild((Node)selected);
                   }
                }
-               if (target == null)
+               if (loc == LOCATION_NONE || (target instanceof NodeWorkingSet && (loc == LOCATION_AFTER || loc == LOCATION_BEFORE)))
                {
                   selected.getParent().removeChild(selected);
                   selected.setParent((Node) viewer.getInput());
