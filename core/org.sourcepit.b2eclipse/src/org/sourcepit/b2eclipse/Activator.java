@@ -84,11 +84,16 @@ public class Activator extends AbstractUIPlugin
     */
    public static Image getImageFromPath(String path)
    {
+      final String symbolicName = module.getBundle().getSymbolicName();
+      return getImageFromPath(symbolicName, path);
+   }
+
+   public static Image getImageFromPath(final String symbolicName, String path)
+   {
       Image image = module.getImageRegistry().get(path);
       if (image == null)
       {
-         ImageDescriptor descriptor = AbstractUIPlugin.imageDescriptorFromPlugin(module.getBundle().getSymbolicName(),
-            path);
+         ImageDescriptor descriptor = AbstractUIPlugin.imageDescriptorFromPlugin(symbolicName, path);
          if (descriptor != null)
          {
             module.getImageRegistry().put(path, descriptor);
@@ -97,6 +102,4 @@ public class Activator extends AbstractUIPlugin
       }
       return image;
    }
-
-
 }

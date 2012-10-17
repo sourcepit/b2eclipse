@@ -305,6 +305,12 @@ public class B2WizardPage extends WizardPage
             selAll.setSelection(true);
             setPageComplete(true);
          }
+         else
+         {
+            dirRadioBtn.setSelection(true);
+            workspaceTxt.setEnabled(false);
+            workspaceBtn.setEnabled(false);
+         }
       }
       else
       {

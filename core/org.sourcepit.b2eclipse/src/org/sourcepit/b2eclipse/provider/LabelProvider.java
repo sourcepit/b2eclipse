@@ -7,14 +7,17 @@
 package org.sourcepit.b2eclipse.provider;
 
 
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
 import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.node.Node;
 import org.sourcepit.b2eclipse.input.node.NodeFolder;
 import org.sourcepit.b2eclipse.input.node.NodeModule;
@@ -49,8 +52,7 @@ public class LabelProvider extends StyledCellLabelProvider
          String fix = ((NodeModule) node).getPrefix();
          if (fix != null)
             label.append("  (" + fix + ")", StyledString.DECORATIONS_STYLER);
-         cell.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
-            "$nl$/icons/full/obj16/packagefolder_obj.gif").createImage());
+         cell.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/obj16/packagefolder_obj.gif"));
       }
 
       if (node instanceof NodeFolder)
@@ -61,12 +63,18 @@ public class LabelProvider extends StyledCellLabelProvider
 
       if (node instanceof NodeWorkingSet)
       {
-         DecorationOverlayIcon icon = new DecorationOverlayIcon(AbstractUIPlugin.imageDescriptorFromPlugin(
-            "org.eclipse.ui", "$nl$/icons/full/obj16/fldr_obj.gif").createImage(),
-            AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui", "$nl$/icons/full/ovr16/java_ovr.gif"),
-            IDecoration.TOP_LEFT);
+         ImageRegistry imageRegistry = Activator.getDefault().getImageRegistry();
+         String key = "foo";
+         Image i = imageRegistry.get(key);
+         if (i == null)
+         {
+            DecorationOverlayIcon icon = new DecorationOverlayIcon(Activator.getImageFromPath("org.eclipse.ui",
+               "$nl$/icons/full/obj16/fldr_obj.gif"), AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
+               "$nl$/icons/full/ovr16/java_ovr.gif"), IDecoration.TOP_LEFT);            
+            imageRegistry.put(key, icon.createImage());
+         }
          label.append(node.getName());
-         cell.setImage(icon.createImage());
+         cell.setImage(imageRegistry.get(key));
          // TODO maybe find a better icon
       }
 
