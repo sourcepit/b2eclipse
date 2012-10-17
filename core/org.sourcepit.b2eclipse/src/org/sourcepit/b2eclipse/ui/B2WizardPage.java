@@ -51,7 +51,10 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 import org.sourcepit.b2eclipse.dnd.DragListener;
 import org.sourcepit.b2eclipse.dnd.DropListener;
-import org.sourcepit.b2eclipse.input.Node;
+import org.sourcepit.b2eclipse.input.node.Node;
+import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeProject;
+import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.provider.LabelProvider;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 
@@ -73,12 +76,13 @@ public class B2WizardPage extends WizardPage
 
    private ToolItem refresh;
    private ToolItem selAll;
+   private ToolItem addPrefix;
    private ToolItem add;
    private ToolItem delete;
    private ToolItem toggleMode;
    private ToolItem expandAll;
 
-   private B2Wizard bckend;
+   private Backend bckend;
    private Shell dialogShell;
    private IStructuredSelection preSelect;
    private String currentDirectory;
@@ -90,7 +94,7 @@ public class B2WizardPage extends WizardPage
       setPageComplete(false);
       setTitle(Messages.msgImportHeader);
       setDescription(Messages.msgImportSuperscription);
-      bckend = parent;
+      bckend = new Backend();
       preSelect = selection;
    }
 
@@ -186,8 +190,13 @@ public class B2WizardPage extends WizardPage
       selAll.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.ui",
          "$nl$/icons/full/elcl16/step_done.gif").createImage());
       selAll.setToolTipText(Messages.msgSelectDeselectTt);
-      
-      
+
+      addPrefix = new ToolItem(toolBarLeft, SWT.PUSH);
+      addPrefix.setImage(AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
+         "$nl$/icons/full/obj16/change.gif").createImage());
+      // TODO Tooltip
+      addPrefix.setEnabled(false);
+
       // The preview TreeViewer on right side
       Composite rightContainer = new Composite(container, SWT.BORDER);
       rightContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -238,15 +247,15 @@ public class B2WizardPage extends WizardPage
             Node n1 = ((Node) o1);
             Node n2 = ((Node) o2);
 
-            if (n1.getType() == Node.Type.PROJECT && n2.getType() == Node.Type.PROJECT)
+            if (n1 instanceof NodeProject && n2 instanceof NodeProject)
             {
                return getComparator().compare(n1.getName(), n2.getName());
             }
-            if (n1.getType() == Node.Type.PROJECT)
+            if (n1 instanceof NodeProject)
             {
                return o2.hashCode();
             }
-            if (n2.getType() == Node.Type.PROJECT)
+            if (n2 instanceof NodeProject)
             {
                return o1.hashCode();
             }
@@ -292,7 +301,7 @@ public class B2WizardPage extends WizardPage
 
          if (bckend.testOnLocalDrive(currentDirectory))
          {
-            bckend.handleDirTreeViewer(dirTreeViewer, previewTreeViewer, currentDirectory);
+            bckend.handleTreeViewers(dirTreeViewer, previewTreeViewer, currentDirectory);
             selAll.setSelection(true);
             setPageComplete(true);
          }
@@ -364,7 +373,7 @@ public class B2WizardPage extends WizardPage
 
             if (bckend.testOnLocalDrive(currentDirectory))
             {
-               bckend.handleDirTreeViewer(dirTreeViewer, previewTreeViewer, currentDirectory);
+               bckend.handleTreeViewers(dirTreeViewer, previewTreeViewer, currentDirectory);
 
                selAll.setSelection(true);
 
@@ -379,7 +388,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            bckend.handleDirTreeViewer(dirTreeViewer, previewTreeViewer, currentDirectory);
+            bckend.handleTreeViewers(dirTreeViewer, previewTreeViewer, currentDirectory);
          }
       });
 
@@ -401,37 +410,69 @@ public class B2WizardPage extends WizardPage
          }
       });
 
+      addPrefix.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            // TODO don't reload the preview, only update
+            NodeModule selected = (NodeModule) ((IStructuredSelection) dirTreeViewer.getSelection()).getFirstElement();
+            if (selected != null)
+            {
+               // NodeWorkingSet equal = (NodeWorkingSet) ((Node)
+               // previewTreeViewer.getInput()).getEqualNameNode(bckend.getWSName(selected));
+               if (selected.getPrefix() == null)
+               {
+                  String prefix = bckend.showInputDialog(dialogShell);
+                  ((NodeModule) selected).setPrefix(prefix);
+                  // equal.setName(prefix);
+               }
+               else
+               {
+                  ((NodeModule) selected).setPrefix(null);
+                  // equal.setName(bckend.getWSName(selected));
+               }
+               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
+            }
+            dirTreeViewer.refresh();
+         }
+      });
+
+
       // adds a new working set
       add.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-            new Node((Node) previewTreeViewer.getInput(), new File(""), Node.Type.WORKINGSET, Messages.msgDefaultWSName);
+            new NodeWorkingSet((Node) previewTreeViewer.getInput(), Messages.msgDefaultWSName);
             previewTreeViewer.refresh();
          }
       });
 
-      // deletes the selected working set
+      // deletes the selected working set(s)
       delete.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
-            Node selected = (Node) ((IStructuredSelection) previewTreeViewer.getSelection()).getFirstElement();
-            if (selected.getType() == Node.Type.WORKINGSET)
-               selected.deleteNodeAssigningChildrenToParent();
+            IStructuredSelection selection = (IStructuredSelection) previewTreeViewer.getSelection();
 
+            if (!selection.isEmpty())
+            {
+               for (Object iter : (Object[]) selection.toArray())
+               {
+                  if (iter instanceof NodeWorkingSet)
+                     ((Node) iter).deleteNodeAssigningChildrenToParent();
+               }
+            }
             previewTreeViewer.refresh();
          }
       });
 
       expandAll.addListener(SWT.Selection, new Listener()
       {
-
          public void handleEvent(Event event)
          {
             previewTreeViewer.expandAll();
          }
-
       });
 
       toggleMode.addListener(SWT.Selection, new Listener()
@@ -451,73 +492,93 @@ public class B2WizardPage extends WizardPage
          }
       });
 
+      dirTreeViewer.addSelectionChangedListener(new ISelectionChangedListener()
+      {
+         public void selectionChanged(SelectionChangedEvent event)
+         {
+            Node selected = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
+            if (selected != null && selected instanceof NodeModule)
+               addPrefix.setEnabled(true);
+            else
+               addPrefix.setEnabled(false);
+         }
+      });
+
       previewTreeViewer.addSelectionChangedListener(new ISelectionChangedListener()
       {
          public void selectionChanged(SelectionChangedEvent event)
          {
             Node selected = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
-            if (selected != null && selected.getType() == Node.Type.WORKINGSET)
+            if (selected != null && selected instanceof NodeWorkingSet)
                delete.setEnabled(true);
             else
                delete.setEnabled(false);
          }
       });
 
+
       // user can change the name of a WorkingSet after double click on it
       previewTreeViewer.addDoubleClickListener(new IDoubleClickListener()
       {
+         // TODO would be nice if "F2" would also work
          public void doubleClick(DoubleClickEvent event)
          {
             setPageComplete(false);
             final Node node = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
 
-            final TreeEditor editor = new TreeEditor(previewTreeViewer.getTree());
-            editor.horizontalAlignment = SWT.LEFT;
-            editor.grabHorizontal = true;
-
-            final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
-            final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
-            txt.setText(node.getName());
-            txt.selectAll();
-            txt.setFocus();
-
-            txt.addFocusListener(new FocusListener()
+            // Only for Working Sets
+            if (node instanceof NodeWorkingSet)
             {
-               public void focusLost(FocusEvent e)
-               {
-                  node.setName(txt.getText());
-                  txt.dispose();
-                  previewTreeViewer.refresh();
-                  setPageComplete(true);
-               }
+               final TreeEditor editor = new TreeEditor(previewTreeViewer.getTree());
+               editor.horizontalAlignment = SWT.LEFT;
+               editor.grabHorizontal = true;
 
-               public void focusGained(FocusEvent e)
-               {
-               }
-            });
+               final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
+               final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
+               txt.setText(node.getName());
+               txt.selectAll();
+               txt.setFocus();
 
-            txt.addKeyListener(new KeyListener()
-            {
-               public void keyPressed(KeyEvent e)
+               txt.addFocusListener(new FocusListener()
                {
-                  switch (e.keyCode)
+                  public void focusLost(FocusEvent e)
                   {
-                     case SWT.CR :
-                        node.setName(txt.getText());
-                     case SWT.ESC :
-                        txt.dispose();
-                        previewTreeViewer.refresh();
-                        setPageComplete(true);
-                        break;
+                     node.setName(txt.getText());
+                     txt.dispose();
+                     previewTreeViewer.refresh();
+                     setPageComplete(true);
                   }
-               }
 
-               public void keyReleased(KeyEvent e)
+                  public void focusGained(FocusEvent e)
+                  {
+                     /* no use */
+                  }
+               });
+
+               txt.addKeyListener(new KeyListener()
                {
-               }
+                  public void keyPressed(KeyEvent e)
+                  {
+                     switch (e.keyCode)
+                     {
+                        case SWT.CR :
+                           node.setName(txt.getText());
+                        case SWT.ESC :
+                           txt.dispose();
+                           previewTreeViewer.refresh();
+                           setPageComplete(true);
+                           break;
+                     }
+                  }
 
-            });
-            editor.setEditor(txt, item);
+                  public void keyReleased(KeyEvent e)
+                  {
+                     /* no use */
+                  }
+
+               });
+               editor.setEditor(txt, item);
+            }
          }
       });
 
@@ -534,24 +595,21 @@ public class B2WizardPage extends WizardPage
             {
                dirTreeViewer.setSubtreeChecked(elementNode, true);
 
-               if (elementNode.getType() == Node.Type.PROJECT)
-                  bckend.addProjectToPrevievTree(previewTreeViewer, elementNode);
-               else
-                  for (Node iter : elementNode.getProjectChildren())
-                     bckend.addProjectToPrevievTree(previewTreeViewer, iter);
-
+               if (elementNode instanceof NodeProject || elementNode instanceof NodeModule)
+                  bckend.addToPrevievTree(previewTreeViewer, elementNode);
+               for (Node iter : elementNode.getAllSubNodes())
+               {
+                  if (iter instanceof NodeProject || iter instanceof NodeModule)
+                     bckend.addToPrevievTree(previewTreeViewer, iter);
+               }
             }
             else
             {
                dirTreeViewer.setSubtreeChecked(elementNode, false);
-               // TODO eyeCandy: if all sub elements are unchecked, uncheck the element 
 
-               if (elementNode.getType() == Node.Type.PROJECT)
-                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
-               else
-                  for (Node iter : elementNode.getProjectChildren())
-                     bckend.deleteProjectFromPrevievTree(previewTreeViewer, iter);
-
+               for (Node iter : elementNode.getAllSubNodes())
+                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, iter);
+               bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
                selAll.setSelection(false);
             }
          }

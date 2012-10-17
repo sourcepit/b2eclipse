@@ -9,17 +9,27 @@ package org.sourcepit.b2eclipse.input;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.eclipse.jface.viewers.CheckboxTreeViewer;
+import org.sourcepit.b2eclipse.input.node.Node;
+import org.sourcepit.b2eclipse.input.node.NodeFolder;
+import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeProject;
+import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
+import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
+import org.sourcepit.b2eclipse.ui.Backend;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 
 /**
  * The Input for the two Viewers in B2WizardPage.
+ * 
  * @author WD
  */
 public class ViewerInput
@@ -73,7 +83,7 @@ public class ViewerInput
          {
             String name = loadModuleXml(path);
 
-            me = new Node(parent, path, Node.Type.MODULE, name);
+            me = new NodeModule(parent, path, name);
 
             for (File iter : pathList)
             {
@@ -98,7 +108,7 @@ public class ViewerInput
 
 
    /**
-    * Returns false if Projects were found, at allowed positions. The return statement is only useful for recursion.
+    * Returns false if Projects were found, at allowed positions. The return statement is only used for recursion.
     * 
     * @param root the model root Node
     * @param path the path where should be searched (should be direct under the Model)
@@ -127,7 +137,7 @@ public class ViewerInput
       if (fileList.contains("module.xml"))
       {
          String name = loadModuleXml(path);
-         Node me = new Node(root, path, Node.Type.MODULE, name);
+         Node me = new NodeModule(root, path, name);
          for (File iter : pathList)
          {
             empty = searchForProjects(me, iter);
@@ -144,7 +154,7 @@ public class ViewerInput
          {
             if (iter.getName().equals("META-INF"))
             {
-               new Node(root, iter.getParentFile(), Node.Type.PROJECT);
+               new NodeProject(root, iter.getParentFile(), ProjectType.PDIR);
                empty = false;
             }
          }
@@ -165,14 +175,14 @@ public class ViewerInput
                   }
                }
                if (!exist)
-                  parent = new Node(root, currentPath.getParentFile(), Node.Type.FOLDER);
+                  parent = new NodeFolder(root, currentPath.getParentFile());
 
                for (File content : currentPath.listFiles())
                {
                   if (content.getName().equals("META-INF"))
                   {
                      // heist darunter ist ein Projekt
-                     new Node(parent, currentPath, Node.Type.PROJECT);
+                     new NodeProject(parent, currentPath, ProjectType.PDIR);
                      empty = false;
                   }
                }
@@ -230,59 +240,82 @@ public class ViewerInput
                if (nodes.item(i).getParentNode().equals(doc.getElementsByTagName("project").item(0)))
                   name = nodes.item(i).getTextContent();
             }
-            
+
          }
          catch (Exception e)
          {
             // ignore
             System.err.println("ERROR XML FILE");
          }
-         
+
       }
       return name;
    }
 
    /**
-    * Returns a initial Node System that is representing the Preview.
-    * Only checked Elements in <code>viewer</code> are added.
+    * Returns a Node System that is representing the Preview View. Only checked Elements in <code>viewer</code> are
+    * added.
     * 
-    * @param simpleMode 
-    * @param viewer the CheckBoxTreeViewer 
+    * @param simpleMode
+    * @param viewer the CheckBoxTreeViewer
     * @return the Node (system)
     */
    public Node createNodeSystemForPreview(boolean simpleMode, CheckboxTreeViewer viewer)
    {
       Node preViewerRoot = new Node();
+      Map<String, Node> wsNames = new TreeMap<String, Node>();
+      
+      createNodes(preViewerRoot, dirViewerRoot , wsNames, simpleMode, viewer);
 
-      List<Node> parentList = new ArrayList<Node>();
-      for (Node i : dirViewerRoot.getChildren())
+      return preViewerRoot;
+   }
+
+
+   /**
+    * Searches recursive through the Node System and creates Working Sets and normal Projects or module Projects.
+    * 
+    * @param root
+    * @param wsNames a list for Working Set Names
+    */
+   private void createNodes(Node root, Node current, Map<String, Node> wsNames, boolean simpleMode, CheckboxTreeViewer viewer)
+   {
+      for (Node iter : current.getChildren())
       {
-         if (viewer.getChecked(i))
-         {
-            Node ws = preViewerRoot;
-
-            for (Node j : i.getProjectChildren())
+         if (viewer.getChecked(iter))
+         {         
+            //Check for Folder
+            if(!(iter instanceof NodeFolder))
             {
-               if (viewer.getChecked(j))
-               {
-                  Node parent = j.getParent();
+               String wsName = new Backend().getWSName(iter);
+               
+               //To skip the Folder Name in WS if simple mode
+               if (iter instanceof NodeProject)
                   if(simpleMode)
-                  {
-                     if(j.getParent().getType() == Node.Type.FOLDER)
-                     {
-                        parent = j.getParent().getParent();
-                     }
-                  }
-                  if (!parentList.contains(parent))
-                  {
-                     parentList.add(parent);
-                     ws = new Node(preViewerRoot, parent.getFile(), Node.Type.WORKINGSET, j.getWSName(parent));
-                  }
-                  new Node(ws, j.getFile(), j.getType());
+                     if(iter.getParent() instanceof NodeFolder)
+                        wsName = new Backend().getWSName(iter.getParent().getParent());
+                      
+               //Get the WS if there is any
+               Node ws;
+               if(wsNames.containsKey(wsName))
+                  ws = wsNames.get(wsName);
+               else
+               {
+                  ws = new NodeWorkingSet(root, wsName);
+                  wsNames.put(wsName, ws);
+               }
+                  
+               // Add Stuff to WS         
+               if (iter instanceof NodeProject)
+               {  
+                  new NodeProject(ws, iter.getFile(), ProjectType.PWS);
+               }
+               else if (iter instanceof NodeModule)
+               {
+                  new NodeModule(ws, iter.getFile(), iter.getName());
                }
             }
+            createNodes(root, iter, wsNames, simpleMode, viewer);
          }
       }
-      return preViewerRoot;
    }
 }

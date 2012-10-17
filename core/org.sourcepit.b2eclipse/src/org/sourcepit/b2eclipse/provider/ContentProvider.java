@@ -8,7 +8,7 @@ package org.sourcepit.b2eclipse.provider;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.sourcepit.b2eclipse.input.Node;
+import org.sourcepit.b2eclipse.input.node.Node;
 
 /**
  * 
@@ -20,17 +20,16 @@ public class ContentProvider implements ITreeContentProvider
 
    public void dispose()
    {
-      // TODO Auto-generated method stub
+      /* do nothing */
    }
 
    public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
    {
-      // TODO Auto-generated method stub
+      /* do nothing */
    }
 
    public Object[] getElements(Object inputElement)
    {
-      //Da oberstes root und nichts drin ist 
       return ((Node) inputElement).getChildren().toArray();
    }
 
