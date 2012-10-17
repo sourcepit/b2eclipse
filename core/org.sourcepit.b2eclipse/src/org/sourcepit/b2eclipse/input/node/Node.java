@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 
 /**
- * Class that represents the elements(Nodes).
+ * Class that represents the elements(Nodes). This one is only used for input root.
  * 
  * @author WD
  */
@@ -21,56 +21,12 @@ public class Node
    protected File file;
    protected Node parent;
    protected ArrayList<Node> children;
-   
-   
-//   protected Type type;
-//
-//   public static enum Type
-//   {
-//      MODULE, PROJECT, WORKINGSET, FOLDER
-//   }
 
    public Node()
    {
       children = new ArrayList<Node>();
    }
-
-   /**
-    * Creates a new Node under the <code>_parent</code> Node.
-    * 
-    * @param _parent
-    * @param _file
-    * @param _type
-    */
-//   public Node(Node _parent, File _file, Type _type)
-//   {
-//      children = new ArrayList<Node>();
-//      file = _file;
-//      name = _file.getName();
-//      parent = _parent;
-//      type = _type;
-//      _parent.addChild(this);
-//   }
-
-   /**
-    * Creates a new Node under the <code>_parent</code> Node. Is mainly used for WS and Modules. Where the Name is
-    * different to File.
-    * 
-    * @param _parent
-    * @param _file
-    * @param _type
-    * @param _name
-    */
-//   public Node(Node _parent, File _file, Type _type, String _name)
-//   {
-//      children = new ArrayList<Node>();
-//      file = _file;
-//      name = _name;
-//      parent = _parent;
-//      type = _type;
-//      _parent.addChild(this);
-//   }
-
+   
    /**
     * delete the Node assigning the children to the parent.
     */
@@ -129,11 +85,6 @@ public class Node
    {
       name = _name;
    }
-
-//   public Type getType()
-//   {
-//      return type;
-//   }
 
    public File getFile()
    {
@@ -216,6 +167,49 @@ public class Node
    }
 
    /**
+    * Returns the Node which is equal to <code>_name</code>. Checks the name field. Searches recursive through the
+    * children.
+    * 
+    * @param _file
+    * @return the node
+    */
+   public Node getEqualNameNode(String name)
+   {
+      // TODO return a array of WS nodes ...... think about
+      return searchNameEqual(name, this);
+   }
+
+   /**
+    * Checks only the equality of the <code>name</code> field.
+    * 
+    * @param equal
+    * @param search
+    * @return
+    */
+   protected Node searchNameEqual(String equal, Node search)
+   {
+      Node result = null;
+
+      for (Node iter : search.getChildren())
+      {
+
+         if (iter.getName().equals(equal))
+
+            return iter;
+
+         else
+         {
+            result = searchNameEqual(equal, iter);
+            if (result != null)
+            {
+               return result;
+            }
+         }
+      }
+      return result;
+   }
+
+   /**
     * The existing Parent, which is a representation of a Model, not the "abstract" root. If its already the rootModel
     * returns null.
     * 
@@ -238,14 +232,14 @@ public class Node
       }
       return result;
    }
-   
+
    public ArrayList<Node> getAllSubNodes()
    {
       ArrayList<Node> tree = new ArrayList<Node>();
-      search(tree, this);      
+      search(tree, this);
       return tree;
    }
-   
+
    protected void search(ArrayList<Node> tree, Node node)
    {
       for (Node iter : node.getChildren())

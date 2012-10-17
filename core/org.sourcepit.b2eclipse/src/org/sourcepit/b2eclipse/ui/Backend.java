@@ -114,42 +114,63 @@ public class Backend
     * @param previevTreeViever
     * @param node
     */
-   public void addProjectToPrevievTree(TreeViewer previewTreeViewer, Node node)
+   public void addToPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
-      if (node instanceof NodeProject ) // Should always be true
+
+      Node root = (Node) previewTreeViewer.getInput();
+      boolean created = false;
+
+      Node parent = node.getParent();
+      
+      if(node instanceof NodeModule)
+         parent = node;
+      
+      if (simpleMode)
       {
-         Node root = (Node) previewTreeViewer.getInput();
-         boolean created = false;
+         if (parent instanceof NodeFolder)
+            parent = node.getParent().getParent();
+      }
 
-         Node parent = node.getParent();
-         if (simpleMode)
+      String wsName = getWSName(parent);
+
+      for (Node iter : root.getChildren())
+      {
+         if (iter instanceof NodeWorkingSet)
          {
-            if (parent instanceof NodeFolder)
-               parent = node.getParent().getParent();
-         }
-
-         String wsName = getWSName(parent);
-
-         for (Node iter : root.getChildren())
-         {
-            if (iter instanceof NodeWorkingSet)
+            if (iter.getName().equals(wsName))
             {
-               if (iter.getName().equals(wsName))
+               if (node instanceof NodeProject)
                {
                   new NodeProject(iter, node.getFile(), ProjectType.PWS);
                   created = true;
                   break;
                }
+               if (node instanceof NodeModule)
+               {
+                  new NodeModule(iter, node.getFile(), node.getName());
+                  created = true;
+                  break;
+               }
+
             }
          }
+      }
 
-         if (!created)
+      if (!created)
+      {
+
+         if (node instanceof NodeProject)
          {
             new NodeProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), ProjectType.PWS);
          }
-
-         previewTreeViewer.refresh();
+         if (node instanceof NodeModule)
+         {
+            new NodeModule(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), node.getName());
+         }
       }
+
+      previewTreeViewer.refresh();
+
    }
 
    /**
@@ -281,15 +302,15 @@ public class Backend
    {
       // If a Project Node was given
       if (node instanceof NodeProject)
-         node = node.getParent();      
-      
+         node = node.getParent();
+
       String name = "";
-      
+
       while (node.getParent() != null)
       {
-         if(node.getName() != null)
+         if (node.getName() != null)
          {
-            //Prefix check on Module Nodes
+            // Prefix check on Module Nodes
             if (node instanceof NodeModule)
             {
                String fix = ((NodeModule) node).getPrefix();
@@ -303,14 +324,14 @@ public class Backend
          }
          node = node.getParent();
       }
-      
-      // Substring because the first "/" 
+
+      // Substring because the first "/"
       return name.substring(1);
    }
 
    public String showInputDialog(Shell dialogShell)
    {
-      //TODO add some Messages
+      // TODO add some Messages
       InputDialog dialog = new InputDialog(dialogShell, null, null, null, null);
       if (dialog.open() == Window.OK)
          return dialog.getValue();
