@@ -266,6 +266,7 @@ public class ViewerInput
     */
    public Node createNodeSystemForPreview(boolean simpleMode, CheckboxTreeViewer viewer)
    {
+      //TODO Currently not used, maybe delete
       Node preViewerRoot = new Node();
       Map<String, Node> wsNames = new TreeMap<String, Node>();
 
@@ -286,7 +287,7 @@ public class ViewerInput
    {
       for (Node iter : current.getChildren())
       {
-         if (viewer.getChecked(iter))
+         if (viewer.getChecked(iter) && !iter.hasConflict())
          {
             // Check for Folder
             if (!(iter instanceof NodeFolder))
@@ -320,8 +321,9 @@ public class ViewerInput
                   new NodeModuleProject(ws, iter.getFile(), iter.getName());
                }
             }
-         }
+         
          createNodes(root, iter, wsNames, simpleMode, viewer);
+         }
       }
    }
 }

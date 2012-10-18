@@ -88,7 +88,8 @@ public class B2WizardPage extends WizardPage
    private IStructuredSelection preSelect;
    private String currentDirectory;
 
-
+   // TODO work it! .. i need a glass of water ..
+   
    protected B2WizardPage(String pageName, B2Wizard parent, IStructuredSelection selection)
    {
       super(pageName);
@@ -101,7 +102,6 @@ public class B2WizardPage extends WizardPage
 
    public void createControl(Composite parent)
    {
-
       initializeDialogUnits(parent);
 
       dialogShell = parent.getShell();
@@ -196,6 +196,7 @@ public class B2WizardPage extends WizardPage
       addPrefix.setToolTipText(Messages.msgAddPrefixTt);
       addPrefix.setEnabled(false);
 
+
       // The preview TreeViewer on right side
       Composite rightContainer = new Composite(container, SWT.BORDER);
       rightContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -218,6 +219,9 @@ public class B2WizardPage extends WizardPage
       Transfer[] transfer = new Transfer[] { FileTransfer.getInstance() };
       previewTreeViewer.addDragSupport(DND.DROP_MOVE, transfer, new DragListener(previewTreeViewer));
       previewTreeViewer.addDropSupport(DND.DROP_MOVE, transfer, new DropListener(previewTreeViewer));
+
+      // init Node for preview
+      previewTreeViewer.setInput(new Node());
 
       add = new ToolItem(toolBarRight, SWT.PUSH);
       add.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ADD));
@@ -245,6 +249,7 @@ public class B2WizardPage extends WizardPage
             Node n1 = ((Node) o1);
             Node n2 = ((Node) o2);
 
+            // Module Projects always on top
             if (n1 instanceof NodeModuleProject)
                return -1;
             if (n2 instanceof NodeModuleProject)
@@ -304,7 +309,10 @@ public class B2WizardPage extends WizardPage
 
          if (bckend.testOnLocalDrive(currentDirectory))
          {
-            bckend.handleTreeViewers(dirTreeViewer, previewTreeViewer, currentDirectory);
+            bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
+            bckend.doCheck(dirTreeViewer, true);
+            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+
             selAll.setSelection(true);
             setPageComplete(true);
          }
@@ -378,12 +386,16 @@ public class B2WizardPage extends WizardPage
       {
          public void modifyText(ModifyEvent e)
          {
-            currentDirectory = ((Text) e.widget).getText();
-
+            setPageComplete(false);
+            currentDirectory = ((Text) e.widget).getText();            
+            
             if (bckend.testOnLocalDrive(currentDirectory))
             {
-               bckend.handleTreeViewers(dirTreeViewer, previewTreeViewer, currentDirectory);
-
+               previewTreeViewer.setInput(new Node());
+               bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
+               bckend.doCheck(dirTreeViewer, true);
+               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+               
                selAll.setSelection(true);
 
                setPageComplete(true);
@@ -397,7 +409,17 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            bckend.handleTreeViewers(dirTreeViewer, previewTreeViewer, currentDirectory);
+            setPageComplete(false);
+            
+            //TODO do the same stuff as modLis
+            previewTreeViewer.setInput(new Node());
+            bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
+            bckend.doCheck(dirTreeViewer, true);
+            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+            
+            selAll.setSelection(true);
+
+            setPageComplete(true);
          }
       });
 
@@ -405,6 +427,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
+            setPageComplete(false);
             if (selAll.getSelection())
             {
                // check All
@@ -415,7 +438,8 @@ public class B2WizardPage extends WizardPage
                // un-check All
                bckend.doCheck(dirTreeViewer, false);
             }
-            bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
+            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+            setPageComplete(true);
          }
       });
 
@@ -423,6 +447,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
+            setPageComplete(false);
             // TODO don't reload the preview, only update
             NodeModule selected = (NodeModule) ((IStructuredSelection) dirTreeViewer.getSelection()).getFirstElement();
             if (selected != null)
@@ -440,9 +465,9 @@ public class B2WizardPage extends WizardPage
                   ((NodeModule) selected).setPrefix(null);
                   // equal.setName(bckend.getWSName(selected));
                }
-               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
+               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
             }
-            dirTreeViewer.refresh();
+            setPageComplete(true);
          }
       });
 
@@ -462,6 +487,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
+            setPageComplete(false);
             IStructuredSelection selection = (IStructuredSelection) previewTreeViewer.getSelection();
 
             if (!selection.isEmpty())
@@ -473,6 +499,7 @@ public class B2WizardPage extends WizardPage
                }
             }
             previewTreeViewer.refresh();
+            setPageComplete(true);
          }
       });
 
@@ -488,16 +515,18 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
+            setPageComplete(false);
             if (toggleMode.getSelection())
             {
                bckend.setPreviewMode(true);
-               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
+               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
             }
             else
             {
                bckend.setPreviewMode(false);
-               bckend.refreshPreviewViewer(previewTreeViewer, dirTreeViewer);
+               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
             }
+            setPageComplete(true);
          }
       });
 
@@ -598,8 +627,10 @@ public class B2WizardPage extends WizardPage
       {
          public void checkStateChanged(CheckStateChangedEvent event)
          {
+            setPageComplete(false);
             Node elementNode = (Node) event.getElement();
-
+            
+            //TODO maybe merge with refreshPreviewTreeViewer in backend
             if (elementNode.hasConflict())
             {
                dirTreeViewer.setChecked(elementNode, false);
@@ -635,6 +666,7 @@ public class B2WizardPage extends WizardPage
                   selAll.setSelection(false);
                }
             }
+            setPageComplete(true);
          }
       });
    }

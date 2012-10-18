@@ -126,7 +126,7 @@ public class Node
    {
       for (Node iter : node.getChildren())
       {
-         if (iter instanceof NodeProject)
+         if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
          {
             list.add(iter);
          }
@@ -178,50 +178,7 @@ public class Node
       }
       return result;
    }
-
-   /**
-    * Returns the Node which is equal to <code>_name</code>. Checks the name field. Searches recursive through the
-    * children.
-    * 
-    * @param _file
-    * @return the node
-    */
-   public Node getEqualNameNode(String name)
-   {
-      // TODO return a array of WS nodes ...... think about
-      return searchNameEqual(name, this);
-   }
-
-   /**
-    * Checks only the equality of the <code>name</code> field.
-    * 
-    * @param equal
-    * @param search
-    * @return
-    */
-   protected Node searchNameEqual(String equal, Node search)
-   {
-      Node result = null;
-
-      for (Node iter : search.getChildren())
-      {
-
-         if (iter.getName().equals(equal))
-
-            return iter;
-
-         else
-         {
-            result = searchNameEqual(equal, iter);
-            if (result != null)
-            {
-               return result;
-            }
-         }
-      }
-      return result;
-   }
-
+   
    /**
     * The existing Parent, which is a representation of a Model, not the "abstract" root. If its already the rootModel
     * returns null.

@@ -54,7 +54,7 @@ public class Backend
    }
 
    /**
-    * Checks or unchecks all Elements in the Tree.
+    * Checks or unchecks all checkable Elements in the Tree. 
     * 
     * @param viewer
     * @param state check or not?
@@ -63,7 +63,7 @@ public class Backend
    {
       for (Node dad : ((Node) viewer.getInput()).getChildren())
       {
-         if(!dad.hasConflict())
+         if (!dad.hasConflict())
             viewer.setSubtreeChecked(dad, state);
       }
    }
@@ -141,33 +141,37 @@ public class Backend
          {
             if (iter.getName().equals(wsName))
             {
-               if (node instanceof NodeProject)
+               if (root.getEqualNode(node.getFile()) == null)
                {
-                  new NodeProject(iter, node.getFile(), ProjectType.PWS);
-                  created = true;
-                  break;
+                  if (node instanceof NodeProject)
+                  {
+                     new NodeProject(iter, node.getFile(), ProjectType.PWS);
+                     created = true;
+                     break;
+                  }
+                  if (node instanceof NodeModuleProject)
+                  {
+                     new NodeModuleProject(iter, node.getFile(), node.getName());
+                     created = true;
+                     break;
+                  }
                }
-               if (node instanceof NodeModuleProject)
-               {
-                  new NodeModuleProject(iter, node.getFile(), node.getName());
-                  created = true;
-                  break;
-               }
-
             }
          }
       }
 
       if (!created)
       {
-
-         if (node instanceof NodeProject)
+         if (root.getEqualNode(node.getFile()) == null)
          {
-            new NodeProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), ProjectType.PWS);
-         }
-         if (node instanceof NodeModuleProject)
-         {
-            new NodeModuleProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), node.getName());
+            if (node instanceof NodeProject)
+            {
+               new NodeProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), ProjectType.PWS);
+            }
+            if (node instanceof NodeModuleProject)
+            {
+               new NodeModuleProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), node.getName());
+            }
          }
       }
 
@@ -254,20 +258,16 @@ public class Backend
     * @param previewTreeViewer
     * @param txt
     */
-   public void handleTreeViewers(CheckboxTreeViewer treeViewer, TreeViewer previewTreeViewer, String txt)
+   public void handleDirTreeViewer(CheckboxTreeViewer treeViewer, String txt)
    {
       input = new ViewerInput(new Node());
 
       treeViewer.setInput(input.createMainNodeSystem(new File(txt)));
       treeViewer.expandAll();
-      doCheck(treeViewer, true);
-      
-      checkProjectThere(treeViewer);
 
-      previewTreeViewer.setInput(input.createNodeSystemForPreview(simpleMode, treeViewer));
+      checkProjectConflicts(treeViewer);
 
       treeViewer.refresh();
-      previewTreeViewer.refresh();
    }
 
    /**
@@ -276,12 +276,32 @@ public class Backend
     * @param viewer the PreviewViewer
     * @param treeViewer the DirViewer
     */
-   public void refreshPreviewViewer(TreeViewer viewer, CheckboxTreeViewer treeViewer)
+   public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
    {
-      if (input != null)
-         viewer.setInput(input.createNodeSystemForPreview(simpleMode, treeViewer));
+      Node root = (Node) dirTreeViewer.getInput();
 
-      viewer.refresh();
+      // TODO simple mode ...
+      // TODO prefix ...
+
+      // Create Preview Nodes
+      for (Node top : root.getChildren())
+      {
+         for (Node iter : top.getAllSubNodes())
+         {
+            if (!iter.hasConflict())
+               dirTreeViewer.setChecked(iter, true);
+         }
+         if (top instanceof NodeProject || top instanceof NodeModuleProject)
+            if (!top.hasConflict())
+               addToPrevievTree(previewTreeViewer, top);
+         for (Node iter : top.getAllSubNodes())
+         {
+            if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+               if (!iter.hasConflict())
+                  addToPrevievTree(previewTreeViewer, iter);
+         }
+      }
+      previewTreeViewer.refresh();
    }
 
    /**
@@ -329,7 +349,7 @@ public class Backend
          node = node.getParent();
       }
 
-      // Substring because the first "/"      
+      // Substring because the first "/"
       return name.substring(1);
    }
 
@@ -343,7 +363,7 @@ public class Backend
          return null;
    }
 
-   public void checkProjectThere(CheckboxTreeViewer treeViewer)
+   public void checkProjectConflicts(CheckboxTreeViewer treeViewer)
    {
       for (Node node : ((Node) treeViewer.getInput()).getAllSubNodes())
       {
@@ -351,9 +371,9 @@ public class Backend
          {
             for (IProject iter : ResourcesPlugin.getWorkspace().getRoot().getProjects())
             {
-               // check before import new Projects 
+               // check before import new Projects
                if (iter.getName().equals(node.getName()))
-               {                  
+               {
                   treeViewer.setChecked(node, false);
                   node.setConflict();
                }
