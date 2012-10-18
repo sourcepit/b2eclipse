@@ -19,6 +19,7 @@ import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.sourcepit.b2eclipse.input.node.Node;
 import org.sourcepit.b2eclipse.input.node.NodeFolder;
 import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
@@ -84,6 +85,8 @@ public class ViewerInput
             String name = loadModuleXml(path);
 
             me = new NodeModule(parent, path, name);
+            
+            new NodeModuleProject(me, path, name);
 
             for (File iter : pathList)
             {
@@ -138,6 +141,7 @@ public class ViewerInput
       {
          String name = loadModuleXml(path);
          Node me = new NodeModule(root, path, name);
+         new NodeModuleProject(me, path, name);
          for (File iter : pathList)
          {
             empty = searchForProjects(me, iter);
@@ -264,8 +268,8 @@ public class ViewerInput
    {
       Node preViewerRoot = new Node();
       Map<String, Node> wsNames = new TreeMap<String, Node>();
-      
-      createNodes(preViewerRoot, dirViewerRoot , wsNames, simpleMode, viewer);
+
+      createNodes(preViewerRoot, dirViewerRoot, wsNames, simpleMode, viewer);
 
       return preViewerRoot;
    }
@@ -277,45 +281,47 @@ public class ViewerInput
     * @param root
     * @param wsNames a list for Working Set Names
     */
-   private void createNodes(Node root, Node current, Map<String, Node> wsNames, boolean simpleMode, CheckboxTreeViewer viewer)
+   private void createNodes(Node root, Node current, Map<String, Node> wsNames, boolean simpleMode,
+      CheckboxTreeViewer viewer)
    {
       for (Node iter : current.getChildren())
       {
          if (viewer.getChecked(iter))
-         {         
-            //Check for Folder
-            if(!(iter instanceof NodeFolder))
+         {
+            // Check for Folder
+            if (!(iter instanceof NodeFolder))
             {
                String wsName = new Backend().getWSName(iter);
-               
-               //To skip the Folder Name in WS if simple mode
-               if (iter instanceof NodeProject)
-                  if(simpleMode)
-                     if(iter.getParent() instanceof NodeFolder)
+
+               // To skip the Folder Name in WS if simple mode
+               if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+                  if (simpleMode)
+                     if (iter.getParent() instanceof NodeFolder)
                         wsName = new Backend().getWSName(iter.getParent().getParent());
-                      
-               //Get the WS if there is any
+
+               // Get the WS if there is any
                Node ws;
-               if(wsNames.containsKey(wsName))
+               if (wsNames.containsKey(wsName))
                   ws = wsNames.get(wsName);
                else
                {
                   ws = new NodeWorkingSet(root, wsName);
                   wsNames.put(wsName, ws);
                }
-                  
-               // Add Stuff to WS         
+
+
+               // Add Stuff to WS
                if (iter instanceof NodeProject)
-               {  
+               {
                   new NodeProject(ws, iter.getFile(), ProjectType.PWS);
                }
-               else if (iter instanceof NodeModule)
+               else if (iter instanceof NodeModuleProject)
                {
-                  new NodeModule(ws, iter.getFile(), iter.getName());
+                  new NodeModuleProject(ws, iter.getFile(), iter.getName());
                }
             }
-            createNodes(root, iter, wsNames, simpleMode, viewer);
          }
+         createNodes(root, iter, wsNames, simpleMode, viewer);
       }
    }
 }

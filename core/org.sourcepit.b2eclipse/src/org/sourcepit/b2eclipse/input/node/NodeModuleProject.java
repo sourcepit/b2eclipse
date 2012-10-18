@@ -14,14 +14,13 @@ import java.util.ArrayList;
  * @author WD
  *
  */
-public class NodeFolder extends Node
+public class NodeModuleProject extends Node
 {
-   public NodeFolder(Node _parent, File _file)
-   {
+   public NodeModuleProject(Node _parent, File _file, String _name){
       super();
       children = new ArrayList<Node>();
       file = _file;
-      name = file.getName();
+      name = _name;
       parent = _parent;
       _parent.addChild(this);
    }

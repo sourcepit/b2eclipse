@@ -12,7 +12,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.ViewerDropAdapter;
 import org.eclipse.swt.dnd.TransferData;
 import org.sourcepit.b2eclipse.input.node.Node;
-import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 
@@ -42,7 +42,7 @@ public class DropListener extends ViewerDropAdapter
          if (iter != "")
          {
             Node selected = ((Node) viewer.getInput()).getEqualNode(new File(iter));
-            if (selected != null && (selected instanceof NodeProject || selected instanceof NodeModule))
+            if (selected != null && (selected instanceof NodeProject || selected instanceof NodeModuleProject))
             {
                if (target != null)
                {
@@ -52,7 +52,7 @@ public class DropListener extends ViewerDropAdapter
                      selected.setParent(target);
                      target.addChild((Node)selected);
                   }
-                  if (target instanceof NodeProject || target instanceof NodeModule)
+                  if (target instanceof NodeProject || target instanceof NodeModuleProject)
                   {
                      selected.getParent().removeChild(selected);
                      selected.setParent(target.getParent());

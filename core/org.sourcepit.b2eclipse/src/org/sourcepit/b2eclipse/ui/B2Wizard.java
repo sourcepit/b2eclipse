@@ -32,7 +32,7 @@ import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.node.Node;
-import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 
@@ -149,7 +149,7 @@ public class B2Wizard extends Wizard implements IImportWizard
                for (Node currentSubElement : currentElement.getChildren())
                {
                   monitor.subTask(currentSubElement.getName());
-                  if (currentSubElement instanceof NodeProject || currentSubElement instanceof NodeModule)
+                  if (currentSubElement instanceof NodeProject || currentSubElement instanceof NodeModuleProject)
                   {
                      IProject project = createOrOpenProject(currentSubElement.getFile().toString(),
                         currentSubElement.getName(), workspace);
@@ -158,7 +158,7 @@ public class B2Wizard extends Wizard implements IImportWizard
                   }
                }
             }
-            if (currentElement instanceof NodeProject || currentElement instanceof NodeModule)
+            if (currentElement instanceof NodeProject || currentElement instanceof NodeModuleProject)
             {
                monitor.subTask(currentElement.getName());
                createOrOpenProject(currentElement.getFile().toString(), currentElement.getName(), workspace);

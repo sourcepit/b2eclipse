@@ -1,11 +1,5 @@
-/**
- * Copyright (c) 2012 Sourcepit.org contributors and others. All rights reserved. This program and the accompanying
- * materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution,
- * and is available at http://www.eclipse.org/legal/epl-v10.html
- */
 
 package org.sourcepit.b2eclipse.provider;
-
 
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.DecorationOverlayIcon;
@@ -14,24 +8,16 @@ import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.sourcepit.b2eclipse.Activator;
 import org.sourcepit.b2eclipse.input.node.Node;
-import org.sourcepit.b2eclipse.input.node.NodeFolder;
-import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 
-/**
- * @author WD
- */
-public class LabelProvider extends StyledCellLabelProvider
+public class LabelProviderForPreview extends StyledCellLabelProvider
 {
-   /**
-    * Specify the settings of the TreeViewer.
-    */
    @Override
    public void update(ViewerCell cell)
    {
@@ -41,24 +27,16 @@ public class LabelProvider extends StyledCellLabelProvider
       if (node instanceof NodeProject)
       {
          label.append(node.getName());
-         label.append("  (" + node.getFile().getAbsolutePath() + ")", StyledString.DECORATIONS_STYLER);
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()
             .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
       }
 
-      if (node instanceof NodeModule)
+      if (node instanceof NodeModuleProject)
       {
          label.append(node.getName());
-         String fix = ((NodeModule) node).getPrefix();
-         if (fix != null)
-            label.append("  (" + fix + ")", StyledString.DECORATIONS_STYLER);
-         cell.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/obj16/packagefolder_obj.gif"));
-      }
-
-      if (node instanceof NodeFolder)
-      {
-         label.append(node.getName());
-         cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
+         label.append(" (Module Project)", StyledString.DECORATIONS_STYLER);
+         cell.setImage(PlatformUI.getWorkbench().getSharedImages()
+            .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
       }
 
       if (node instanceof NodeWorkingSet)
@@ -70,7 +48,7 @@ public class LabelProvider extends StyledCellLabelProvider
          {
             DecorationOverlayIcon icon = new DecorationOverlayIcon(Activator.getImageFromPath("org.eclipse.ui",
                "$nl$/icons/full/obj16/fldr_obj.gif"), AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.jdt.ui",
-               "$nl$/icons/full/ovr16/java_ovr.gif"), IDecoration.TOP_LEFT);            
+               "$nl$/icons/full/ovr16/java_ovr.gif"), IDecoration.TOP_LEFT);
             imageRegistry.put(key, icon.createImage());
          }
          label.append(node.getName());

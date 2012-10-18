@@ -7,7 +7,7 @@
 package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
-
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
@@ -26,6 +26,7 @@ import org.sourcepit.b2eclipse.input.ViewerInput;
 import org.sourcepit.b2eclipse.input.node.Node;
 import org.sourcepit.b2eclipse.input.node.NodeFolder;
 import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
@@ -62,7 +63,8 @@ public class Backend
    {
       for (Node dad : ((Node) viewer.getInput()).getChildren())
       {
-         viewer.setSubtreeChecked(dad, state);
+         if(!dad.hasConflict())
+            viewer.setSubtreeChecked(dad, state);
       }
    }
 
@@ -87,9 +89,9 @@ public class Backend
     * @param previevTreeViever
     * @param node
     */
-   public void deleteProjectFromPrevievTree(TreeViewer previewTreeViewer, Node node)
+   public void deleteFromPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
-      if (node instanceof NodeProject || node instanceof NodeModule) // Should always be true
+      if (node instanceof NodeProject || node instanceof NodeModuleProject) // Should always be true
       {
          Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(node.getFile());
 
@@ -121,10 +123,10 @@ public class Backend
       boolean created = false;
 
       Node parent = node.getParent();
-      
-      if(node instanceof NodeModule)
+
+      if (node instanceof NodeModule)
          parent = node;
-      
+
       if (simpleMode)
       {
          if (parent instanceof NodeFolder)
@@ -145,9 +147,9 @@ public class Backend
                   created = true;
                   break;
                }
-               if (node instanceof NodeModule)
+               if (node instanceof NodeModuleProject)
                {
-                  new NodeModule(iter, node.getFile(), node.getName());
+                  new NodeModuleProject(iter, node.getFile(), node.getName());
                   created = true;
                   break;
                }
@@ -163,9 +165,9 @@ public class Backend
          {
             new NodeProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), ProjectType.PWS);
          }
-         if (node instanceof NodeModule)
+         if (node instanceof NodeModuleProject)
          {
-            new NodeModule(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), node.getName());
+            new NodeModuleProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), node.getName());
          }
       }
 
@@ -257,8 +259,10 @@ public class Backend
       input = new ViewerInput(new Node());
 
       treeViewer.setInput(input.createMainNodeSystem(new File(txt)));
-      treeViewer.expandToLevel(2);
+      treeViewer.expandAll();
       doCheck(treeViewer, true);
+      
+      checkProjectThere(treeViewer);
 
       previewTreeViewer.setInput(input.createNodeSystemForPreview(simpleMode, treeViewer));
 
@@ -301,7 +305,7 @@ public class Backend
    public String getWSName(Node node)
    {
       // If a Project Node was given
-      if (node instanceof NodeProject)
+      if (node instanceof NodeProject || node instanceof NodeModuleProject)
          node = node.getParent();
 
       String name = "";
@@ -325,16 +329,36 @@ public class Backend
          node = node.getParent();
       }
 
-      // Substring because the first "/"
+      // Substring because the first "/"      
       return name.substring(1);
    }
 
    public String showInputDialog(Shell dialogShell)
    {
-      InputDialog dialog = new InputDialog(dialogShell, Messages.msgInDialogTitle, Messages.msgInDialogMessage, null, null);
+      InputDialog dialog = new InputDialog(dialogShell, Messages.msgInDialogTitle, Messages.msgInDialogMessage, null,
+         null);
       if (dialog.open() == Window.OK)
          return dialog.getValue();
       else
          return null;
+   }
+
+   public void checkProjectThere(CheckboxTreeViewer treeViewer)
+   {
+      for (Node node : ((Node) treeViewer.getInput()).getAllSubNodes())
+      {
+         if (node instanceof NodeProject || node instanceof NodeModuleProject)
+         {
+            for (IProject iter : ResourcesPlugin.getWorkspace().getRoot().getProjects())
+            {
+               // check before import new Projects 
+               if (iter.getName().equals(node.getName()))
+               {                  
+                  treeViewer.setChecked(node, false);
+                  node.setConflict();
+               }
+            }
+         }
+      }
    }
 }

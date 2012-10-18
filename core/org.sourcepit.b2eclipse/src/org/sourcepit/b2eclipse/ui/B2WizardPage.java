@@ -52,10 +52,12 @@ import org.sourcepit.b2eclipse.dnd.DragListener;
 import org.sourcepit.b2eclipse.dnd.DropListener;
 import org.sourcepit.b2eclipse.input.node.Node;
 import org.sourcepit.b2eclipse.input.node.NodeModule;
+import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
-import org.sourcepit.b2eclipse.provider.LabelProvider;
+import org.sourcepit.b2eclipse.provider.LabelProviderForDir;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
+import org.sourcepit.b2eclipse.provider.LabelProviderForPreview;
 
 /**
  * @author WD
@@ -178,7 +180,7 @@ public class B2WizardPage extends WizardPage
       dirTreeViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
 
       dirTreeViewer.setContentProvider(new ContentProvider());
-      dirTreeViewer.setLabelProvider(new LabelProvider());
+      dirTreeViewer.setLabelProvider(new LabelProviderForDir(this.getShell()));
 
       refresh = new ToolItem(toolBarLeft, SWT.PUSH);
       refresh.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/elcl16/refresh.gif"));
@@ -190,7 +192,7 @@ public class B2WizardPage extends WizardPage
 
       addPrefix = new ToolItem(toolBarLeft, SWT.PUSH);
       addPrefix.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/obj16/change.gif"));
-      //TODO find a better icon
+      // TODO find a better icon
       addPrefix.setToolTipText(Messages.msgAddPrefixTt);
       addPrefix.setEnabled(false);
 
@@ -211,7 +213,7 @@ public class B2WizardPage extends WizardPage
       previewTreeViewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
 
       previewTreeViewer.setContentProvider(new ContentProvider());
-      previewTreeViewer.setLabelProvider(new LabelProvider());
+      previewTreeViewer.setLabelProvider(new LabelProviderForPreview());
 
       Transfer[] transfer = new Transfer[] { FileTransfer.getInstance() };
       previewTreeViewer.addDragSupport(DND.DROP_MOVE, transfer, new DragListener(previewTreeViewer));
@@ -240,9 +242,13 @@ public class B2WizardPage extends WizardPage
          @SuppressWarnings("unchecked")
          public int compare(Viewer viewer, Object o1, Object o2)
          {
-            //TODO compare Modules
             Node n1 = ((Node) o1);
             Node n2 = ((Node) o2);
+
+            if (n1 instanceof NodeModuleProject)
+               return -1;
+            if (n2 instanceof NodeModuleProject)
+               return 1;
 
             if (n1 instanceof NodeProject && n2 instanceof NodeProject)
             {
@@ -594,26 +600,40 @@ public class B2WizardPage extends WizardPage
          {
             Node elementNode = (Node) event.getElement();
 
-            if (event.getChecked())
+            if (elementNode.hasConflict())
             {
-               dirTreeViewer.setSubtreeChecked(elementNode, true);
-
-               if (elementNode instanceof NodeProject || elementNode instanceof NodeModule)
-                  bckend.addToPrevievTree(previewTreeViewer, elementNode);
-               for (Node iter : elementNode.getAllSubNodes())
-               {
-                  if (iter instanceof NodeProject || iter instanceof NodeModule)
-                     bckend.addToPrevievTree(previewTreeViewer, iter);
-               }
+               dirTreeViewer.setChecked(elementNode, false);
             }
             else
             {
-               dirTreeViewer.setSubtreeChecked(elementNode, false);
 
-               for (Node iter : elementNode.getAllSubNodes())
-                  bckend.deleteProjectFromPrevievTree(previewTreeViewer, iter);
-               bckend.deleteProjectFromPrevievTree(previewTreeViewer, elementNode);
-               selAll.setSelection(false);
+               if (event.getChecked())
+               {
+                  for (Node iter : elementNode.getAllSubNodes())
+                  {
+                     if (!iter.hasConflict())
+                        dirTreeViewer.setChecked(iter, true);
+                  }
+
+                  if (elementNode instanceof NodeProject || elementNode instanceof NodeModuleProject)
+                     if (!elementNode.hasConflict())
+                        bckend.addToPrevievTree(previewTreeViewer, elementNode);
+                  for (Node iter : elementNode.getAllSubNodes())
+                  {
+                     if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+                        if (!iter.hasConflict())
+                           bckend.addToPrevievTree(previewTreeViewer, iter);
+                  }
+               }
+               else
+               {
+                  dirTreeViewer.setSubtreeChecked(elementNode, false);
+
+                  for (Node iter : elementNode.getAllSubNodes())
+                     bckend.deleteFromPrevievTree(previewTreeViewer, iter);
+                  bckend.deleteFromPrevievTree(previewTreeViewer, elementNode);
+                  selAll.setSelection(false);
+               }
             }
          }
       });

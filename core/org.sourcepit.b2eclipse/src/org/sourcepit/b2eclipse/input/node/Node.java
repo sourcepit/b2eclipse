@@ -21,10 +21,13 @@ public class Node
    protected File file;
    protected Node parent;
    protected ArrayList<Node> children;
+   
+   protected Boolean conflict;
 
    public Node()
    {
       children = new ArrayList<Node>();
+      conflict = false;
    }
    
    /**
@@ -49,6 +52,16 @@ public class Node
       {
          parent.removeChild(this);
       }
+   }
+   
+   public void setConflict()
+   {
+      conflict = true;
+   }
+   
+   public Boolean hasConflict()
+   {
+      return conflict;
    }
 
    public void setParent(Node _parent)
