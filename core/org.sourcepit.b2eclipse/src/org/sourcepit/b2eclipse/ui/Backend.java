@@ -45,26 +45,36 @@ public class Backend
    private ViewerInput input;
    private String prevBrowsedDirectory;
    private boolean simpleMode;
+   private boolean previouseMode;
 
 
    public Backend()
    {
       simpleMode = false;
+      previouseMode = simpleMode;
       prevBrowsedDirectory = "";
    }
 
    /**
-    * Checks or unchecks all checkable Elements in the Tree. 
+    * Checks or unchecks all checkable Elements in the Tree.
     * 
     * @param viewer
     * @param state check or not?
     */
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
-      for (Node dad : ((Node) viewer.getInput()).getChildren())
+      //TODO rework
+      if (!state)
       {
-         if (!dad.hasConflict())
-            viewer.setSubtreeChecked(dad, state);
+         viewer.setSubtreeChecked(((Node) viewer.getInput()), state);
+      }
+      else
+      {
+         for (Node iter : ((Node) viewer.getInput()).getAllSubNodes())
+         {
+            if (!iter.hasConflict())
+               viewer.setChecked(iter, state);
+         }
       }
    }
 
@@ -119,6 +129,7 @@ public class Backend
    public void addToPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
 
+
       Node root = (Node) previewTreeViewer.getInput();
       boolean created = false;
 
@@ -127,7 +138,7 @@ public class Backend
       if (node instanceof NodeModule)
          parent = node;
 
-      if (simpleMode)
+      if (simpleMode) // better check
       {
          if (parent instanceof NodeFolder)
             parent = node.getParent().getParent();
@@ -139,7 +150,7 @@ public class Backend
       {
          if (iter instanceof NodeWorkingSet)
          {
-            if (iter.getName().equals(wsName))
+            if (iter.getName().equals(wsName)) // TODO here simple mode modification
             {
                if (root.getEqualNode(node.getFile()) == null)
                {
@@ -271,17 +282,30 @@ public class Backend
    }
 
    /**
-    * Update the <code>PreviewViewer</code>, considering the checked elements in the <code>DirViewer</code>.
+    * Update the <code>previewTreeViewer</code>, considering the checked elements in the <code>dirTreeViewer</code>.
     * 
-    * @param viewer the PreviewViewer
-    * @param treeViewer the DirViewer
+    * @param dirTreeViewer
+    * @param previewTreeViewer
+    * @param mode
     */
    public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
    {
-      Node root = (Node) dirTreeViewer.getInput();
+
 
       // TODO simple mode ...
+      // -- IDEA 1: give addToPrevievTree a Parameter
+      // ---------- save previous mode, if mode changed alter Working Sets
+      if (previouseMode != simpleMode)
+      {
+         // currently not altering just reloading, but there is no other way
+         previewTreeViewer.setInput(new Node());
+         previouseMode = simpleMode;
+      }
+
       // TODO prefix ...
+
+
+      Node root = (Node) dirTreeViewer.getInput();
 
       // Create Preview Nodes
       for (Node top : root.getChildren())

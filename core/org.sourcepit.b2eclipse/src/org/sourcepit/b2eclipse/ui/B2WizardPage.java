@@ -448,7 +448,8 @@ public class B2WizardPage extends WizardPage
          public void handleEvent(Event event)
          {
             setPageComplete(false);
-            // TODO don't reload the preview, only update
+            // TODO don't reload the preview, only update, should work
+            // TODO support feature again
             NodeModule selected = (NodeModule) ((IStructuredSelection) dirTreeViewer.getSelection()).getFirstElement();
             if (selected != null)
             {
