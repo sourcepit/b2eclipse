@@ -411,7 +411,7 @@ public class B2WizardPage extends WizardPage
          {
             setPageComplete(false);
 
-            // TODO do the same stuff as modLis
+            // TODO this is doing the same stuff as modLis
             previewTreeViewer.setInput(new Node());
             bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
             bckend.doCheck(dirTreeViewer, true);
@@ -447,24 +447,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            setPageComplete(false);
-            // TODO don't reload the preview, only update ...
-            NodeModule selected = (NodeModule) ((IStructuredSelection) dirTreeViewer.getSelection()).getFirstElement();
-            if (selected != null)
-            {
-               if (selected.getPrefix() == null)
-               {
-                  selected.setPrefix(bckend.showInputDialog(dialogShell));
-               }
-               else
-               {
-                  selected.setPrefix(null);
-               }
-               previewTreeViewer.setInput(new Node()); // ... (currently it's reloading)
-               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
-            }
-            dirTreeViewer.refresh();
-            setPageComplete(true);
+            handleDirPrefixNaming();
          }
       });
 
@@ -542,27 +525,9 @@ public class B2WizardPage extends WizardPage
       // After doubleClick on a element, user can change the Prefix
       dirTreeViewer.addDoubleClickListener(new IDoubleClickListener()
       {
-         // TODO maybe merge with "addPrefix.addListener(SWT.Selection, new Listener()..."
          public void doubleClick(DoubleClickEvent event)
          {
-            setPageComplete(false);
-            Node selected = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
-
-            if (selected != null && selected instanceof NodeModule)
-            {
-               if (((NodeModule) selected).getPrefix() == null)
-               {
-                  ((NodeModule) selected).setPrefix(bckend.showInputDialog(dialogShell));
-               }
-               else
-               {
-                  ((NodeModule) selected).setPrefix(null);
-               }
-               previewTreeViewer.setInput(new Node());
-               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
-            }
-            dirTreeViewer.refresh();
-            setPageComplete(true);
+            handleDirPrefixNaming();
          }
       });
 
@@ -582,65 +547,9 @@ public class B2WizardPage extends WizardPage
       // user can change the name of a WorkingSet after double click on it
       previewTreeViewer.addDoubleClickListener(new IDoubleClickListener()
       {
-         // TODO would be nice if "F2" would also work
          public void doubleClick(DoubleClickEvent event)
          {
-            setPageComplete(false);
-            final Node node = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
-
-            // Only for Working Sets
-            if (node instanceof NodeWorkingSet)
-            {
-               final TreeEditor editor = new TreeEditor(previewTreeViewer.getTree());
-               editor.horizontalAlignment = SWT.LEFT;
-               editor.grabHorizontal = true;
-
-               final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
-               final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
-               txt.setText(node.getName());
-               txt.selectAll();
-               txt.setFocus();
-
-               txt.addFocusListener(new FocusListener()
-               {
-                  public void focusLost(FocusEvent e)
-                  {
-                     node.setName(txt.getText());
-                     txt.dispose();
-                     previewTreeViewer.refresh();
-                     setPageComplete(true);
-                  }
-
-                  public void focusGained(FocusEvent e)
-                  {
-                     /* no use */
-                  }
-               });
-
-               txt.addKeyListener(new KeyListener()
-               {
-                  public void keyPressed(KeyEvent e)
-                  {
-                     switch (e.keyCode)
-                     {
-                        case SWT.CR :
-                           node.setName(txt.getText());
-                        case SWT.ESC :
-                           txt.dispose();
-                           previewTreeViewer.refresh();
-                           setPageComplete(true);
-                           break;
-                     }
-                  }
-
-                  public void keyReleased(KeyEvent e)
-                  {
-                     /* no use */
-                  }
-
-               });
-               editor.setEditor(txt, item);
-            }
+            handlePrevievRename();
          }
       });
 
@@ -694,6 +603,26 @@ public class B2WizardPage extends WizardPage
          }
       });
 
+      this.getShell().getDisplay().addFilter(SWT.KeyDown, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            if (event.keyCode == SWT.F2)
+            {
+               // DirTreeviewer was selected
+               if (event.widget.equals(dirTreeViewer.getTree()))
+               {
+                  handleDirPrefixNaming();
+               }
+
+               // PreviewTreeViewer was selected
+               if (event.widget.equals(previewTreeViewer.getTree()))
+               {
+                  handlePrevievRename();
+               }
+            }
+         }
+      });
    }
 
    /**
@@ -702,5 +631,90 @@ public class B2WizardPage extends WizardPage
    public Node getPreviewRootNode()
    {
       return (Node) previewTreeViewer.getInput();
+   }
+
+   // Brings up a dialog where user can type in a prefix for a module.
+   private void handleDirPrefixNaming()
+   {
+      setPageComplete(false);
+      // TODO don't reload the preview, only update ...
+      Node selected = (Node) ((IStructuredSelection) dirTreeViewer.getSelection()).getFirstElement();
+
+      if (selected != null && selected instanceof NodeModule)
+      {
+         if (((NodeModule) selected).getPrefix() == null)
+         {
+            ((NodeModule) selected).setPrefix(bckend.showInputDialog(dialogShell));
+         }
+         else
+         {
+            ((NodeModule) selected).setPrefix(null);
+         }
+         previewTreeViewer.setInput(new Node()); // ... here
+         bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+      }
+      dirTreeViewer.refresh();
+      setPageComplete(true);
+   }
+
+   // Do the renaming "thing" on PreviewViewer.
+   private void handlePrevievRename()
+   {
+      setPageComplete(false);
+      final Node node = (Node) ((IStructuredSelection) previewTreeViewer.getSelection()).getFirstElement();
+
+      // Only for Working Sets
+      if (node instanceof NodeWorkingSet)
+      {
+         final TreeEditor editor = new TreeEditor(previewTreeViewer.getTree());
+         editor.horizontalAlignment = SWT.LEFT;
+         editor.grabHorizontal = true;
+
+         final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
+         final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
+         txt.setText(node.getName());
+         txt.selectAll();
+         txt.setFocus();
+
+         txt.addFocusListener(new FocusListener()
+         {
+            public void focusLost(FocusEvent e)
+            {
+               node.setName(txt.getText());
+               txt.dispose();
+               previewTreeViewer.refresh();
+               setPageComplete(true);
+            }
+
+            public void focusGained(FocusEvent e)
+            {
+               /* no use */
+            }
+         });
+
+         txt.addKeyListener(new KeyListener()
+         {
+            public void keyPressed(KeyEvent e)
+            {
+               switch (e.keyCode)
+               {
+                  case SWT.CR :
+                     node.setName(txt.getText());
+                  case SWT.ESC :
+                     txt.dispose();
+                     previewTreeViewer.refresh();
+                     setPageComplete(true);
+                     break;
+               }
+            }
+
+            public void keyReleased(KeyEvent e)
+            {
+               /* no use */
+            }
+
+         });
+         editor.setEditor(txt, item);
+      }
    }
 }
