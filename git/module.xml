@@ -11,7 +11,7 @@
 	</parent>
 
 	<groupId>org.sourcepit</groupId>
-	<artifactId>git</artifactId>
+	<artifactId>b2eclipse-git</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
