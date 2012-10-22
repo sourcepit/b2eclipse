@@ -12,7 +12,7 @@ import java.util.ArrayList;
 /**
  * 
  * @author WD
- *
+ * 
  */
 public class NodeFolder extends Node
 {

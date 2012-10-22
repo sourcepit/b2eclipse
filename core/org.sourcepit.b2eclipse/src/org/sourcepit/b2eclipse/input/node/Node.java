@@ -21,7 +21,7 @@ public class Node
    protected File file;
    protected Node parent;
    protected ArrayList<Node> children;
-   
+
    protected Boolean conflict;
 
    public Node()
@@ -29,7 +29,7 @@ public class Node
       children = new ArrayList<Node>();
       conflict = false;
    }
-   
+
    /**
     * delete the Node assigning the children to the parent.
     */
@@ -53,12 +53,12 @@ public class Node
          parent.removeChild(this);
       }
    }
-   
+
    public void setConflict()
    {
       conflict = true;
    }
-   
+
    public Boolean hasConflict()
    {
       return conflict;
@@ -144,9 +144,9 @@ public class Node
     * @param _file
     * @return the node
     */
-   public Node getEqualNode(File _file)
+   public Node getEqualNode(File file)
    {
-      return searchEqual(_file, this);
+      return searchEqual(file, this);
    }
 
    /**
@@ -178,7 +178,7 @@ public class Node
       }
       return result;
    }
-   
+
    /**
     * The existing Parent, which is a representation of a Model, not the "abstract" root. If its already the rootModel
     * returns null.

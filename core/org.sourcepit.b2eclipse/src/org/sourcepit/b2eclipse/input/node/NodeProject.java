@@ -12,18 +12,19 @@ import java.util.ArrayList;
 /**
  * 
  * @author WD
- *
+ * 
  */
 public class NodeProject extends Node
 {
    protected ProjectType type;
-   
+
    public static enum ProjectType
    {
       PWS, PDIR
    }
-   
-   public NodeProject(Node _parent, File _file, ProjectType _type){
+
+   public NodeProject(Node _parent, File _file, ProjectType _type)
+   {
       super();
       children = new ArrayList<Node>();
       file = _file;
@@ -32,7 +33,7 @@ public class NodeProject extends Node
       parent = _parent;
       _parent.addChild(this);
    }
-   
+
    public ProjectType getType()
    {
       return type;

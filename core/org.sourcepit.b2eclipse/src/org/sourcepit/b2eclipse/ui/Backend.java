@@ -63,7 +63,7 @@ public class Backend
     */
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
-      //TODO rework
+      // TODO rework
       if (!state)
       {
          viewer.setSubtreeChecked(((Node) viewer.getInput()), state);
@@ -128,8 +128,6 @@ public class Backend
     */
    public void addToPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
-
-
       Node root = (Node) previewTreeViewer.getInput();
       boolean created = false;
 
@@ -138,7 +136,7 @@ public class Backend
       if (node instanceof NodeModule)
          parent = node;
 
-      if (simpleMode) // better check
+      if (simpleMode) // better check maybe?
       {
          if (parent instanceof NodeFolder)
             parent = node.getParent().getParent();
@@ -150,7 +148,7 @@ public class Backend
       {
          if (iter instanceof NodeWorkingSet)
          {
-            if (iter.getName().equals(wsName)) // TODO here simple mode modification
+            if (iter.getName().equals(wsName))
             {
                if (root.getEqualNode(node.getFile()) == null)
                {
@@ -290,8 +288,6 @@ public class Backend
     */
    public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
    {
-
-
       // TODO simple mode ...
       // -- IDEA 1: give addToPrevievTree a Parameter
       // ---------- save previous mode, if mode changed alter Working Sets
@@ -310,18 +306,13 @@ public class Backend
       // Create Preview Nodes
       for (Node top : root.getChildren())
       {
-         for (Node iter : top.getAllSubNodes())
-         {
-            if (!iter.hasConflict())
-               dirTreeViewer.setChecked(iter, true);
-         }
          if (top instanceof NodeProject || top instanceof NodeModuleProject)
-            if (!top.hasConflict())
+            if (!top.hasConflict() && dirTreeViewer.getChecked(top))
                addToPrevievTree(previewTreeViewer, top);
          for (Node iter : top.getAllSubNodes())
          {
             if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
-               if (!iter.hasConflict())
+               if (!iter.hasConflict() && dirTreeViewer.getChecked(iter))
                   addToPrevievTree(previewTreeViewer, iter);
          }
       }

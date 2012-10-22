@@ -89,7 +89,7 @@ public class B2WizardPage extends WizardPage
    private String currentDirectory;
 
    // TODO work it! .. i need a glass of water ..
-   
+
    protected B2WizardPage(String pageName, B2Wizard parent, IStructuredSelection selection)
    {
       super(pageName);
@@ -387,15 +387,15 @@ public class B2WizardPage extends WizardPage
          public void modifyText(ModifyEvent e)
          {
             setPageComplete(false);
-            currentDirectory = ((Text) e.widget).getText();            
-            
+            currentDirectory = ((Text) e.widget).getText();
+
             if (bckend.testOnLocalDrive(currentDirectory))
             {
                previewTreeViewer.setInput(new Node());
                bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
                bckend.doCheck(dirTreeViewer, true);
                bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
-               
+
                selAll.setSelection(true);
 
                setPageComplete(true);
@@ -410,13 +410,13 @@ public class B2WizardPage extends WizardPage
          public void handleEvent(Event event)
          {
             setPageComplete(false);
-            
-            //TODO do the same stuff as modLis
+
+            // TODO do the same stuff as modLis
             previewTreeViewer.setInput(new Node());
             bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
             bckend.doCheck(dirTreeViewer, true);
             bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
-            
+
             selAll.setSelection(true);
 
             setPageComplete(true);
@@ -448,26 +448,22 @@ public class B2WizardPage extends WizardPage
          public void handleEvent(Event event)
          {
             setPageComplete(false);
-            // TODO don't reload the preview, only update, should work
-            // TODO support feature again
+            // TODO don't reload the preview, only update ...
             NodeModule selected = (NodeModule) ((IStructuredSelection) dirTreeViewer.getSelection()).getFirstElement();
             if (selected != null)
             {
-               // NodeWorkingSet equal = (NodeWorkingSet) ((Node)
-               // previewTreeViewer.getInput()).getEqualNameNode(bckend.getWSName(selected));
                if (selected.getPrefix() == null)
                {
-                  String prefix = bckend.showInputDialog(dialogShell);
-                  ((NodeModule) selected).setPrefix(prefix);
-                  // equal.setName(prefix);
+                  selected.setPrefix(bckend.showInputDialog(dialogShell));
                }
                else
                {
-                  ((NodeModule) selected).setPrefix(null);
-                  // equal.setName(bckend.getWSName(selected));
+                  selected.setPrefix(null);
                }
+               previewTreeViewer.setInput(new Node()); // ... (currently it's reloading)
                bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
             }
+            dirTreeViewer.refresh();
             setPageComplete(true);
          }
       });
@@ -540,6 +536,33 @@ public class B2WizardPage extends WizardPage
                addPrefix.setEnabled(true);
             else
                addPrefix.setEnabled(false);
+         }
+      });
+
+      // After doubleClick on a element, user can change the Prefix
+      dirTreeViewer.addDoubleClickListener(new IDoubleClickListener()
+      {
+         // TODO maybe merge with "addPrefix.addListener(SWT.Selection, new Listener()..."
+         public void doubleClick(DoubleClickEvent event)
+         {
+            setPageComplete(false);
+            Node selected = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
+
+            if (selected != null && selected instanceof NodeModule)
+            {
+               if (((NodeModule) selected).getPrefix() == null)
+               {
+                  ((NodeModule) selected).setPrefix(bckend.showInputDialog(dialogShell));
+               }
+               else
+               {
+                  ((NodeModule) selected).setPrefix(null);
+               }
+               previewTreeViewer.setInput(new Node());
+               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+            }
+            dirTreeViewer.refresh();
+            setPageComplete(true);
          }
       });
 
@@ -630,8 +653,8 @@ public class B2WizardPage extends WizardPage
          {
             setPageComplete(false);
             Node elementNode = (Node) event.getElement();
-            
-            //TODO maybe merge with refreshPreviewTreeViewer in backend
+
+            // TODO maybe merge with refreshPreviewTreeViewer in backend
             if (elementNode.hasConflict())
             {
                dirTreeViewer.setChecked(elementNode, false);
@@ -670,6 +693,7 @@ public class B2WizardPage extends WizardPage
             setPageComplete(true);
          }
       });
+
    }
 
    /**

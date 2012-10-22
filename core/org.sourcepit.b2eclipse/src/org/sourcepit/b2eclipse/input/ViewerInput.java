@@ -264,16 +264,16 @@ public class ViewerInput
     * @param viewer the CheckBoxTreeViewer
     * @return the Node (system)
     */
-   public Node createNodeSystemForPreview(boolean simpleMode, CheckboxTreeViewer viewer)
-   {
-      //TODO Currently not used, maybe delete
-      Node preViewerRoot = new Node();
-      Map<String, Node> wsNames = new TreeMap<String, Node>();
-
-      createNodes(preViewerRoot, dirViewerRoot, wsNames, simpleMode, viewer);
-
-      return preViewerRoot;
-   }
+//   public Node createNodeSystemForPreview(boolean simpleMode, CheckboxTreeViewer viewer)
+//   {
+//      //TODO Currently not used, maybe delete
+//      Node preViewerRoot = new Node();
+//      Map<String, Node> wsNames = new TreeMap<String, Node>();
+//
+//      createNodes(preViewerRoot, dirViewerRoot, wsNames, simpleMode, viewer);
+//
+//      return preViewerRoot;
+//   }
 
 
    /**
@@ -282,48 +282,48 @@ public class ViewerInput
     * @param root
     * @param wsNames a list for Working Set Names
     */
-   private void createNodes(Node root, Node current, Map<String, Node> wsNames, boolean simpleMode,
-      CheckboxTreeViewer viewer)
-   {
-      for (Node iter : current.getChildren())
-      {
-         if (viewer.getChecked(iter) && !iter.hasConflict())
-         {
-            // Check for Folder
-            if (!(iter instanceof NodeFolder))
-            {
-               String wsName = new Backend().getWSName(iter);
-
-               // To skip the Folder Name in WS if simple mode
-               if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
-                  if (simpleMode)
-                     if (iter.getParent() instanceof NodeFolder)
-                        wsName = new Backend().getWSName(iter.getParent().getParent());
-
-               // Get the WS if there is any
-               Node ws;
-               if (wsNames.containsKey(wsName))
-                  ws = wsNames.get(wsName);
-               else
-               {
-                  ws = new NodeWorkingSet(root, wsName);
-                  wsNames.put(wsName, ws);
-               }
-
-
-               // Add Stuff to WS
-               if (iter instanceof NodeProject)
-               {
-                  new NodeProject(ws, iter.getFile(), ProjectType.PWS);
-               }
-               else if (iter instanceof NodeModuleProject)
-               {
-                  new NodeModuleProject(ws, iter.getFile(), iter.getName());
-               }
-            }
-         
-         createNodes(root, iter, wsNames, simpleMode, viewer);
-         }
-      }
-   }
+//   private void createNodes(Node root, Node current, Map<String, Node> wsNames, boolean simpleMode,
+//      CheckboxTreeViewer viewer)
+//   {
+//      for (Node iter : current.getChildren())
+//      {
+//         if (viewer.getChecked(iter) && !iter.hasConflict())
+//         {
+//            // Check for Folder
+//            if (!(iter instanceof NodeFolder))
+//            {
+//               String wsName = new Backend().getWSName(iter);
+//
+//               // To skip the Folder Name in WS if simple mode
+//               if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+//                  if (simpleMode)
+//                     if (iter.getParent() instanceof NodeFolder)
+//                        wsName = new Backend().getWSName(iter.getParent().getParent());
+//
+//               // Get the WS if there is any
+//               Node ws;
+//               if (wsNames.containsKey(wsName))
+//                  ws = wsNames.get(wsName);
+//               else
+//               {
+//                  ws = new NodeWorkingSet(root, wsName);
+//                  wsNames.put(wsName, ws);
+//               }
+//
+//
+//               // Add Stuff to WS
+//               if (iter instanceof NodeProject)
+//               {
+//                  new NodeProject(ws, iter.getFile(), ProjectType.PWS);
+//               }
+//               else if (iter instanceof NodeModuleProject)
+//               {
+//                  new NodeModuleProject(ws, iter.getFile(), iter.getName());
+//               }
+//            }
+//         
+//         createNodes(root, iter, wsNames, simpleMode, viewer);
+//         }
+//      }
+//   }
 }
