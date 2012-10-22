@@ -12,11 +12,12 @@ import java.util.ArrayList;
 /**
  * 
  * @author WD
- *
+ * 
  */
 public class NodeModuleProject extends Node
 {
-   public NodeModuleProject(Node _parent, File _file, String _name){
+   public NodeModuleProject(Node _parent, File _file, String _name)
+   {
       super();
       children = new ArrayList<Node>();
       file = _file;

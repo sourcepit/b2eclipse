@@ -53,8 +53,7 @@ public class LabelProviderForDir extends StyledCellLabelProvider
 
       if (node instanceof NodeModuleProject)
       {
-         // label.append(node.getName());
-         // TODO massage
+         // TODO message
          if (!node.hasConflict())
             label.append("(Module Project)", StyledString.DECORATIONS_STYLER);
          else
@@ -88,5 +87,4 @@ public class LabelProviderForDir extends StyledCellLabelProvider
 
       super.update(cell);
    }
-   // TODO work it! .. i need a glass of water ..
 }

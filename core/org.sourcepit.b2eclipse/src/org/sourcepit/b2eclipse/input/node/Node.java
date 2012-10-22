@@ -21,7 +21,7 @@ public class Node
    protected File file;
    protected Node parent;
    protected ArrayList<Node> children;
-   
+
    protected Boolean conflict;
 
    public Node()
@@ -29,7 +29,7 @@ public class Node
       children = new ArrayList<Node>();
       conflict = false;
    }
-   
+
    /**
     * delete the Node assigning the children to the parent.
     */
@@ -53,12 +53,12 @@ public class Node
          parent.removeChild(this);
       }
    }
-   
+
    public void setConflict()
    {
       conflict = true;
    }
-   
+
    public Boolean hasConflict()
    {
       return conflict;
@@ -126,7 +126,7 @@ public class Node
    {
       for (Node iter : node.getChildren())
       {
-         if (iter instanceof NodeProject)
+         if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
          {
             list.add(iter);
          }
@@ -144,9 +144,9 @@ public class Node
     * @param _file
     * @return the node
     */
-   public Node getEqualNode(File _file)
+   public Node getEqualNode(File file)
    {
-      return searchEqual(_file, this);
+      return searchEqual(file, this);
    }
 
    /**
@@ -170,49 +170,6 @@ public class Node
          else
          {
             result = searchEqual(equal, iter);
-            if (result != null)
-            {
-               return result;
-            }
-         }
-      }
-      return result;
-   }
-
-   /**
-    * Returns the Node which is equal to <code>_name</code>. Checks the name field. Searches recursive through the
-    * children.
-    * 
-    * @param _file
-    * @return the node
-    */
-   public Node getEqualNameNode(String name)
-   {
-      // TODO return a array of WS nodes ...... think about
-      return searchNameEqual(name, this);
-   }
-
-   /**
-    * Checks only the equality of the <code>name</code> field.
-    * 
-    * @param equal
-    * @param search
-    * @return
-    */
-   protected Node searchNameEqual(String equal, Node search)
-   {
-      Node result = null;
-
-      for (Node iter : search.getChildren())
-      {
-
-         if (iter.getName().equals(equal))
-
-            return iter;
-
-         else
-         {
-            result = searchNameEqual(equal, iter);
             if (result != null)
             {
                return result;

@@ -12,20 +12,40 @@ import java.util.ArrayList;
 /**
  * 
  * @author WD
- *
+ * 
  */
 public class NodeWorkingSet extends Node
-{   
-   
+{
+   public String previousName;
+
    public NodeWorkingSet(Node _parent, String _name)
    {
       super();
       children = new ArrayList<Node>();
       parent = _parent;
       _parent.addChild(this);
-      
+
       name = _name;
+      previousName = _name;
       file = new File("");
-      
+
    }
+
+   @Override
+   public void setName(String _name)
+   {
+      previousName = name;
+      super.setName(_name);
+   }
+
+   public String getPreviousName()
+   {
+      return previousName;
+   }
+
+   public void resetName()
+   {
+      name = previousName;
+   }
+
 }

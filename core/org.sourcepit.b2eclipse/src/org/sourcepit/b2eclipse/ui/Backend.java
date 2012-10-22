@@ -45,26 +45,36 @@ public class Backend
    private ViewerInput input;
    private String prevBrowsedDirectory;
    private boolean simpleMode;
+   private boolean previouseMode;
 
 
    public Backend()
    {
       simpleMode = false;
+      previouseMode = simpleMode;
       prevBrowsedDirectory = "";
    }
 
    /**
-    * Checks or unchecks all Elements in the Tree.
+    * Checks or unchecks all checkable Elements in the Tree.
     * 
     * @param viewer
     * @param state check or not?
     */
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
-      for (Node dad : ((Node) viewer.getInput()).getChildren())
+      // TODO rework
+      if (!state)
       {
-         if(!dad.hasConflict())
-            viewer.setSubtreeChecked(dad, state);
+         viewer.setSubtreeChecked(((Node) viewer.getInput()), state);
+      }
+      else
+      {
+         for (Node iter : ((Node) viewer.getInput()).getAllSubNodes())
+         {
+            if (!iter.hasConflict())
+               viewer.setChecked(iter, state);
+         }
       }
    }
 
@@ -118,7 +128,6 @@ public class Backend
     */
    public void addToPrevievTree(TreeViewer previewTreeViewer, Node node)
    {
-
       Node root = (Node) previewTreeViewer.getInput();
       boolean created = false;
 
@@ -127,7 +136,7 @@ public class Backend
       if (node instanceof NodeModule)
          parent = node;
 
-      if (simpleMode)
+      if (simpleMode) // better check maybe?
       {
          if (parent instanceof NodeFolder)
             parent = node.getParent().getParent();
@@ -141,33 +150,37 @@ public class Backend
          {
             if (iter.getName().equals(wsName))
             {
-               if (node instanceof NodeProject)
+               if (root.getEqualNode(node.getFile()) == null)
                {
-                  new NodeProject(iter, node.getFile(), ProjectType.PWS);
-                  created = true;
-                  break;
+                  if (node instanceof NodeProject)
+                  {
+                     new NodeProject(iter, node.getFile(), ProjectType.PWS);
+                     created = true;
+                     break;
+                  }
+                  if (node instanceof NodeModuleProject)
+                  {
+                     new NodeModuleProject(iter, node.getFile(), node.getName());
+                     created = true;
+                     break;
+                  }
                }
-               if (node instanceof NodeModuleProject)
-               {
-                  new NodeModuleProject(iter, node.getFile(), node.getName());
-                  created = true;
-                  break;
-               }
-
             }
          }
       }
 
       if (!created)
       {
-
-         if (node instanceof NodeProject)
+         if (root.getEqualNode(node.getFile()) == null)
          {
-            new NodeProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), ProjectType.PWS);
-         }
-         if (node instanceof NodeModuleProject)
-         {
-            new NodeModuleProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), node.getName());
+            if (node instanceof NodeProject)
+            {
+               new NodeProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), ProjectType.PWS);
+            }
+            if (node instanceof NodeModuleProject)
+            {
+               new NodeModuleProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), node.getName());
+            }
          }
       }
 
@@ -254,34 +267,56 @@ public class Backend
     * @param previewTreeViewer
     * @param txt
     */
-   public void handleTreeViewers(CheckboxTreeViewer treeViewer, TreeViewer previewTreeViewer, String txt)
+   public void handleDirTreeViewer(CheckboxTreeViewer treeViewer, String txt)
    {
       input = new ViewerInput(new Node());
 
       treeViewer.setInput(input.createMainNodeSystem(new File(txt)));
       treeViewer.expandAll();
-      doCheck(treeViewer, true);
-      
-      checkProjectThere(treeViewer);
 
-      previewTreeViewer.setInput(input.createNodeSystemForPreview(simpleMode, treeViewer));
+      checkProjectConflicts(treeViewer);
 
       treeViewer.refresh();
-      previewTreeViewer.refresh();
    }
 
    /**
-    * Update the <code>PreviewViewer</code>, considering the checked elements in the <code>DirViewer</code>.
+    * Update the <code>previewTreeViewer</code>, considering the checked elements in the <code>dirTreeViewer</code>.
     * 
-    * @param viewer the PreviewViewer
-    * @param treeViewer the DirViewer
+    * @param dirTreeViewer
+    * @param previewTreeViewer
+    * @param mode
     */
-   public void refreshPreviewViewer(TreeViewer viewer, CheckboxTreeViewer treeViewer)
+   public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
    {
-      if (input != null)
-         viewer.setInput(input.createNodeSystemForPreview(simpleMode, treeViewer));
+      // TODO simple mode ...
+      // -- IDEA 1: give addToPrevievTree a Parameter
+      // ---------- save previous mode, if mode changed alter Working Sets
+      if (previouseMode != simpleMode)
+      {
+         // currently not altering just reloading, but there is no other way
+         previewTreeViewer.setInput(new Node());
+         previouseMode = simpleMode;
+      }
 
-      viewer.refresh();
+      // TODO prefix ...
+
+
+      Node root = (Node) dirTreeViewer.getInput();
+
+      // Create Preview Nodes
+      for (Node top : root.getChildren())
+      {
+         if (top instanceof NodeProject || top instanceof NodeModuleProject)
+            if (!top.hasConflict() && dirTreeViewer.getChecked(top))
+               addToPrevievTree(previewTreeViewer, top);
+         for (Node iter : top.getAllSubNodes())
+         {
+            if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+               if (!iter.hasConflict() && dirTreeViewer.getChecked(iter))
+                  addToPrevievTree(previewTreeViewer, iter);
+         }
+      }
+      previewTreeViewer.refresh();
    }
 
    /**
@@ -329,7 +364,7 @@ public class Backend
          node = node.getParent();
       }
 
-      // Substring because the first "/"      
+      // Substring because the first "/"
       return name.substring(1);
    }
 
@@ -343,7 +378,7 @@ public class Backend
          return null;
    }
 
-   public void checkProjectThere(CheckboxTreeViewer treeViewer)
+   public void checkProjectConflicts(CheckboxTreeViewer treeViewer)
    {
       for (Node node : ((Node) treeViewer.getInput()).getAllSubNodes())
       {
@@ -351,9 +386,9 @@ public class Backend
          {
             for (IProject iter : ResourcesPlugin.getWorkspace().getRoot().getProjects())
             {
-               // check before import new Projects 
+               // check before import new Projects
                if (iter.getName().equals(node.getName()))
-               {                  
+               {
                   treeViewer.setChecked(node, false);
                   node.setConflict();
                }
