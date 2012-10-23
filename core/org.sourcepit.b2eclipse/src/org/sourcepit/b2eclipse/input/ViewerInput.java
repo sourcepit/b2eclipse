@@ -9,21 +9,15 @@ package org.sourcepit.b2eclipse.input;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.eclipse.jface.viewers.CheckboxTreeViewer;
 import org.sourcepit.b2eclipse.input.node.Node;
 import org.sourcepit.b2eclipse.input.node.NodeFolder;
 import org.sourcepit.b2eclipse.input.node.NodeModule;
 import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
-import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
-import org.sourcepit.b2eclipse.ui.Backend;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 

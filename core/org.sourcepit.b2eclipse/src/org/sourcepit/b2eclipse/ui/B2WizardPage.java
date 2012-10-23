@@ -39,6 +39,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -172,6 +173,10 @@ public class B2WizardPage extends WizardPage
       layout.marginWidth = 0;
       layout.verticalSpacing = 0;
       leftContainer.setLayout(layout);
+      
+      new Label(leftContainer, SWT.NONE).setText(Messages.msgLeftHeading);      
+      new Label(leftContainer, SWT.HORIZONTAL | SWT.SEPARATOR).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+      
 
       ToolBar toolBarLeft = new ToolBar(leftContainer, (SWT.HORIZONTAL | SWT.NONE));
       toolBarLeft.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -181,7 +186,7 @@ public class B2WizardPage extends WizardPage
 
       dirTreeViewer.setContentProvider(new ContentProvider());
       dirTreeViewer.setLabelProvider(new LabelProviderForDir(this.getShell()));
-
+      
       refresh = new ToolItem(toolBarLeft, SWT.PUSH);
       refresh.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/elcl16/refresh.gif"));
       refresh.setToolTipText(Messages.msgRestoreTt);
@@ -206,6 +211,9 @@ public class B2WizardPage extends WizardPage
       layout.marginWidth = 0;
       layout.verticalSpacing = 0;
       rightContainer.setLayout(layout);
+      
+      new Label(rightContainer, SWT.NONE).setText(Messages.msgRightHeading);      
+      new Label(rightContainer, SWT.HORIZONTAL | SWT.SEPARATOR).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
       ToolBar toolBarRight = new ToolBar(rightContainer, (SWT.HORIZONTAL | SWT.NONE));
       toolBarRight.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

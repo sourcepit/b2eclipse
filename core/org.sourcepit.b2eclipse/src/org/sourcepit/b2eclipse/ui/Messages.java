@@ -15,32 +15,37 @@ import org.eclipse.osgi.util.NLS;
 public class Messages extends NLS
 {
    private static final String BUNDLE_NAME = "org.sourcepit.b2eclipse.ui.messages"; //$NON-NLS-1$
-   
+
    public static String msgImportTitle;
    public static String msgImportHeader;
    public static String msgImportSuperscription;
 
    public static String msgSelectRootRbtn;
-   public static String msgSelectWorkspaceRbtn;
    public static String msgSelectRootTt;
+
+   public static String msgSelectWorkspaceRbtn;
    public static String msgSelectWorkspaceTt;
+
    public static String msgSelectDirTitle;
    public static String msgSelectProjectTitle;
    public static String msgSelectProject;
    public static String msgBrowseBtn;
-   
+
+   public static String msgRightHeading;
+   public static String msgLeftHeading;
+
    public static String msgRestoreTt;
    public static String msgSelectDeselectTt;
    public static String msgAddNewWSTt;
-   public static String msgDelWSTt;   
+   public static String msgDelWSTt;
    public static String msgToggleModeTt;
    public static String msgExpandAllTt;
    public static String msgAddPrefixTt;
-   
+
    public static String msgInDialogTitle;
    public static String msgInDialogMessage;
-   
-   public static String msgDefaultWSName;   
+
+   public static String msgDefaultWSName;
    public static String msgTask;
 
    static
