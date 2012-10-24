@@ -78,17 +78,20 @@ public class ViewerInput
          {
             String name = loadModuleXml(path);
 
-            me = new NodeModule(parent, path, name);
-            
-            new NodeModuleProject(me, path, name);
+            if (name != null)
+            {
+               me = new NodeModule(parent, path, name);
 
-            for (File iter : pathList)
-            {
-               searchForProjects(me, iter);
-            }
-            if (me.getChildren().size() == 0)
-            {
-               me.deleteNode();
+               new NodeModuleProject(me, path, name);
+
+               for (File iter : pathList)
+               {
+                  searchForProjects(me, iter);
+               }
+               if (me.getChildren().size() == 0)
+               {
+                  me.deleteNode();
+               }
             }
 
             return;
@@ -134,20 +137,23 @@ public class ViewerInput
       if (fileList.contains("module.xml"))
       {
          String name = loadModuleXml(path);
-         Node me = new NodeModule(root, path, name);
-         new NodeModuleProject(me, path, name);
-         for (File iter : pathList)
+         if (name != null)
          {
-            empty = searchForProjects(me, iter);
-         }
-         if (empty)
-         {
-            me.deleteNode();
+            Node me = new NodeModule(root, path, name);
+            new NodeModuleProject(me, path, name);
+            for (File iter : pathList)
+            {
+               empty = searchForProjects(me, iter);
+            }
+            if (empty)
+            {
+               me.deleteNode();
+            }
          }
       }
       else
       {
-         // Check ob Projekte direkt drunter
+         // Checks if projects are directly under
          for (File iter : pathList)
          {
             if (iter.getName().equals("META-INF"))
@@ -158,12 +164,12 @@ public class ViewerInput
          }
          if (empty)
          {
-            // Check ob "normale" Ordner ein Projekt drunter haben
+            // Checks ordinary folders for containing projects
             Node parent = new Node();
             for (File currentPath : pathList)
             {
                Boolean exist = false;
-               // Check ob es den Node bereits gibt
+               // Checks for the existence of the node
                for (Node currentChild : root.getChildren())
                {
                   if (currentChild.getFile().equals(currentPath.getParentFile()))
@@ -179,13 +185,13 @@ public class ViewerInput
                {
                   if (content.getName().equals("META-INF"))
                   {
-                     // heist darunter ist ein Projekt
+                     // denotes the existence of a project under the module
                      new NodeProject(parent, currentPath, ProjectType.PDIR);
                      empty = false;
                   }
                }
             }
-            // Check ob Projekte gefunden wurden, ansonsten wird der Node gelöscht.
+            // Checks if projects was found, if not the node will be erased
             if (parent.getChildren().size() == 0)
             {
                parent.deleteNode();
@@ -244,80 +250,10 @@ public class ViewerInput
          {
             // ignore
             System.err.println("ERROR XML FILE");
+            return null;
          }
 
       }
       return name;
    }
-
-   /**
-    * Returns a Node System that is representing the Preview View. Only checked Elements in <code>viewer</code> are
-    * added.
-    * 
-    * @param simpleMode
-    * @param viewer the CheckBoxTreeViewer
-    * @return the Node (system)
-    */
-//   public Node createNodeSystemForPreview(boolean simpleMode, CheckboxTreeViewer viewer)
-//   {
-//      //TODO Currently not used, maybe delete
-//      Node preViewerRoot = new Node();
-//      Map<String, Node> wsNames = new TreeMap<String, Node>();
-//
-//      createNodes(preViewerRoot, dirViewerRoot, wsNames, simpleMode, viewer);
-//
-//      return preViewerRoot;
-//   }
-
-
-   /**
-    * Searches recursive through the Node System and creates Working Sets and normal Projects or module Projects.
-    * 
-    * @param root
-    * @param wsNames a list for Working Set Names
-    */
-//   private void createNodes(Node root, Node current, Map<String, Node> wsNames, boolean simpleMode,
-//      CheckboxTreeViewer viewer)
-//   {
-//      for (Node iter : current.getChildren())
-//      {
-//         if (viewer.getChecked(iter) && !iter.hasConflict())
-//         {
-//            // Check for Folder
-//            if (!(iter instanceof NodeFolder))
-//            {
-//               String wsName = new Backend().getWSName(iter);
-//
-//               // To skip the Folder Name in WS if simple mode
-//               if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
-//                  if (simpleMode)
-//                     if (iter.getParent() instanceof NodeFolder)
-//                        wsName = new Backend().getWSName(iter.getParent().getParent());
-//
-//               // Get the WS if there is any
-//               Node ws;
-//               if (wsNames.containsKey(wsName))
-//                  ws = wsNames.get(wsName);
-//               else
-//               {
-//                  ws = new NodeWorkingSet(root, wsName);
-//                  wsNames.put(wsName, ws);
-//               }
-//
-//
-//               // Add Stuff to WS
-//               if (iter instanceof NodeProject)
-//               {
-//                  new NodeProject(ws, iter.getFile(), ProjectType.PWS);
-//               }
-//               else if (iter instanceof NodeModuleProject)
-//               {
-//                  new NodeModuleProject(ws, iter.getFile(), iter.getName());
-//               }
-//            }
-//         
-//         createNodes(root, iter, wsNames, simpleMode, viewer);
-//         }
-//      }
-//   }
 }

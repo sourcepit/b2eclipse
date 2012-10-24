@@ -31,6 +31,10 @@ public class Messages extends NLS
    public static String msgSelectProject;
    public static String msgBrowseBtn;
 
+   public static String msgItemModuleAndFolder;
+   public static String msgItemOnlyModule;
+   public static String msgItemOnlyFolder;
+
    public static String msgRightHeading;
    public static String msgLeftHeading;
 
@@ -47,6 +51,8 @@ public class Messages extends NLS
 
    public static String msgDefaultWSName;
    public static String msgTask;
+   
+   public static String msgModuleProject;
 
    static
    {

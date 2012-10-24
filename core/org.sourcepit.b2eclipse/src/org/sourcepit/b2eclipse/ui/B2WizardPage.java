@@ -34,6 +34,8 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -41,6 +43,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolBar;
@@ -81,7 +85,6 @@ public class B2WizardPage extends WizardPage
    private ToolItem addPrefix;
    private ToolItem add;
    private ToolItem delete;
-   private ToolItem toggleMode;
    private ToolItem expandAll;
 
    private Backend bckend;
@@ -152,7 +155,7 @@ public class B2WizardPage extends WizardPage
    {
       GridLayout layout;
 
-      Composite container = new Composite(area, SWT.NONE);
+      final Composite container = new Composite(area, SWT.NONE);
 
       GridData data = new GridData(GridData.FILL_BOTH);
       data.widthHint = new PixelConverter(new FontRegistry().defaultFont()).convertWidthInCharsToPixels(150);
@@ -165,7 +168,7 @@ public class B2WizardPage extends WizardPage
 
 
       // The CheckboxTreeViever on left side
-      Composite leftContainer = new Composite(container, SWT.BORDER);
+      final Composite leftContainer = new Composite(container, SWT.BORDER);
       leftContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
       layout = new GridLayout(1, false);
@@ -173,12 +176,12 @@ public class B2WizardPage extends WizardPage
       layout.marginWidth = 0;
       layout.verticalSpacing = 0;
       leftContainer.setLayout(layout);
-      
-      new Label(leftContainer, SWT.NONE).setText(Messages.msgLeftHeading);      
-      new Label(leftContainer, SWT.HORIZONTAL | SWT.SEPARATOR).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-      
 
-      ToolBar toolBarLeft = new ToolBar(leftContainer, (SWT.HORIZONTAL | SWT.NONE));
+      new Label(leftContainer, SWT.NONE).setText(Messages.msgLeftHeading);
+      new Label(leftContainer, SWT.HORIZONTAL | SWT.SEPARATOR).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+
+      final ToolBar toolBarLeft = new ToolBar(leftContainer, (SWT.HORIZONTAL | SWT.NONE));
       toolBarLeft.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
       dirTreeViewer = new CheckboxTreeViewer(leftContainer, SWT.NONE);
@@ -186,7 +189,7 @@ public class B2WizardPage extends WizardPage
 
       dirTreeViewer.setContentProvider(new ContentProvider());
       dirTreeViewer.setLabelProvider(new LabelProviderForDir(this.getShell()));
-      
+
       refresh = new ToolItem(toolBarLeft, SWT.PUSH);
       refresh.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/elcl16/refresh.gif"));
       refresh.setToolTipText(Messages.msgRestoreTt);
@@ -203,7 +206,7 @@ public class B2WizardPage extends WizardPage
 
 
       // The preview TreeViewer on right side
-      Composite rightContainer = new Composite(container, SWT.BORDER);
+      final Composite rightContainer = new Composite(container, SWT.BORDER);
       rightContainer.setLayoutData(new GridData(GridData.FILL_BOTH));
 
       layout = new GridLayout(1, false);
@@ -211,11 +214,11 @@ public class B2WizardPage extends WizardPage
       layout.marginWidth = 0;
       layout.verticalSpacing = 0;
       rightContainer.setLayout(layout);
-      
-      new Label(rightContainer, SWT.NONE).setText(Messages.msgRightHeading);      
+
+      new Label(rightContainer, SWT.NONE).setText(Messages.msgRightHeading);
       new Label(rightContainer, SWT.HORIZONTAL | SWT.SEPARATOR).setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-      ToolBar toolBarRight = new ToolBar(rightContainer, (SWT.HORIZONTAL | SWT.NONE));
+      final ToolBar toolBarRight = new ToolBar(rightContainer, (SWT.HORIZONTAL | SWT.NONE));
       toolBarRight.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
       previewTreeViewer = new TreeViewer(rightContainer, SWT.NONE | SWT.MULTI);
@@ -244,9 +247,61 @@ public class B2WizardPage extends WizardPage
       expandAll.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/expandall.gif"));
       expandAll.setToolTipText(Messages.msgExpandAllTt);
 
-      toggleMode = new ToolItem(toolBarRight, SWT.CHECK);
+      // ------------------------------------------------------------------------------
+      // ToggleMode with Listeners
+      final Menu menu = new Menu(dialogShell, SWT.POP_UP);
+      final MenuItem itemModuleAndFolder = new MenuItem(menu, SWT.PUSH);
+      itemModuleAndFolder.setText(Messages.msgItemModuleAndFolder);
+      itemModuleAndFolder.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            bckend.setPreviewMode(Backend.Mode.moduleAndFolder);
+            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+         }
+      });
+
+      final MenuItem itemOnlyModule = new MenuItem(menu, SWT.PUSH);
+      itemOnlyModule.setText(Messages.msgItemOnlyModule);
+      itemOnlyModule.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            bckend.setPreviewMode(Backend.Mode.onlyModule);
+            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+         }
+      });
+
+      final MenuItem itemOnlyFolder = new MenuItem(menu, SWT.PUSH);
+      itemOnlyFolder.setText(Messages.msgItemOnlyFolder);
+      itemOnlyFolder.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            bckend.setPreviewMode(Backend.Mode.onlyFolder);
+            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+         }
+      });
+
+      final ToolItem toggleMode = new ToolItem(toolBarRight, SWT.DROP_DOWN);
+      toggleMode.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            if (event.detail == SWT.ARROW)
+            {
+               Rectangle rect = toggleMode.getBounds();
+               Point pt = new Point(rect.x, rect.y + rect.height);
+               pt = toolBarRight.toDisplay(pt);
+               menu.setLocation(pt.x, pt.y);
+               menu.setVisible(true);
+            }
+         }
+      });
+
       toggleMode.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_UP));
       toggleMode.setToolTipText(Messages.msgToggleModeTt);
+      // ------------------------------------------------------------------------------
 
       // Comparator for the Viewers
       ViewerComparator compa = new ViewerComparator()
@@ -419,7 +474,7 @@ public class B2WizardPage extends WizardPage
          {
             setPageComplete(false);
 
-            // TODO this is doing the same stuff as modLis
+            // this is doing the same stuff as modLis
             previewTreeViewer.setInput(new Node());
             bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
             bckend.doCheck(dirTreeViewer, true);
@@ -499,25 +554,6 @@ public class B2WizardPage extends WizardPage
          }
       });
 
-      toggleMode.addListener(SWT.Selection, new Listener()
-      {
-         public void handleEvent(Event event)
-         {
-            setPageComplete(false);
-            if (toggleMode.getSelection())
-            {
-               bckend.setPreviewMode(true);
-               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
-            }
-            else
-            {
-               bckend.setPreviewMode(false);
-               bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
-            }
-            setPageComplete(true);
-         }
-      });
-
       dirTreeViewer.addSelectionChangedListener(new ISelectionChangedListener()
       {
          public void selectionChanged(SelectionChangedEvent event)
@@ -569,41 +605,33 @@ public class B2WizardPage extends WizardPage
          public void checkStateChanged(CheckStateChangedEvent event)
          {
             setPageComplete(false);
-            Node elementNode = (Node) event.getElement();
+            Node eventNode = (Node) event.getElement();
 
-            // TODO maybe merge with refreshPreviewTreeViewer in backend
-            if (elementNode.hasConflict())
+            if (eventNode.hasConflict())
             {
-               dirTreeViewer.setChecked(elementNode, false);
+               // This makes sure the eventNode can't be checked
+               dirTreeViewer.setChecked(eventNode, false);
             }
             else
             {
-
                if (event.getChecked())
                {
-                  for (Node iter : elementNode.getAllSubNodes())
+                  for (Node iter : eventNode.getAllSubNodes())
                   {
+                     // Checks all checkable Nodes under the eventNode
                      if (!iter.hasConflict())
                         dirTreeViewer.setChecked(iter, true);
                   }
-
-                  if (elementNode instanceof NodeProject || elementNode instanceof NodeModuleProject)
-                     if (!elementNode.hasConflict())
-                        bckend.addToPrevievTree(previewTreeViewer, elementNode);
-                  for (Node iter : elementNode.getAllSubNodes())
-                  {
-                     if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
-                        if (!iter.hasConflict())
-                           bckend.addToPrevievTree(previewTreeViewer, iter);
-                  }
+                  bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
                }
                else
                {
-                  dirTreeViewer.setSubtreeChecked(elementNode, false);
+                  dirTreeViewer.setSubtreeChecked(eventNode, false);
 
-                  for (Node iter : elementNode.getAllSubNodes())
+                  for (Node iter : eventNode.getAllSubNodes())
                      bckend.deleteFromPrevievTree(previewTreeViewer, iter);
-                  bckend.deleteFromPrevievTree(previewTreeViewer, elementNode);
+
+                  bckend.deleteFromPrevievTree(previewTreeViewer, eventNode);
                   selAll.setSelection(false);
                }
             }
@@ -641,11 +669,13 @@ public class B2WizardPage extends WizardPage
       return (Node) previewTreeViewer.getInput();
    }
 
-   // Brings up a dialog where user can type in a prefix for a module.
+   /**
+    * Brings up a dialog where user can type in a prefix for a module.
+    */
    private void handleDirPrefixNaming()
    {
       setPageComplete(false);
-      // TODO don't reload the preview, only update ...
+
       Node selected = (Node) ((IStructuredSelection) dirTreeViewer.getSelection()).getFirstElement();
 
       if (selected != null && selected instanceof NodeModule)
@@ -658,14 +688,16 @@ public class B2WizardPage extends WizardPage
          {
             ((NodeModule) selected).setPrefix(null);
          }
-         previewTreeViewer.setInput(new Node()); // ... here
+         previewTreeViewer.setInput(new Node());
          bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
       }
       dirTreeViewer.refresh();
       setPageComplete(true);
    }
 
-   // Do the renaming "thing" on PreviewViewer.
+   /**
+    * Do the renaming "thing" on PreviewViewer.
+    */
    private void handlePrevievRename()
    {
       setPageComplete(false);
