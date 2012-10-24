@@ -7,6 +7,7 @@
 package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
+import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.layout.PixelConverter;
@@ -530,19 +531,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            setPageComplete(false);
-            IStructuredSelection selection = (IStructuredSelection) previewTreeViewer.getSelection();
-
-            if (!selection.isEmpty())
-            {
-               for (Object iter : (Object[]) selection.toArray())
-               {
-                  if (iter instanceof NodeWorkingSet)
-                     ((Node) iter).deleteNodeAssigningChildrenToParent();
-               }
-            }
-            previewTreeViewer.refresh();
-            setPageComplete(true);
+            doDeleteNodeInPreview();
          }
       });
 
@@ -579,11 +568,15 @@ public class B2WizardPage extends WizardPage
       {
          public void selectionChanged(SelectionChangedEvent event)
          {
-            Node selected = (Node) ((IStructuredSelection) event.getSelection()).getFirstElement();
-            if (selected != null && selected instanceof NodeWorkingSet)
-               delete.setEnabled(true);
-            else
-               delete.setEnabled(false);
+            @SuppressWarnings("unchecked")
+            List<Node> selected = ((IStructuredSelection) event.getSelection()).toList();
+            for (Node iter : selected)
+            {
+               if (iter instanceof Node)
+                  delete.setEnabled(true);
+               else
+                  delete.setEnabled(false);
+            }
          }
       });
 
@@ -596,7 +589,6 @@ public class B2WizardPage extends WizardPage
             handlePrevievRename();
          }
       });
-
 
       // if a category is checked in the tree, check all its children
       // handles also the appear/disappear of elements in the preview TreeViewer
@@ -639,6 +631,7 @@ public class B2WizardPage extends WizardPage
          }
       });
 
+      // Global keylistner
       this.getShell().getDisplay().addFilter(SWT.KeyDown, new Listener()
       {
          public void handleEvent(Event event)
@@ -655,6 +648,19 @@ public class B2WizardPage extends WizardPage
                if (event.widget.equals(previewTreeViewer.getTree()))
                {
                   handlePrevievRename();
+               }
+            }
+
+            if (event.keyCode == SWT.DEL)
+            {
+               if (event.widget.equals(dirTreeViewer.getTree()))
+               {
+
+               }
+
+               if (event.widget.equals(previewTreeViewer.getTree()))
+               {
+                  doDeleteNodeInPreview();
                }
             }
          }
@@ -678,7 +684,7 @@ public class B2WizardPage extends WizardPage
 
       Node selected = (Node) ((IStructuredSelection) dirTreeViewer.getSelection()).getFirstElement();
 
-      if (selected != null && selected instanceof NodeModule)
+      if (selected instanceof NodeModule && selected != null)
       {
          if (((NodeModule) selected).getPrefix() == null)
          {
@@ -704,7 +710,7 @@ public class B2WizardPage extends WizardPage
       final Node node = (Node) ((IStructuredSelection) previewTreeViewer.getSelection()).getFirstElement();
 
       // Only for Working Sets
-      if (node instanceof NodeWorkingSet)
+      if (node instanceof NodeWorkingSet && node != null)
       {
          final TreeEditor editor = new TreeEditor(previewTreeViewer.getTree());
          editor.horizontalAlignment = SWT.LEFT;
@@ -756,5 +762,36 @@ public class B2WizardPage extends WizardPage
          });
          editor.setEditor(txt, item);
       }
+   }
+
+   private void doDeleteNodeInPreview()
+   {
+      setPageComplete(false);
+      IStructuredSelection selection = (IStructuredSelection) previewTreeViewer.getSelection();
+
+      if (!selection.isEmpty())
+      {
+         for (Object iter : (Object[]) selection.toArray())
+         {
+            // Removes the projects from Preview
+            if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+            {
+               Node represent = ((Node) dirTreeViewer.getInput()).getEqualNode(((Node) iter).getFile());
+               if (represent != null)
+                  dirTreeViewer.setChecked(represent, false);
+
+               bckend.deleteFromPrevievTree(previewTreeViewer, (Node) iter);
+
+               // TODO select next item in tree
+               // previewTreeViewer.setSelection(selection, reveal);
+            }
+
+            // Removes the WS from Preview
+            if (iter instanceof NodeWorkingSet)
+               ((Node) iter).deleteNodeAssigningChildrenToParent();
+         }
+      }
+      previewTreeViewer.refresh();
+      setPageComplete(true);
    }
 }

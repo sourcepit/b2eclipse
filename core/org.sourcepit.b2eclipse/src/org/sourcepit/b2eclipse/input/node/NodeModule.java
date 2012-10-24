@@ -22,7 +22,7 @@ public class NodeModule extends Node
    {
       super();
       children = new ArrayList<Node>();
-      file = _file;
+      file = null;//_file;
       name = _name;
       parent = _parent;
       _parent.addChild(this);
