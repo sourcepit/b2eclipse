@@ -87,7 +87,7 @@ public class B2Wizard extends Wizard implements IImportWizard
             }
             catch (OperationCanceledException e)
             {
-               // TODO implement
+               /* can't abort */
             }
             catch (CoreException e)
             {

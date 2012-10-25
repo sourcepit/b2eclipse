@@ -44,14 +44,18 @@ public class Backend
 
    private ViewerInput input;
    private String prevBrowsedDirectory;
-   private boolean simpleMode;
-   private boolean previouseMode;
+   private Mode mode;
+   private Mode previouseMode;
 
+   public static enum Mode
+   {
+      onlyModule, moduleAndFolder, onlyFolder
+   }
 
    public Backend()
    {
-      simpleMode = false;
-      previouseMode = simpleMode;
+      mode = Mode.moduleAndFolder;
+      previouseMode = mode;
       prevBrowsedDirectory = "";
    }
 
@@ -63,18 +67,10 @@ public class Backend
     */
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
-      // TODO rework
-      if (!state)
+      for (Node iter : ((Node) viewer.getInput()).getAllSubNodes())
       {
-         viewer.setSubtreeChecked(((Node) viewer.getInput()), state);
-      }
-      else
-      {
-         for (Node iter : ((Node) viewer.getInput()).getAllSubNodes())
-         {
-            if (!iter.hasConflict())
-               viewer.setChecked(iter, state);
-         }
+         if (!iter.hasConflict())
+            viewer.setChecked(iter, state);
       }
    }
 
@@ -94,118 +90,120 @@ public class Backend
    }
 
    /**
-    * Delete the <code>project</code> from the <code>previevTreeViever</code>.
+    * Deletes the <code>node</code> from the <code>viewer</code>.
     * 
-    * @param previevTreeViever
+    * @param viewer
     * @param node
     */
-   public void deleteFromPrevievTree(TreeViewer previewTreeViewer, Node node)
+   public void deleteFromPrevievTree(TreeViewer viewer, Node node)
    {
       if (node instanceof NodeProject || node instanceof NodeModuleProject) // Should always be true
       {
-         Node imDead = ((Node) previewTreeViewer.getInput()).getEqualNode(node.getFile());
+         Node imDead = ((Node) viewer.getInput()).getEqualNode(node.getFile());
 
          if (imDead != null)
          {
             Node deadDad = imDead.getRootModule();
             imDead.deleteNode();
 
+            // checks if there are nodes under the corresponding working set node, if no deletes it
             if (deadDad.getChildren().size() == 0)
             {
                deadDad.deleteNode();
             }
          }
-         previewTreeViewer.refresh();
+         viewer.refresh();
       }
    }
 
    /**
-    * Add the <code>project</code> to the <code>previevTreeViever</code>. Also it checks if there is a corresponding
-    * Working Set for this Project, if not it also creates it.
+    * Add the <code>node</code> to the <code>viewer</code>. Also it checks if there is a corresponding Working Set for
+    * this Project, if not it also creates it. In addition it handles the appearance of the preview, corresponding to
+    * the <code>mode</code> field.
     * 
-    * @param previevTreeViever
-    * @param node
+    * @param viewer
+    * @param node from dirTreeViewer
     */
-   public void addToPrevievTree(TreeViewer previewTreeViewer, Node node)
+   public void addToPrevievTree(TreeViewer viewer, Node node)
    {
-      Node root = (Node) previewTreeViewer.getInput();
-      boolean created = false;
-
+      Node root = (Node) viewer.getInput();
       Node parent = node.getParent();
+      String wsName = getWSName(parent);
+      Node wsRoot = root;
+      Boolean wsFind = false;
 
-      if (node instanceof NodeModule)
-         parent = node;
-
-      if (simpleMode) // better check maybe?
+      switch (mode)
       {
-         if (parent instanceof NodeFolder)
-            parent = node.getParent().getParent();
+         case moduleAndFolder :
+            /* actually it does nothing */
+            break;
+
+         case onlyModule :
+            if (parent instanceof NodeFolder)
+               parent = parent.getParent();
+
+            wsName = getWSName(parent);
+            break;
+
+         case onlyFolder :
+            if (parent instanceof NodeFolder)
+               wsName = parent.getName();
+            else
+               wsName = null;
+
+            break;
+
+         default :
+            break;
       }
 
-      String wsName = getWSName(parent);
-
-      for (Node iter : root.getChildren())
+      // Add to root and search for existing Working Sets
+      if (wsName != null)
       {
-         if (iter instanceof NodeWorkingSet)
+         for (Node iter : root.getChildren())
          {
-            if (iter.getName().equals(wsName))
+            if (iter instanceof NodeWorkingSet)
             {
-               if (root.getEqualNode(node.getFile()) == null)
+               if (iter.getName().equals(wsName))
                {
-                  if (node instanceof NodeProject)
-                  {
-                     new NodeProject(iter, node.getFile(), ProjectType.PWS);
-                     created = true;
-                     break;
-                  }
-                  if (node instanceof NodeModuleProject)
-                  {
-                     new NodeModuleProject(iter, node.getFile(), node.getName());
-                     created = true;
-                     break;
-                  }
+                  wsRoot = iter;
+                  wsFind = true;
+                  break;
                }
             }
          }
+
+         if (!wsFind)
+            wsRoot = new NodeWorkingSet(root, wsName);
       }
 
-      if (!created)
+      if (root.getEqualNode(node.getFile()) == null)
       {
-         if (root.getEqualNode(node.getFile()) == null)
-         {
-            if (node instanceof NodeProject)
-            {
-               new NodeProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), ProjectType.PWS);
-            }
-            if (node instanceof NodeModuleProject)
-            {
-               new NodeModuleProject(new NodeWorkingSet(root, getWSName(parent)), node.getFile(), node.getName());
-            }
-         }
+         if (node instanceof NodeProject)
+            new NodeProject(wsRoot, node.getFile(), ProjectType.PWS);
+
+         if (node instanceof NodeModuleProject)
+            new NodeModuleProject(wsRoot, node.getFile(), node.getName());
       }
-
-      previewTreeViewer.refresh();
-
+      viewer.refresh();
    }
 
    /**
     * Shows a directory select dialog.
     * 
     * @param directoryName
-    * @param dialogShell
+    * @param parent
     * @return the chosen Directory or ""
     */
    public String showDirectorySelectDialog(String directoryName, Shell parent)
    {
 
       DirectoryDialog directoryDialog = new DirectoryDialog(parent, SWT.OPEN);
-
       directoryDialog.setText(Messages.msgSelectDirTitle);
 
       directoryName = directoryName.trim();
       if (directoryName.length() == 0)
       {
-
          if (prevBrowsedDirectory.length() == 0)
          {
             directoryName = IDEWorkbenchPlugin.getPluginWorkspace().getRoot().getLocation().toOSString();
@@ -237,17 +235,19 @@ public class Backend
    /**
     * Shows a workspace select dialog.
     * 
-    * @param dialogShell
+    * @param parent
     * @return the chosen Directory or ""
     */
    public String showWorkspaceSelectDialog(Shell parent)
    {
       ElementTreeSelectionDialog dialog = new ElementTreeSelectionDialog(parent, new WorkbenchLabelProvider(),
          new BaseWorkbenchContentProvider());
+
       dialog.setTitle(Messages.msgSelectProjectTitle);
       dialog.setMessage(Messages.msgSelectProject);
       dialog.setInput(ResourcesPlugin.getWorkspace().getRoot());
       dialog.open();
+
       if (dialog.getFirstResult() != null)
       {
          String selectedProject = String.valueOf(((IResource) dialog.getFirstResult()).getLocation());
@@ -261,22 +261,21 @@ public class Backend
    }
 
    /**
-    * Handles a change in the directory Field, actual it sets a new input to the treeViewer's.
+    * Handles a change in the directory Field, actual it sets a new input to the <code>viewer</code>.
     * 
-    * @param treeViewer
-    * @param previewTreeViewer
+    * @param viewer
     * @param txt
     */
-   public void handleDirTreeViewer(CheckboxTreeViewer treeViewer, String txt)
+   public void handleDirTreeViewer(CheckboxTreeViewer viewer, String txt)
    {
       input = new ViewerInput(new Node());
 
-      treeViewer.setInput(input.createMainNodeSystem(new File(txt)));
-      treeViewer.expandAll();
+      viewer.setInput(input.createMainNodeSystem(new File(txt)));
+      viewer.expandAll();
 
-      checkProjectConflicts(treeViewer);
+      checkProjectConflicts(viewer);
 
-      treeViewer.refresh();
+      viewer.refresh();
    }
 
    /**
@@ -284,58 +283,43 @@ public class Backend
     * 
     * @param dirTreeViewer
     * @param previewTreeViewer
-    * @param mode
     */
    public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
    {
-      // TODO simple mode ...
-      // -- IDEA 1: give addToPrevievTree a Parameter
-      // ---------- save previous mode, if mode changed alter Working Sets
-      if (previouseMode != simpleMode)
+      // if mode has changed, refresh preview
+      if (previouseMode != mode)
       {
-         // currently not altering just reloading, but there is no other way
          previewTreeViewer.setInput(new Node());
-         previouseMode = simpleMode;
+         previouseMode = mode;
       }
-
-      // TODO prefix ...
-
 
       Node root = (Node) dirTreeViewer.getInput();
 
       // Create Preview Nodes
-      for (Node top : root.getChildren())
+      for (Node iter : root.getAllSubNodes())
       {
-         if (top instanceof NodeProject || top instanceof NodeModuleProject)
-            if (!top.hasConflict() && dirTreeViewer.getChecked(top))
-               addToPrevievTree(previewTreeViewer, top);
-         for (Node iter : top.getAllSubNodes())
-         {
-            if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
-               if (!iter.hasConflict() && dirTreeViewer.getChecked(iter))
-                  addToPrevievTree(previewTreeViewer, iter);
-         }
+         if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+            if (!iter.hasConflict() && dirTreeViewer.getChecked(iter))
+               addToPrevievTree(previewTreeViewer, iter);
       }
       previewTreeViewer.refresh();
    }
 
    /**
-    * Sets the <code>simpleMode</code> flag, if in simple mode, ordinary folders will not be added as a WS entry in the
-    * <code>PreviewViewer</code>.
+    * Sets the <code>mode</code>.
     * 
-    * @param _simpleMode
+    * @param _mode the new Mode
     */
-   public void setPreviewMode(boolean _simpleMode)
+   public void setPreviewMode(Mode _mode)
    {
-      simpleMode = _simpleMode;
+      mode = _mode;
    }
-
 
    /**
     * Returns the Name for a Working Set.
     * 
     * @param node
-    * @return
+    * @return the Name or "".
     */
    public String getWSName(Node node)
    {
@@ -368,28 +352,38 @@ public class Backend
       return name.substring(1);
    }
 
-   public String showInputDialog(Shell dialogShell)
+   /**
+    * Shows a dialog where user can put in a Name.
+    * 
+    * @param parent
+    * @return the Name or, null.
+    */
+   public String showInputDialog(Shell parent)
    {
-      InputDialog dialog = new InputDialog(dialogShell, Messages.msgInDialogTitle, Messages.msgInDialogMessage, null,
-         null);
+      InputDialog dialog = new InputDialog(parent, Messages.msgInDialogTitle, Messages.msgInDialogMessage, null, null);
       if (dialog.open() == Window.OK)
          return dialog.getValue();
       else
          return null;
    }
 
-   public void checkProjectConflicts(CheckboxTreeViewer treeViewer)
+   /**
+    * Checks if there are conflicts. If there are it sets the conflict field in the corresponding node. A conflict
+    * occur, if there is already a project in the workspace, with the same name as, the to be imported projects.
+    * 
+    * @param viewer
+    */
+   public void checkProjectConflicts(CheckboxTreeViewer viewer)
    {
-      for (Node node : ((Node) treeViewer.getInput()).getAllSubNodes())
+      for (Node node : ((Node) viewer.getInput()).getAllSubNodes())
       {
          if (node instanceof NodeProject || node instanceof NodeModuleProject)
          {
             for (IProject iter : ResourcesPlugin.getWorkspace().getRoot().getProjects())
             {
-               // check before import new Projects
                if (iter.getName().equals(node.getName()))
                {
-                  treeViewer.setChecked(node, false);
+                  viewer.setChecked(node, false);
                   node.setConflict();
                }
             }

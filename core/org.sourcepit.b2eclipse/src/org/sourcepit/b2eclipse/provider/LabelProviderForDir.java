@@ -20,6 +20,7 @@ import org.sourcepit.b2eclipse.input.node.NodeFolder;
 import org.sourcepit.b2eclipse.input.node.NodeModule;
 import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
+import org.sourcepit.b2eclipse.ui.Messages;
 
 /**
  * @author WD
@@ -53,11 +54,10 @@ public class LabelProviderForDir extends StyledCellLabelProvider
 
       if (node instanceof NodeModuleProject)
       {
-         // TODO message
          if (!node.hasConflict())
-            label.append("(Module Project)", StyledString.DECORATIONS_STYLER);
+            label.append(Messages.msgModuleProject, StyledString.DECORATIONS_STYLER);
          else
-            label.append("(Module Project)");
+            label.append(Messages.msgModuleProject);
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()
             .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
       }
@@ -75,8 +75,9 @@ public class LabelProviderForDir extends StyledCellLabelProvider
       {
          label.append(node.getName());
          cell.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_FOLDER));
-      } // TODO maybe find a better icon
-      
+         // TODO maybe find a better icon
+      }
+
 
       if (node.hasConflict())
          cell.setForeground(shell.getDisplay().getSystemColor(SWT.COLOR_GRAY));

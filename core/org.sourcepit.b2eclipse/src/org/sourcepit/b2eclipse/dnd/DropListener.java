@@ -34,7 +34,7 @@ public class DropListener extends ViewerDropAdapter
    @Override
    public boolean performDrop(Object data)
    {
-      Node target = (Node) this.getCurrentTarget();      
+      Node target = (Node) this.getCurrentTarget();
       int loc = this.getCurrentLocation();
 
       for (String iter : (String[]) data)
@@ -50,20 +50,21 @@ public class DropListener extends ViewerDropAdapter
                   {
                      selected.getParent().removeChild(selected);
                      selected.setParent(target);
-                     target.addChild((Node)selected);
+                     target.addChild((Node) selected);
                   }
                   if (target instanceof NodeProject || target instanceof NodeModuleProject)
                   {
                      selected.getParent().removeChild(selected);
                      selected.setParent(target.getParent());
-                     target.getParent().addChild((Node)selected);
+                     target.getParent().addChild((Node) selected);
                   }
                }
-               if (loc == LOCATION_NONE || (target instanceof NodeWorkingSet && (loc == LOCATION_AFTER || loc == LOCATION_BEFORE)))
+               if (loc == LOCATION_NONE
+                  || (target instanceof NodeWorkingSet && (loc == LOCATION_AFTER || loc == LOCATION_BEFORE)))
                {
                   selected.getParent().removeChild(selected);
                   selected.setParent((Node) viewer.getInput());
-                  ((Node) viewer.getInput()).addChild((Node)selected);
+                  ((Node) viewer.getInput()).addChild((Node) selected);
                }
             }
          }
@@ -75,9 +76,7 @@ public class DropListener extends ViewerDropAdapter
    @Override
    public boolean validateDrop(Object _target, int operation, TransferData transferType)
    {
-      // if (_target instanceof Node)
       return true;
-      // return false;
    }
 
 }

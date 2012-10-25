@@ -162,9 +162,7 @@ public class Node
 
       for (Node iter : search.getChildren())
       {
-
-         if (iter.getFile().equals(equal))
-
+         if (iter.getFile() == equal)
             return iter;
 
          else

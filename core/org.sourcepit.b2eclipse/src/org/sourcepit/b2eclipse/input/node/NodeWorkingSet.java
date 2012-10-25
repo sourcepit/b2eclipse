@@ -6,7 +6,6 @@
 
 package org.sourcepit.b2eclipse.input.node;
 
-import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -27,7 +26,7 @@ public class NodeWorkingSet extends Node
 
       name = _name;
       previousName = _name;
-      file = new File("");
+      file = null;
 
    }
 
