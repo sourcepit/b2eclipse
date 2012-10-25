@@ -8,6 +8,7 @@ package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
 import java.util.List;
+import java.util.ListIterator;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.jface.layout.PixelConverter;
@@ -20,6 +21,7 @@ import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
@@ -201,7 +203,6 @@ public class B2WizardPage extends WizardPage
 
       addPrefix = new ToolItem(toolBarLeft, SWT.PUSH);
       addPrefix.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/obj16/change.gif"));
-      // TODO find a better icon
       addPrefix.setToolTipText(Messages.msgAddPrefixTt);
       addPrefix.setEnabled(false);
 
@@ -502,6 +503,7 @@ public class B2WizardPage extends WizardPage
                // un-check All
                bckend.doCheck(dirTreeViewer, false);
             }
+            dirTreeViewer.refresh();
             bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
             setPageComplete(true);
          }
@@ -511,7 +513,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            handleDirPrefixNaming();
+            handleDirPrefixNaming(false);
          }
       });
 
@@ -560,7 +562,7 @@ public class B2WizardPage extends WizardPage
       {
          public void doubleClick(DoubleClickEvent event)
          {
-            handleDirPrefixNaming();
+            handleDirPrefixNaming(false);
          }
       });
 
@@ -641,7 +643,7 @@ public class B2WizardPage extends WizardPage
                // DirTreeviewer was selected
                if (event.widget.equals(dirTreeViewer.getTree()))
                {
-                  handleDirPrefixNaming();
+                  handleDirPrefixNaming(false);
                }
 
                // PreviewTreeViewer was selected
@@ -655,7 +657,7 @@ public class B2WizardPage extends WizardPage
             {
                if (event.widget.equals(dirTreeViewer.getTree()))
                {
-
+                  handleDirPrefixNaming(true);
                }
 
                if (event.widget.equals(previewTreeViewer.getTree()))
@@ -677,8 +679,10 @@ public class B2WizardPage extends WizardPage
 
    /**
     * Brings up a dialog where user can type in a prefix for a module.
+    * 
+    * @param delete if true the prefix will be deleted
     */
-   private void handleDirPrefixNaming()
+   private void handleDirPrefixNaming(Boolean delete)
    {
       setPageComplete(false);
 
@@ -686,13 +690,13 @@ public class B2WizardPage extends WizardPage
 
       if (selected instanceof NodeModule && selected != null)
       {
-         if (((NodeModule) selected).getPrefix() == null)
+         if (delete)
          {
-            ((NodeModule) selected).setPrefix(bckend.showInputDialog(dialogShell));
+            ((NodeModule) selected).setPrefix(null);
          }
          else
          {
-            ((NodeModule) selected).setPrefix(null);
+            ((NodeModule) selected).setPrefix(bckend.showInputDialog(dialogShell));
          }
          previewTreeViewer.setInput(new Node());
          bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
@@ -771,19 +775,31 @@ public class B2WizardPage extends WizardPage
 
       if (!selection.isEmpty())
       {
+         // Get the last item in selection
+         Node last = (Node) selection.toArray()[selection.size() - 1];
+         int index = last.getParent().getChildren().indexOf(last);
+         ListIterator<Node> list = last.getParent().getChildren().listIterator(index + 1);
+
+         // Select the next item in tree
+         if (list.hasNext())
+            previewTreeViewer.setSelection(new StructuredSelection(list.next()));
+         else
+         // Select the parent of the item if there are no more items left
+         if (last.getParent().getParent() != null)
+            previewTreeViewer.setSelection(new StructuredSelection(last.getParent()));
+
+         // Go thought all items of the selection
          for (Object iter : (Object[]) selection.toArray())
          {
             // Removes the projects from Preview
             if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
             {
                Node represent = ((Node) dirTreeViewer.getInput()).getEqualNode(((Node) iter).getFile());
+
                if (represent != null)
                   dirTreeViewer.setChecked(represent, false);
 
                bckend.deleteFromPrevievTree(previewTreeViewer, (Node) iter);
-
-               // TODO select next item in tree
-               // previewTreeViewer.setSelection(selection, reveal);
             }
 
             // Removes the WS from Preview

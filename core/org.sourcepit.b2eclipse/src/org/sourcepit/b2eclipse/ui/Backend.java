@@ -67,19 +67,10 @@ public class Backend
     */
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
-      if (!state)
+      for (Node iter : ((Node) viewer.getInput()).getAllSubNodes())
       {
-         // uncheck
-         viewer.setSubtreeChecked(((Node) viewer.getInput()), state);
-      }
-      else
-      {
-         // check the checkable (checkable if there are no conflicts)
-         for (Node iter : ((Node) viewer.getInput()).getAllSubNodes())
-         {
-            if (!iter.hasConflict())
-               viewer.setChecked(iter, state);
-         }
+         if (!iter.hasConflict())
+            viewer.setChecked(iter, state);
       }
    }
 
