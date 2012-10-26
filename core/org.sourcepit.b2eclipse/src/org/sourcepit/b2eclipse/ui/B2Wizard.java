@@ -8,6 +8,7 @@ package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -20,6 +21,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -42,6 +44,8 @@ import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 public class B2Wizard extends Wizard implements IImportWizard
 {
    private B2WizardPage page;
+
+   private ArrayList<String> error = new ArrayList<String>();
 
    public B2Wizard()
    {
@@ -108,6 +112,16 @@ public class B2Wizard extends Wizard implements IImportWizard
       {
          throw new IllegalStateException(e);
       }
+
+      // Shows which projects couldn't be created
+      if (!error.isEmpty())
+      {
+         String message = Messages.msgErrorOnProjectCreate + "\n";
+         for (String iter : error)
+            message += iter + "\n";
+         message += "\n"+Messages.msgErrorOnProjectCreateSolution;
+         MessageDialog.openError(page.getShell(), "Error", message);
+      }
       return true;
    }
 
@@ -153,7 +167,8 @@ public class B2Wizard extends Wizard implements IImportWizard
                   {
                      IProject project = createOrOpenProject(currentSubElement.getFile().toString(),
                         currentSubElement.getName(), workspace);
-                     wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
+                     if (project != null)
+                        wSmanager.addToWorkingSets(project, new IWorkingSet[] { workingSet });
                      monitor.worked(1);
                   }
                }
@@ -172,21 +187,30 @@ public class B2Wizard extends Wizard implements IImportWizard
       }
    }
 
-   private IProject createOrOpenProject(String path, String name, IWorkspace workspace) throws CoreException
+   private IProject createOrOpenProject(String path, String name, IWorkspace workspace)
    {
-      IProject project;
-      if (new File(path + "/.project").exists())
+
+      IProject project = null;
+      try
       {
-         IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(path + "/.project"));
-         project = workspace.getRoot().getProject(projectDescription.getName());
-         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+         if (new File(path + "/.project").exists())
+         {
+            IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(path + "/.project"));
+            project = workspace.getRoot().getProject(projectDescription.getName());
+            JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+         }
+         else
+         {
+            IProjectDescription projectDescription = workspace.newProjectDescription(name);
+            projectDescription.setLocation(new Path(path));
+            project = workspace.getRoot().getProject(projectDescription.getName());
+            JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+         }
       }
-      else
+      catch (CoreException e)
       {
-         IProjectDescription projectDescription = workspace.newProjectDescription(name);
-         projectDescription.setLocation(new Path(path));
-         project = workspace.getRoot().getProject(projectDescription.getName());
-         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+         // catch if project couldn't be created and show user which project couldn't be created         
+         error.add(name);
       }
       return project;
    }
