@@ -10,6 +10,16 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
@@ -37,6 +47,8 @@ import org.sourcepit.b2eclipse.input.node.Node;
 import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * @author WD
@@ -119,7 +131,7 @@ public class B2Wizard extends Wizard implements IImportWizard
          String message = Messages.msgErrorOnProjectCreate + "\n";
          for (String iter : error)
             message += iter + "\n";
-         message += "\n"+Messages.msgErrorOnProjectCreateSolution;
+         message += "\n" + Messages.msgErrorOnProjectCreateSolution;
          MessageDialog.openError(page.getShell(), "Error", message);
       }
       return true;
@@ -193,25 +205,65 @@ public class B2Wizard extends Wizard implements IImportWizard
       IProject project = null;
       try
       {
-         if (new File(path + "/.project").exists())
+         if (!new File(path + "/.project").exists())
          {
-            IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(path + "/.project"));
-            project = workspace.getRoot().getProject(projectDescription.getName());
-            JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
+            // .project creation
+            createProjectFile(path, name);
          }
-         else
-         {
-            IProjectDescription projectDescription = workspace.newProjectDescription(name);
-            projectDescription.setLocation(new Path(path));
-            project = workspace.getRoot().getProject(projectDescription.getName());
-            JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
-         }
+         IProjectDescription projectDescription = workspace.loadProjectDescription(new Path(path + "/.project"));
+         project = workspace.getRoot().getProject(projectDescription.getName());
+         JavaCapabilityConfigurationPage.createProject(project, projectDescription.getLocationURI(), null);
       }
-      catch (CoreException e)
+      catch (Exception e)
       {
-         // catch if project couldn't be created and show user which project couldn't be created         
+         // catch if project couldn't be created and show user which project couldn't be created
          error.add(name);
       }
       return project;
+   }
+
+   /**
+    * Creates the .project file in <code>path</code> with <code>projectName</code> as name.
+    * 
+    * @param path
+    * @param projectName
+    * @throws ParserConfigurationException
+    * @throws TransformerException
+    */
+   private void createProjectFile(String path, String projectName) throws ParserConfigurationException,
+      TransformerException
+   {
+      DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+      DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+      Document doc = dBuilder.newDocument();
+      Element rootElement = doc.createElement("projectDescription");
+      doc.appendChild(rootElement);
+
+      Element name = doc.createElement("name");
+      name.appendChild(doc.createTextNode(projectName));
+      rootElement.appendChild(name);
+
+      rootElement.appendChild(doc.createElement("comment"));
+      rootElement.appendChild(doc.createElement("projects"));
+      rootElement.appendChild(doc.createElement("buildSpec"));
+      rootElement.appendChild(doc.createElement("natures"));
+
+      TransformerFactory transformerFactory = TransformerFactory.newInstance();
+      Transformer transformer = transformerFactory.newTransformer();
+
+      try
+      {
+         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      }
+      catch (IllegalArgumentException e)
+      {
+         /* ignore */
+      }
+
+      DOMSource source = new DOMSource(doc);
+      StreamResult result = new StreamResult(new File(path + "/.project"));
+
+      transformer.transform(source, result);
    }
 }
