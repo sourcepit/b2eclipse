@@ -12,7 +12,7 @@ public class WSNameValidator
    {
       while (wsNames.contains(name))
       {
-         name = name+"_rp";
+         name = name + "_rp";
       }
       wsNames.add(name);
       return name;
@@ -24,6 +24,11 @@ public class WSNameValidator
       {
          wsNames.remove(name);
       }
+   }
+
+   public static void clear()
+   {
+      wsNames.clear();
    }
 
 }

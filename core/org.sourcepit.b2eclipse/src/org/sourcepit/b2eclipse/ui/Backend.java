@@ -30,6 +30,7 @@ import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
+import org.sourcepit.b2eclipse.input.node.WSNameValidator;
 
 /**
  * Handles the most UI operations.
@@ -45,6 +46,7 @@ public class Backend
    private String prevBrowsedDirectory;
    private Mode mode;
    private Mode previouseMode;
+   private boolean highestMP;
 
    public static enum Mode
    {
@@ -53,6 +55,7 @@ public class Backend
 
    public Backend()
    {
+      highestMP = true;
       mode = Mode.onlyModule;
       previouseMode = mode;
       prevBrowsedDirectory = "";
@@ -74,20 +77,30 @@ public class Backend
             viewer.setChecked(aNode, state);
          }
 
-         if (aNode instanceof NodeModuleProject)
+
+         if (aNode instanceof NodeModuleProject && highestMP)
          {
             viewer.setChecked(aNode, false);
          }
       }
 
-      // Checks the highest ModuleProject Node
-      for (Node aNode : root.getChildren().get(0).getChildren())
+      if (highestMP)
       {
-         if (aNode instanceof NodeModuleProject)
+         // Checks the highest ModuleProject Node
+         for (Node aNode : root.getChildren().get(0).getChildren())
          {
-            viewer.setChecked(aNode, true);
+            if (aNode instanceof NodeModuleProject)
+            {
+               viewer.setChecked(aNode, true);
+            }
          }
       }
+   }
+
+   public void doCheck(CheckboxTreeViewer viewer, boolean state, boolean highestMP)
+   {
+      this.highestMP = highestMP;
+      doCheck(viewer, state);
    }
 
 
@@ -179,7 +192,19 @@ public class Backend
    {
       Node root = (Node) viewer.getInput();
       Node parent = node.getParent();
+
       String wsName = getWSName(parent);
+      
+      String lastModuleName;      
+      if (parent instanceof NodeFolder)
+      {
+         lastModuleName = new String(parent.getParent().getName());
+      }
+      else
+      {
+         lastModuleName = parent.getName();
+      }
+
       Node wsRoot = root;
       Boolean wsFind = false;
 
@@ -191,8 +216,9 @@ public class Backend
 
          case onlyModule :
             if (parent instanceof NodeFolder)
+            {
                parent = parent.getParent();
-
+            }
             wsName = getWSName(parent);
             break;
 
@@ -224,8 +250,8 @@ public class Backend
             }
          }
 
-         if (!wsFind)            
-            wsRoot = new NodeWorkingSet(root, wsName);
+         if (!wsFind)
+            wsRoot = new NodeWorkingSet(root, wsName, lastModuleName);
       }
 
       if (root.getEqualNode(node.getFile()) == null)
@@ -338,12 +364,13 @@ public class Backend
     * @param dirTreeViewer
     * @param previewTreeViewer
     */
-   public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
+   public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer, boolean refresh)
    {
       // if mode has changed, refresh preview
-      if (previouseMode != mode)
+      if (previouseMode != mode || refresh)
       {
          previewTreeViewer.setInput(new Node());
+         WSNameValidator.clear();
          previouseMode = mode;
       }
 
@@ -357,6 +384,11 @@ public class Backend
                addToPrevievTree(previewTreeViewer, iter);
       }
       previewTreeViewer.refresh();
+   }
+
+   public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
+   {
+      refreshPreviewViewer(dirTreeViewer, previewTreeViewer, false);
    }
 
    /**

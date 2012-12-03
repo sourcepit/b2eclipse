@@ -91,6 +91,7 @@ public class B2WizardPage extends WizardPage
    private ToolItem delete;
    private ToolItem expandAll;
 
+   private ToolItem toggleMPselection;
    private ToolItem toggleName;
 
    private Backend bckend;
@@ -125,7 +126,6 @@ public class B2WizardPage extends WizardPage
       addListeners();
 
       setControl(widgetContainer);
-
    }
 
    private void createFileChooserArea(Composite area)
@@ -199,6 +199,10 @@ public class B2WizardPage extends WizardPage
       refresh = new ToolItem(toolBarLeft, SWT.PUSH);
       refresh.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/elcl16/refresh.gif"));
       refresh.setToolTipText(Messages.msgRestoreTt);
+
+      toggleMPselection = new ToolItem(toolBarLeft, SWT.CHECK);
+      toggleMPselection.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/step_done.gif"));
+      toggleMPselection.setToolTipText(Messages.msgToggleMPselectionTt);
 
       // selAll = new ToolItem(toolBarLeft, SWT.CHECK);
       // selAll.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/step_done.gif"));
@@ -517,6 +521,29 @@ public class B2WizardPage extends WizardPage
          }
       });
 
+      toggleMPselection.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            setPageComplete(false);
+            if (toggleMPselection.getSelection())
+            {
+               // check All
+               bckend.doCheck(dirTreeViewer, true, false);
+            }
+            else
+            {
+               // un-check All
+               bckend.doCheck(dirTreeViewer, true, true);
+            }
+            dirTreeViewer.refresh();
+            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer, true);
+
+            setPageComplete(true);
+
+         }
+      });
+
       // selAll.addListener(SWT.Selection, new Listener()
       // {
       // public void handleEvent(Event event)
@@ -552,7 +579,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            new NodeWorkingSet((Node) previewTreeViewer.getInput(), Messages.msgDefaultWSName);
+            new NodeWorkingSet((Node) previewTreeViewer.getInput(), Messages.msgDefaultWSName, null);
             previewTreeViewer.refresh();
          }
       });
