@@ -54,10 +54,15 @@ public class LabelProviderForDir extends StyledCellLabelProvider
 
       if (node instanceof NodeModuleProject)
       {
+         label.append(node.getName()+" ");
          if (!node.hasConflict())
+         {
             label.append(Messages.msgModuleProject, StyledString.DECORATIONS_STYLER);
+         }
          else
+         {
             label.append(Messages.msgModuleProject);
+         }
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()
             .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
       }

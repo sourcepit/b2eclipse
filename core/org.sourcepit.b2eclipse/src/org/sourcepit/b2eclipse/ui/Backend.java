@@ -31,7 +31,6 @@ import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
 
-
 /**
  * Handles the most UI operations.
  * 
@@ -54,7 +53,7 @@ public class Backend
 
    public Backend()
    {
-      mode = Mode.moduleAndFolder;
+      mode = Mode.onlyModule;
       previouseMode = mode;
       prevBrowsedDirectory = "";
    }
@@ -67,12 +66,60 @@ public class Backend
     */
    public void doCheck(CheckboxTreeViewer viewer, boolean state)
    {
-      for (Node iter : ((Node) viewer.getInput()).getAllSubNodes())
+      Node root = (Node) viewer.getInput();
+      for (Node aNode : root.getAllSubNodes())
       {
-         if (!iter.hasConflict())
-            viewer.setChecked(iter, state);
+         if (!aNode.hasConflict())
+         {
+            viewer.setChecked(aNode, state);
+         }
+
+         if (aNode instanceof NodeModuleProject)
+         {
+            viewer.setChecked(aNode, false);
+         }
+      }
+
+      // Checks the highest ModuleProject Node
+      for (Node aNode : root.getChildren().get(0).getChildren())
+      {
+         if (aNode instanceof NodeModuleProject)
+         {
+            viewer.setChecked(aNode, true);
+         }
       }
    }
+
+
+   // ------------------------------------------------------------------------
+   public void checkModuleProjects(CheckboxTreeViewer viewer, boolean all)
+   {
+      Node root = (Node) viewer.getInput();
+      for (Node aNode : root.getAllSubNodes())
+      {
+         if (!aNode.hasConflict())
+         {
+            viewer.setChecked(aNode, all);
+         }
+
+         if (aNode instanceof NodeModuleProject)
+         {
+            viewer.setChecked(aNode, false);
+         }
+      }
+
+      // Checks the highest ModuleProject Node
+      for (Node aNode : root.getChildren().get(0).getChildren())
+      {
+         if (aNode instanceof NodeModuleProject)
+         {
+            viewer.setChecked(aNode, true);
+         }
+      }
+   }
+
+   // ------------------------------------------------------------------------
+
 
    /**
     * Checks if the parent file is null.
@@ -97,7 +144,10 @@ public class Backend
     */
    public void deleteFromPrevievTree(TreeViewer viewer, Node node)
    {
-      if (node instanceof NodeProject || node instanceof NodeModuleProject) // Should always be true
+      if (node instanceof NodeProject || node instanceof NodeModuleProject) // Should
+      // always
+      // be
+      // true
       {
          Node imDead = ((Node) viewer.getInput()).getEqualNode(node.getFile());
 
@@ -106,7 +156,8 @@ public class Backend
             Node deadDad = imDead.getRootModule();
             imDead.deleteNode();
 
-            // checks if there are nodes under the corresponding working set node, if no deletes it
+            // checks if there are nodes under the corresponding working set
+            // node, if no deletes it
             if (deadDad.getChildren().size() == 0)
             {
                deadDad.deleteNode();
@@ -173,7 +224,7 @@ public class Backend
             }
          }
 
-         if (!wsFind)
+         if (!wsFind)            
             wsRoot = new NodeWorkingSet(root, wsName);
       }
 
@@ -270,8 +321,11 @@ public class Backend
    {
       input = new ViewerInput(new Node());
 
-      viewer.setInput(input.createMainNodeSystem(new File(txt)));
-      viewer.expandAll();
+      Node inputNode = input.createMainNodeSystem(new File(txt));
+      viewer.setInput(inputNode);
+
+      // TODO maybe find out which to expand
+      viewer.expandToLevel(2);
 
       checkProjectConflicts(viewer);
 
@@ -388,6 +442,27 @@ public class Backend
                }
             }
          }
+      }
+   }
+
+   public void toggleNaming(TreeViewer previewTreeViewer, boolean state)
+   {
+      for (Node aNode : ((Node) previewTreeViewer.getInput()).getAllSubNodes())
+      {
+         if (aNode instanceof NodeWorkingSet)
+         {
+            if (state)
+            {
+               ((NodeWorkingSet) aNode).setShortName();
+            }
+            else
+            {
+               ((NodeWorkingSet) aNode).setLongName();
+
+            }
+
+         }
+
       }
    }
 }

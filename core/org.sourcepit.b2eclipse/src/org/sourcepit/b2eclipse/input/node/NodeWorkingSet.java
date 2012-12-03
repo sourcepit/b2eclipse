@@ -15,13 +15,43 @@ import java.util.ArrayList;
  */
 public class NodeWorkingSet extends Node
 {
-   public NodeWorkingSet(Node _parent, String _name)
+   private String longName;
+   private String shortName;   
+   
+   public NodeWorkingSet(Node parent, String name)
    {
       super();
       children = new ArrayList<Node>();
-      name = _name;
+      
+      this.name = WSNameValidator.validate(name);
+      
+      longName = name;
+      if (name.contains("/"))
+      {
+         shortName = this.name.substring(this.name.lastIndexOf("/")+1, this.name.length());
+      }
+      else
+      {
+         shortName = this.name;
+      }
       file = null;
-      parent = _parent;
-      _parent.addChild(this);
+      this.parent = parent;
+      parent.addChild(this);
+   }
+   
+   protected void finalize() throws Throwable
+   {
+     WSNameValidator.removeFromlist(this.name);
+     super.finalize();
+   } 
+   
+   public void setShortName()
+   {
+      name = shortName;
+   }
+
+   public void setLongName()
+   {
+      name = longName;
    }
 }

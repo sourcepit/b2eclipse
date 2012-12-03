@@ -63,6 +63,7 @@ import org.sourcepit.b2eclipse.input.node.NodeModule;
 import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
+import org.sourcepit.b2eclipse.input.node.WSNameValidator;
 import org.sourcepit.b2eclipse.provider.LabelProviderForDir;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
 import org.sourcepit.b2eclipse.provider.LabelProviderForPreview;
@@ -84,11 +85,13 @@ public class B2WizardPage extends WizardPage
    private TreeViewer previewTreeViewer;
 
    private ToolItem refresh;
-   private ToolItem selAll;
+   // private ToolItem selAll;
    private ToolItem addPrefix;
    private ToolItem add;
    private ToolItem delete;
    private ToolItem expandAll;
+
+   private ToolItem toggleName;
 
    private Backend bckend;
    private Shell dialogShell;
@@ -197,9 +200,9 @@ public class B2WizardPage extends WizardPage
       refresh.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/elcl16/refresh.gif"));
       refresh.setToolTipText(Messages.msgRestoreTt);
 
-      selAll = new ToolItem(toolBarLeft, SWT.CHECK);
-      selAll.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/step_done.gif"));
-      selAll.setToolTipText(Messages.msgSelectDeselectTt);
+      // selAll = new ToolItem(toolBarLeft, SWT.CHECK);
+      // selAll.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/step_done.gif"));
+      // selAll.setToolTipText(Messages.msgSelectDeselectTt);
 
       addPrefix = new ToolItem(toolBarLeft, SWT.PUSH);
       addPrefix.setImage(Activator.getImageFromPath("org.eclipse.jdt.ui", "$nl$/icons/full/obj16/change.gif"));
@@ -249,19 +252,13 @@ public class B2WizardPage extends WizardPage
       expandAll.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/expandall.gif"));
       expandAll.setToolTipText(Messages.msgExpandAllTt);
 
+      toggleName = new ToolItem(toolBarRight, SWT.CHECK);
+      toggleName.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/min_view.gif"));
+      toggleName.setToolTipText(Messages.msgToggleNameTt);
+
       // ------------------------------------------------------------------------------
       // ToggleMode with Listeners
       final Menu menu = new Menu(dialogShell, SWT.POP_UP);
-      final MenuItem itemModuleAndFolder = new MenuItem(menu, SWT.PUSH);
-      itemModuleAndFolder.setText(Messages.msgItemModuleAndFolder);
-      itemModuleAndFolder.addListener(SWT.Selection, new Listener()
-      {
-         public void handleEvent(Event event)
-         {
-            bckend.setPreviewMode(Backend.Mode.moduleAndFolder);
-            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
-         }
-      });
 
       final MenuItem itemOnlyModule = new MenuItem(menu, SWT.PUSH);
       itemOnlyModule.setText(Messages.msgItemOnlyModule);
@@ -273,7 +270,16 @@ public class B2WizardPage extends WizardPage
             bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
          }
       });
-
+      final MenuItem itemModuleAndFolder = new MenuItem(menu, SWT.PUSH);
+      itemModuleAndFolder.setText(Messages.msgItemModuleAndFolder);
+      itemModuleAndFolder.addListener(SWT.Selection, new Listener()
+      {
+         public void handleEvent(Event event)
+         {
+            bckend.setPreviewMode(Backend.Mode.moduleAndFolder);
+            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+         }
+      });
       final MenuItem itemOnlyFolder = new MenuItem(menu, SWT.PUSH);
       itemOnlyFolder.setText(Messages.msgItemOnlyFolder);
       itemOnlyFolder.addListener(SWT.Selection, new Listener()
@@ -304,6 +310,7 @@ public class B2WizardPage extends WizardPage
       toggleMode.setImage(PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_UP));
       toggleMode.setToolTipText(Messages.msgToggleModeTt);
       // ------------------------------------------------------------------------------
+
 
       // Comparator for the Viewers
       ViewerComparator compa = new ViewerComparator()
@@ -378,7 +385,7 @@ public class B2WizardPage extends WizardPage
             bckend.doCheck(dirTreeViewer, true);
             bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
 
-            selAll.setSelection(true);
+            // selAll.setSelection(true);
             setPageComplete(true);
          }
          else
@@ -461,7 +468,7 @@ public class B2WizardPage extends WizardPage
                bckend.doCheck(dirTreeViewer, true);
                bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
 
-               selAll.setSelection(true);
+               // selAll.setSelection(true);
 
                setPageComplete(true);
             }
@@ -482,32 +489,54 @@ public class B2WizardPage extends WizardPage
             bckend.doCheck(dirTreeViewer, true);
             bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
 
-            selAll.setSelection(true);
+            // selAll.setSelection(true);
 
             setPageComplete(true);
          }
       });
 
-      selAll.addListener(SWT.Selection, new Listener()
+      toggleName.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
          {
             setPageComplete(false);
-            if (selAll.getSelection())
+            if (toggleName.getSelection())
             {
                // check All
-               bckend.doCheck(dirTreeViewer, true);
+               bckend.toggleNaming(previewTreeViewer, true);
             }
             else
             {
                // un-check All
-               bckend.doCheck(dirTreeViewer, false);
+               bckend.toggleNaming(previewTreeViewer, false);
             }
-            dirTreeViewer.refresh();
-            bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+            // dirTreeViewer.refresh();
+            // bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+            previewTreeViewer.refresh();
             setPageComplete(true);
          }
       });
+
+      // selAll.addListener(SWT.Selection, new Listener()
+      // {
+      // public void handleEvent(Event event)
+      // {
+      // setPageComplete(false);
+      // if (selAll.getSelection())
+      // {
+      // // check All
+      // bckend.doCheck(dirTreeViewer, true);
+      // }
+      // else
+      // {
+      // // un-check All
+      // bckend.doCheck(dirTreeViewer, false);
+      // }
+      // dirTreeViewer.refresh();
+      // bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
+      // setPageComplete(true);
+      // }
+      // });
 
       addPrefix.addListener(SWT.Selection, new Listener()
       {
@@ -626,7 +655,7 @@ public class B2WizardPage extends WizardPage
                      bckend.deleteFromPrevievTree(previewTreeViewer, iter);
 
                   bckend.deleteFromPrevievTree(previewTreeViewer, eventNode);
-                  selAll.setSelection(false);
+                  // selAll.setSelection(false);
                }
             }
             setPageComplete(true);
@@ -722,6 +751,7 @@ public class B2WizardPage extends WizardPage
 
          final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
          final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
+         WSNameValidator.removeFromlist(node.getName());
          txt.setText(node.getName());
          txt.selectAll();
          txt.setFocus();
@@ -730,7 +760,7 @@ public class B2WizardPage extends WizardPage
          {
             public void focusLost(FocusEvent e)
             {
-               node.setName(txt.getText());
+               node.setName(WSNameValidator.validate(txt.getText()));
                txt.dispose();
                previewTreeViewer.refresh();
                setPageComplete(true);
@@ -749,7 +779,7 @@ public class B2WizardPage extends WizardPage
                switch (e.keyCode)
                {
                   case SWT.CR :
-                     node.setName(txt.getText());
+                     node.setName(WSNameValidator.validate(txt.getText()));
                   case SWT.ESC :
                      txt.dispose();
                      previewTreeViewer.refresh();
@@ -804,7 +834,10 @@ public class B2WizardPage extends WizardPage
 
             // Removes the WS from Preview
             if (iter instanceof NodeWorkingSet)
+            {
+               WSNameValidator.removeFromlist(((Node) iter).getName());
                ((Node) iter).deleteNodeAssigningChildrenToParent();
+            }
          }
       }
       previewTreeViewer.refresh();

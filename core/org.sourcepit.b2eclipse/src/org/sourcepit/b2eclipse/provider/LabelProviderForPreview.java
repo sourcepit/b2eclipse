@@ -20,6 +20,7 @@ import org.sourcepit.b2eclipse.input.node.Node;
 import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
+import org.sourcepit.b2eclipse.ui.Messages;
 
 /**
  * 
@@ -43,8 +44,8 @@ public class LabelProviderForPreview extends StyledCellLabelProvider
 
       if (node instanceof NodeModuleProject)
       {
-         label.append(node.getName());
-         label.append(" (Module Project)", StyledString.DECORATIONS_STYLER);
+         label.append(node.getName()+" ");
+         label.append(Messages.msgModuleProject, StyledString.DECORATIONS_STYLER);
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()
             .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));
       }
