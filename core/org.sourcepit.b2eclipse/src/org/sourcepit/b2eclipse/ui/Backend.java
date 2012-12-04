@@ -47,6 +47,7 @@ public class Backend
    private Mode mode;
    private Mode previouseMode;
    private boolean highestMP;
+   private boolean toggleNameState;
 
    public static enum Mode
    {
@@ -56,6 +57,7 @@ public class Backend
    public Backend()
    {
       highestMP = true;
+      toggleNameState = false;
       mode = Mode.onlyModule;
       previouseMode = mode;
       prevBrowsedDirectory = "";
@@ -271,6 +273,12 @@ public class Backend
          if (node instanceof NodeModuleProject)
             new NodeModuleProject(wsRoot, node.getFile(), node.getName());
       }
+
+      if (toggleNameState)
+      {
+         ((NodeWorkingSet) wsRoot).setShortName();
+      }
+
       viewer.refresh();
    }
 
@@ -492,6 +500,7 @@ public class Backend
 
    public void toggleNaming(TreeViewer previewTreeViewer, boolean state)
    {
+      toggleNameState = state;
       for (Node aNode : ((Node) previewTreeViewer.getInput()).getAllSubNodes())
       {
          if (aNode instanceof NodeWorkingSet)
