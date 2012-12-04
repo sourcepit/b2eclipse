@@ -18,15 +18,14 @@ public class NodeModule extends Node
 {
    private String prefix;
 
-   public NodeModule(Node _parent, File _file, String _name)
+   public NodeModule(Node parent, File file, String name)
    {
       super();
       children = new ArrayList<Node>();
-      file = null;//_file;
-      name = _name;
-      parent = _parent;
-      _parent.addChild(this);
-
+      this.file = null;// _file;
+      this.name = name;
+      this.parent = parent;
+      parent.addChild(this);
       prefix = null;
    }
 

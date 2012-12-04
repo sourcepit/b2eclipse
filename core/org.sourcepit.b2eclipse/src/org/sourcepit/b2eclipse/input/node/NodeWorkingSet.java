@@ -15,13 +15,54 @@ import java.util.ArrayList;
  */
 public class NodeWorkingSet extends Node
 {
-   public NodeWorkingSet(Node _parent, String _name)
+   private String longName;
+   private String shortName;
+
+   public NodeWorkingSet(Node parent, String name, String lastModuleName)
    {
       super();
       children = new ArrayList<Node>();
-      name = _name;
+
+      this.name = name;
+
+
+      longName = name;
+      if (name.contains("/"))
+      {
+         shortName = this.name.substring(this.name.lastIndexOf("/") + 1, this.name.length());
+         if (!shortName.equals(lastModuleName))
+         {
+            shortName = lastModuleName + "/" + shortName;
+         }
+      }
+      else
+      {
+         shortName = this.name;
+      }
       file = null;
-      parent = _parent;
-      _parent.addChild(this);
+      this.parent = parent;
+      parent.addChild(this);
+
+   }
+
+   // protected void finalize() throws Throwable
+   // {
+   // WSNameValidator.removeFromlist(this.name);
+   // super.finalize();
+   // }
+
+   public String getLongName()
+   {
+      return longName;
+   }
+
+   public void setShortName()
+   {
+      name = shortName;
+   }
+
+   public void setLongName()
+   {
+      name = longName;
    }
 }

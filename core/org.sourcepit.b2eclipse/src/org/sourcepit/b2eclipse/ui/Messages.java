@@ -45,6 +45,8 @@ public class Messages extends NLS
    public static String msgToggleModeTt;
    public static String msgExpandAllTt;
    public static String msgAddPrefixTt;
+   public static String msgToggleNameTt;
+   public static String msgToggleMPselectionTt;
 
    public static String msgInDialogTitle;
    public static String msgInDialogMessage;

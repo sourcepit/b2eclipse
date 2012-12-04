@@ -30,7 +30,7 @@ import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.input.node.NodeProject.ProjectType;
-
+import org.sourcepit.b2eclipse.input.node.WSNameValidator;
 
 /**
  * Handles the most UI operations.
@@ -46,6 +46,8 @@ public class Backend
    private String prevBrowsedDirectory;
    private Mode mode;
    private Mode previouseMode;
+   private boolean highestMP;
+   private boolean toggleNameState;
 
    public static enum Mode
    {
@@ -54,7 +56,9 @@ public class Backend
 
    public Backend()
    {
-      mode = Mode.moduleAndFolder;
+      highestMP = true;
+      toggleNameState = false;
+      mode = Mode.onlyModule;
       previouseMode = mode;
       prevBrowsedDirectory = "";
    }
@@ -65,14 +69,76 @@ public class Backend
     * @param viewer
     * @param state check or not?
     */
-   public void doCheck(CheckboxTreeViewer viewer, boolean state)
+   public void doCheck(CheckboxTreeViewer viewer, Node root, boolean state)
    {
-      for (Node iter : ((Node) viewer.getInput()).getAllSubNodes())
+      if (root == null)
       {
-         if (!iter.hasConflict())
-            viewer.setChecked(iter, state);
+         root = (Node) viewer.getInput();
+      }
+      for (Node aNode : root.getAllSubNodes())
+      {
+         if (!aNode.hasConflict())
+         {
+            viewer.setChecked(aNode, state);
+         }
+
+
+         if (aNode instanceof NodeModuleProject && highestMP)
+         {
+            viewer.setChecked(aNode, false);
+         }
+      }
+
+      // Do it only while marking all, not while unmarking
+      if (highestMP && state)
+      {
+         // Checks the highest ModuleProject Node
+         for (Node aNode : ((Node) viewer.getInput()).getChildren().get(0).getChildren())
+         {
+            if (aNode instanceof NodeModuleProject)
+            {
+               viewer.setChecked(aNode, true);
+            }
+         }
       }
    }
+
+   public void doCheck(CheckboxTreeViewer viewer, boolean state, boolean highestMP)
+   {
+      this.highestMP = highestMP;
+      doCheck(viewer, null, state);
+   }
+
+
+   // ------------------------------------------------------------------------
+   public void checkModuleProjects(CheckboxTreeViewer viewer, boolean all)
+   {
+      Node root = (Node) viewer.getInput();
+      for (Node aNode : root.getAllSubNodes())
+      {
+         if (!aNode.hasConflict())
+         {
+            viewer.setChecked(aNode, all);
+         }
+
+         if (aNode instanceof NodeModuleProject)
+         {
+            viewer.setChecked(aNode, false);
+         }
+      }
+
+      // Checks the highest ModuleProject Node
+      for (Node aNode : root.getChildren().get(0).getChildren())
+      {
+         if (aNode instanceof NodeModuleProject)
+         {
+            viewer.setChecked(aNode, true);
+         }
+      }
+   }
+
+   // ------------------------------------------------------------------------
+
 
    /**
     * Checks if the parent file is null.
@@ -97,7 +163,10 @@ public class Backend
     */
    public void deleteFromPrevievTree(TreeViewer viewer, Node node)
    {
-      if (node instanceof NodeProject || node instanceof NodeModuleProject) // Should always be true
+      if (node instanceof NodeProject || node instanceof NodeModuleProject) // Should
+      // always
+      // be
+      // true
       {
          Node imDead = ((Node) viewer.getInput()).getEqualNode(node.getFile());
 
@@ -106,10 +175,16 @@ public class Backend
             Node deadDad = imDead.getRootModule();
             imDead.deleteNode();
 
-            // checks if there are nodes under the corresponding working set node, if no deletes it
+            // checks if there are nodes under the corresponding working set
+            // node, if no deletes it
             if (deadDad.getChildren().size() == 0)
             {
+               if (deadDad instanceof NodeWorkingSet)
+               {
+                  WSNameValidator.removeFromlist(((NodeWorkingSet) deadDad).getLongName());
+               }
                deadDad.deleteNode();
+
             }
          }
          viewer.refresh();
@@ -128,7 +203,19 @@ public class Backend
    {
       Node root = (Node) viewer.getInput();
       Node parent = node.getParent();
+
       String wsName = getWSName(parent);
+
+      String lastModuleName;
+      if (parent instanceof NodeFolder)
+      {
+         lastModuleName = new String(parent.getParent().getName());
+      }
+      else
+      {
+         lastModuleName = parent.getName();
+      }
+
       Node wsRoot = root;
       Boolean wsFind = false;
 
@@ -140,8 +227,9 @@ public class Backend
 
          case onlyModule :
             if (parent instanceof NodeFolder)
+            {
                parent = parent.getParent();
-
+            }
             wsName = getWSName(parent);
             break;
 
@@ -164,7 +252,7 @@ public class Backend
          {
             if (iter instanceof NodeWorkingSet)
             {
-               if (iter.getName().equals(wsName))
+               if (((NodeWorkingSet) iter).getLongName().equals(wsName))
                {
                   wsRoot = iter;
                   wsFind = true;
@@ -174,7 +262,7 @@ public class Backend
          }
 
          if (!wsFind)
-            wsRoot = new NodeWorkingSet(root, wsName);
+            wsRoot = new NodeWorkingSet(root, WSNameValidator.validate(wsName), lastModuleName);
       }
 
       if (root.getEqualNode(node.getFile()) == null)
@@ -185,6 +273,12 @@ public class Backend
          if (node instanceof NodeModuleProject)
             new NodeModuleProject(wsRoot, node.getFile(), node.getName());
       }
+
+      if (toggleNameState)
+      {
+         ((NodeWorkingSet) wsRoot).setShortName();
+      }
+
       viewer.refresh();
    }
 
@@ -270,8 +364,11 @@ public class Backend
    {
       input = new ViewerInput(new Node());
 
-      viewer.setInput(input.createMainNodeSystem(new File(txt)));
-      viewer.expandAll();
+      Node inputNode = input.createMainNodeSystem(new File(txt));
+      viewer.setInput(inputNode);
+
+      // TODO maybe find out which to expand
+      viewer.expandToLevel(2);
 
       checkProjectConflicts(viewer);
 
@@ -284,12 +381,13 @@ public class Backend
     * @param dirTreeViewer
     * @param previewTreeViewer
     */
-   public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
+   public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer, boolean refresh)
    {
       // if mode has changed, refresh preview
-      if (previouseMode != mode)
+      if (previouseMode != mode || refresh)
       {
          previewTreeViewer.setInput(new Node());
+         WSNameValidator.clear();
          previouseMode = mode;
       }
 
@@ -299,10 +397,19 @@ public class Backend
       for (Node iter : root.getAllSubNodes())
       {
          if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+         {
             if (!iter.hasConflict() && dirTreeViewer.getChecked(iter))
+            {
                addToPrevievTree(previewTreeViewer, iter);
+            }
+         }
       }
       previewTreeViewer.refresh();
+   }
+
+   public void refreshPreviewViewer(CheckboxTreeViewer dirTreeViewer, TreeViewer previewTreeViewer)
+   {
+      refreshPreviewViewer(dirTreeViewer, previewTreeViewer, false);
    }
 
    /**
@@ -388,6 +495,28 @@ public class Backend
                }
             }
          }
+      }
+   }
+
+   public void toggleNaming(TreeViewer previewTreeViewer, boolean state)
+   {
+      toggleNameState = state;
+      for (Node aNode : ((Node) previewTreeViewer.getInput()).getAllSubNodes())
+      {
+         if (aNode instanceof NodeWorkingSet)
+         {
+            if (state)
+            {
+               ((NodeWorkingSet) aNode).setShortName();
+            }
+            else
+            {
+               ((NodeWorkingSet) aNode).setLongName();
+
+            }
+
+         }
+
       }
    }
 }
