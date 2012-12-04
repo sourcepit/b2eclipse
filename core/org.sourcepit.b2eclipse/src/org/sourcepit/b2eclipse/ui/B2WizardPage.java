@@ -471,7 +471,8 @@ public class B2WizardPage extends WizardPage
 
             if (bckend.testOnLocalDrive(currentDirectory))
             {
-               previewTreeViewer.setInput(new Node());
+               wsVal.clear();
+               previewTreeViewer.setInput(new Node());               
                bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
                bckend.doCheck(dirTreeViewer, null, true);
                bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
