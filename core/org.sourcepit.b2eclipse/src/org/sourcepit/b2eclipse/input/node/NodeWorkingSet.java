@@ -17,21 +17,22 @@ public class NodeWorkingSet extends Node
 {
    private String longName;
    private String shortName;
+
    public NodeWorkingSet(Node parent, String name, String lastModuleName)
    {
       super();
       children = new ArrayList<Node>();
 
-      this.name = WSNameValidator.validate(name);
+      this.name = name;
 
 
       longName = name;
       if (name.contains("/"))
       {
          shortName = this.name.substring(this.name.lastIndexOf("/") + 1, this.name.length());
-         if(!shortName.equals(lastModuleName))
+         if (!shortName.equals(lastModuleName))
          {
-            shortName = lastModuleName+"/"+shortName;
+            shortName = lastModuleName + "/" + shortName;
          }
       }
       else
@@ -49,6 +50,11 @@ public class NodeWorkingSet extends Node
    // WSNameValidator.removeFromlist(this.name);
    // super.finalize();
    // }
+
+   public String getLongName()
+   {
+      return longName;
+   }
 
    public void setShortName()
    {

@@ -67,9 +67,12 @@ public class Backend
     * @param viewer
     * @param state check or not?
     */
-   public void doCheck(CheckboxTreeViewer viewer, boolean state)
+   public void doCheck(CheckboxTreeViewer viewer, Node root, boolean state)
    {
-      Node root = (Node) viewer.getInput();
+      if (root == null)
+      {
+         root = (Node) viewer.getInput();
+      }
       for (Node aNode : root.getAllSubNodes())
       {
          if (!aNode.hasConflict())
@@ -84,10 +87,11 @@ public class Backend
          }
       }
 
-      if (highestMP)
+      // Do it only while marking all, not while unmarking
+      if (highestMP && state)
       {
          // Checks the highest ModuleProject Node
-         for (Node aNode : root.getChildren().get(0).getChildren())
+         for (Node aNode : ((Node) viewer.getInput()).getChildren().get(0).getChildren())
          {
             if (aNode instanceof NodeModuleProject)
             {
@@ -100,7 +104,7 @@ public class Backend
    public void doCheck(CheckboxTreeViewer viewer, boolean state, boolean highestMP)
    {
       this.highestMP = highestMP;
-      doCheck(viewer, state);
+      doCheck(viewer, null, state);
    }
 
 
@@ -173,7 +177,12 @@ public class Backend
             // node, if no deletes it
             if (deadDad.getChildren().size() == 0)
             {
+               if (deadDad instanceof NodeWorkingSet)
+               {
+                  WSNameValidator.removeFromlist(((NodeWorkingSet) deadDad).getLongName());
+               }
                deadDad.deleteNode();
+
             }
          }
          viewer.refresh();
@@ -194,8 +203,8 @@ public class Backend
       Node parent = node.getParent();
 
       String wsName = getWSName(parent);
-      
-      String lastModuleName;      
+
+      String lastModuleName;
       if (parent instanceof NodeFolder)
       {
          lastModuleName = new String(parent.getParent().getName());
@@ -241,7 +250,7 @@ public class Backend
          {
             if (iter instanceof NodeWorkingSet)
             {
-               if (iter.getName().equals(wsName))
+               if (((NodeWorkingSet) iter).getLongName().equals(wsName))
                {
                   wsRoot = iter;
                   wsFind = true;
@@ -251,7 +260,7 @@ public class Backend
          }
 
          if (!wsFind)
-            wsRoot = new NodeWorkingSet(root, wsName, lastModuleName);
+            wsRoot = new NodeWorkingSet(root, WSNameValidator.validate(wsName), lastModuleName);
       }
 
       if (root.getEqualNode(node.getFile()) == null)
@@ -380,8 +389,12 @@ public class Backend
       for (Node iter : root.getAllSubNodes())
       {
          if (iter instanceof NodeProject || iter instanceof NodeModuleProject)
+         {
             if (!iter.hasConflict() && dirTreeViewer.getChecked(iter))
+            {
                addToPrevievTree(previewTreeViewer, iter);
+            }
+         }
       }
       previewTreeViewer.refresh();
    }

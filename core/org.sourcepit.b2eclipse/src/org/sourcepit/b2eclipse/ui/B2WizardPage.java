@@ -386,7 +386,7 @@ public class B2WizardPage extends WizardPage
          if (bckend.testOnLocalDrive(currentDirectory))
          {
             bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
-            bckend.doCheck(dirTreeViewer, true);
+            bckend.doCheck(dirTreeViewer, null, true);
             bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
 
             // selAll.setSelection(true);
@@ -469,7 +469,7 @@ public class B2WizardPage extends WizardPage
             {
                previewTreeViewer.setInput(new Node());
                bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
-               bckend.doCheck(dirTreeViewer, true);
+               bckend.doCheck(dirTreeViewer, null, true);
                bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
 
                // selAll.setSelection(true);
@@ -490,7 +490,7 @@ public class B2WizardPage extends WizardPage
             // this is doing the same stuff as modLis
             previewTreeViewer.setInput(new Node());
             bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
-            bckend.doCheck(dirTreeViewer, true);
+            bckend.doCheck(dirTreeViewer, null, true);
             bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
 
             // selAll.setSelection(true);
@@ -579,7 +579,8 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            new NodeWorkingSet((Node) previewTreeViewer.getInput(), Messages.msgDefaultWSName, null);
+            new NodeWorkingSet((Node) previewTreeViewer.getInput(),
+               WSNameValidator.validate(Messages.msgDefaultWSName), null);
             previewTreeViewer.refresh();
          }
       });
@@ -666,21 +667,17 @@ public class B2WizardPage extends WizardPage
             {
                if (event.getChecked())
                {
-                  for (Node iter : eventNode.getAllSubNodes())
-                  {
-                     // Checks all checkable Nodes under the eventNode
-                     if (!iter.hasConflict())
-                        dirTreeViewer.setChecked(iter, true);
-                  }
+                  bckend.doCheck(dirTreeViewer, eventNode, true);
                   bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
                }
                else
                {
-                  dirTreeViewer.setSubtreeChecked(eventNode, false);
+                  bckend.doCheck(dirTreeViewer, eventNode, false);
 
                   for (Node iter : eventNode.getAllSubNodes())
+                  {
                      bckend.deleteFromPrevievTree(previewTreeViewer, iter);
-
+                  }
                   bckend.deleteFromPrevievTree(previewTreeViewer, eventNode);
                   // selAll.setSelection(false);
                }
@@ -689,7 +686,7 @@ public class B2WizardPage extends WizardPage
          }
       });
 
-      // Global keylistner
+      // Global key listener
       this.getShell().getDisplay().addFilter(SWT.KeyDown, new Listener()
       {
          public void handleEvent(Event event)
@@ -778,7 +775,7 @@ public class B2WizardPage extends WizardPage
 
          final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
          final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
-         WSNameValidator.removeFromlist(node.getName());
+         WSNameValidator.removeFromlist(((NodeWorkingSet) node).getLongName());
          txt.setText(node.getName());
          txt.selectAll();
          txt.setFocus();
@@ -862,7 +859,7 @@ public class B2WizardPage extends WizardPage
             // Removes the WS from Preview
             if (iter instanceof NodeWorkingSet)
             {
-               WSNameValidator.removeFromlist(((Node) iter).getName());
+               WSNameValidator.removeFromlist(((NodeWorkingSet) iter).getLongName());
                ((Node) iter).deleteNodeAssigningChildrenToParent();
             }
          }
