@@ -98,6 +98,8 @@ public class B2WizardPage extends WizardPage
    private Shell dialogShell;
    private IStructuredSelection preSelect;
    private String currentDirectory;
+   
+   private WSNameValidator wsVal;
 
    // TODO work it! .. i need a glass of water ..
 
@@ -107,8 +109,10 @@ public class B2WizardPage extends WizardPage
       setPageComplete(false);
       setTitle(Messages.msgImportHeader);
       setDescription(Messages.msgImportSuperscription);
-      bckend = new Backend();
-      preSelect = selection;
+      
+      wsVal = new WSNameValidator();
+      bckend = new Backend(wsVal);
+      preSelect = selection;      
    }
 
    public void createControl(Composite parent)
@@ -580,7 +584,7 @@ public class B2WizardPage extends WizardPage
          public void handleEvent(Event event)
          {
             new NodeWorkingSet((Node) previewTreeViewer.getInput(),
-               WSNameValidator.validate(Messages.msgDefaultWSName), null);
+               wsVal.validate(Messages.msgDefaultWSName), null);
             previewTreeViewer.refresh();
          }
       });
@@ -775,7 +779,7 @@ public class B2WizardPage extends WizardPage
 
          final TreeItem item = previewTreeViewer.getTree().getSelection()[0];
          final Text txt = new Text(previewTreeViewer.getTree(), SWT.NONE);
-         WSNameValidator.removeFromlist(((NodeWorkingSet) node).getLongName());
+         wsVal.removeFromlist(((NodeWorkingSet) node).getLongName());
          txt.setText(node.getName());
          txt.selectAll();
          txt.setFocus();
@@ -784,7 +788,7 @@ public class B2WizardPage extends WizardPage
          {
             public void focusLost(FocusEvent e)
             {
-               node.setName(WSNameValidator.validate(txt.getText()));
+               node.setName(wsVal.validate(txt.getText()));
                txt.dispose();
                previewTreeViewer.refresh();
                setPageComplete(true);
@@ -803,7 +807,7 @@ public class B2WizardPage extends WizardPage
                switch (e.keyCode)
                {
                   case SWT.CR :
-                     node.setName(WSNameValidator.validate(txt.getText()));
+                     node.setName(wsVal.validate(txt.getText()));
                   case SWT.ESC :
                      txt.dispose();
                      previewTreeViewer.refresh();
@@ -859,7 +863,7 @@ public class B2WizardPage extends WizardPage
             // Removes the WS from Preview
             if (iter instanceof NodeWorkingSet)
             {
-               WSNameValidator.removeFromlist(((NodeWorkingSet) iter).getLongName());
+               wsVal.removeFromlist(((NodeWorkingSet) iter).getLongName());
                ((Node) iter).deleteNodeAssigningChildrenToParent();
             }
          }

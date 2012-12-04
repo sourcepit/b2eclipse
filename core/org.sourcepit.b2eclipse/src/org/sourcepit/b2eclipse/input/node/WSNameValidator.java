@@ -6,9 +6,14 @@ import java.util.List;
 
 public class WSNameValidator
 {
-   private static List<String> wsNames = new ArrayList<String>();
+   private List<String> wsNames;
+   
+   public WSNameValidator()
+   {
+      wsNames = new ArrayList<String>();
+   }
 
-   public static String validate(String name)
+   public String validate(String name)
    {
       while (wsNames.contains(name))
       {
@@ -18,7 +23,7 @@ public class WSNameValidator
       return name;
    }
 
-   public static void removeFromlist(String name)
+   public void removeFromlist(String name)
    {
       if (wsNames.contains(name))
       {
@@ -26,7 +31,7 @@ public class WSNameValidator
       }
    }
 
-   public static void clear()
+   public void clear()
    {
       wsNames.clear();
    }

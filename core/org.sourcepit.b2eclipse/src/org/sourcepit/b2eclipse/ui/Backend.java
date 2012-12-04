@@ -41,6 +41,7 @@ import org.sourcepit.b2eclipse.input.node.WSNameValidator;
 @SuppressWarnings("restriction")
 public class Backend
 {
+   private WSNameValidator wsVal;
 
    private ViewerInput input;
    private String prevBrowsedDirectory;
@@ -54,8 +55,9 @@ public class Backend
       onlyModule, moduleAndFolder, onlyFolder
    }
 
-   public Backend()
+   public Backend(WSNameValidator wsVal)
    {
+      this.wsVal = wsVal;
       highestMP = true;
       toggleNameState = false;
       mode = Mode.onlyModule;
@@ -181,7 +183,7 @@ public class Backend
             {
                if (deadDad instanceof NodeWorkingSet)
                {
-                  WSNameValidator.removeFromlist(((NodeWorkingSet) deadDad).getLongName());
+                  wsVal.removeFromlist(((NodeWorkingSet) deadDad).getLongName());
                }
                deadDad.deleteNode();
 
@@ -262,7 +264,7 @@ public class Backend
          }
 
          if (!wsFind)
-            wsRoot = new NodeWorkingSet(root, WSNameValidator.validate(wsName), lastModuleName);
+            wsRoot = new NodeWorkingSet(root, wsVal.validate(wsName), lastModuleName);
       }
 
       if (root.getEqualNode(node.getFile()) == null)
@@ -387,7 +389,7 @@ public class Backend
       if (previouseMode != mode || refresh)
       {
          previewTreeViewer.setInput(new Node());
-         WSNameValidator.clear();
+         wsVal.clear();
          previouseMode = mode;
       }
 
