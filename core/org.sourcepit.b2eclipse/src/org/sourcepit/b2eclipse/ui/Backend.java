@@ -7,6 +7,8 @@
 package org.sourcepit.b2eclipse.ui;
 
 import java.io.File;
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -59,7 +61,7 @@ public class Backend
    {
       this.wsVal = wsVal;
       highestMP = true;
-      toggleNameState = false;
+      toggleNameState = true;
       mode = Mode.onlyModule;
       previouseMode = mode;
       prevBrowsedDirectory = "";
@@ -95,11 +97,15 @@ public class Backend
       if (highestMP && state)
       {
          // Checks the highest ModuleProject Node
-         for (Node aNode : ((Node) viewer.getInput()).getChildren().get(0).getChildren())
+         List<Node> prnts = ((Node) viewer.getInput()).getChildren();
+         if(prnts.size() > 0)
          {
-            if (aNode instanceof NodeModuleProject && !aNode.hasConflict())
+            for (Node aNode : prnts.get(0).getChildren())
             {
-               viewer.setChecked(aNode, true);
+               if (aNode instanceof NodeModuleProject && !aNode.hasConflict())
+               {
+                  viewer.setChecked(aNode, true);
+               }
             }
          }
       }

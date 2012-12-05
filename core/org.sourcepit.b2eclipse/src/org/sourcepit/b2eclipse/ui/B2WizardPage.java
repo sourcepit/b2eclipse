@@ -100,6 +100,7 @@ public class B2WizardPage extends WizardPage
    private String currentDirectory;
    
    private WSNameValidator wsVal;
+   private Boolean expanded;
 
    // TODO work it! .. i need a glass of water ..
 
@@ -112,7 +113,8 @@ public class B2WizardPage extends WizardPage
       
       wsVal = new WSNameValidator();
       bckend = new Backend(wsVal);
-      preSelect = selection;      
+      preSelect = selection;
+      expanded = false;
    }
 
    public void createControl(Composite parent)
@@ -263,6 +265,7 @@ public class B2WizardPage extends WizardPage
       toggleName = new ToolItem(toolBarRight, SWT.CHECK);
       toggleName.setImage(Activator.getImageFromPath("org.eclipse.ui", "$nl$/icons/full/elcl16/min_view.gif"));
       toggleName.setToolTipText(Messages.msgToggleNameTt);
+      toggleName.setSelection(true);
 
       // ------------------------------------------------------------------------------
       // ToggleMode with Listeners
@@ -550,27 +553,6 @@ public class B2WizardPage extends WizardPage
          }
       });
 
-      // selAll.addListener(SWT.Selection, new Listener()
-      // {
-      // public void handleEvent(Event event)
-      // {
-      // setPageComplete(false);
-      // if (selAll.getSelection())
-      // {
-      // // check All
-      // bckend.doCheck(dirTreeViewer, true);
-      // }
-      // else
-      // {
-      // // un-check All
-      // bckend.doCheck(dirTreeViewer, false);
-      // }
-      // dirTreeViewer.refresh();
-      // bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
-      // setPageComplete(true);
-      // }
-      // });
-
       addPrefix.addListener(SWT.Selection, new Listener()
       {
          public void handleEvent(Event event)
@@ -604,7 +586,16 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            previewTreeViewer.expandAll();
+            if(expanded)
+            {
+               previewTreeViewer.collapseAll();
+               expanded = false;
+            }
+            else
+            {
+               previewTreeViewer.expandAll();
+               expanded = true;
+            }
          }
       });
 
