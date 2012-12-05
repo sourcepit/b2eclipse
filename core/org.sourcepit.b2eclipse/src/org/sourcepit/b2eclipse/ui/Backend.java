@@ -97,7 +97,7 @@ public class Backend
          // Checks the highest ModuleProject Node
          for (Node aNode : ((Node) viewer.getInput()).getChildren().get(0).getChildren())
          {
-            if (aNode instanceof NodeModuleProject)
+            if (aNode instanceof NodeModuleProject && !aNode.hasConflict())
             {
                viewer.setChecked(aNode, true);
             }
