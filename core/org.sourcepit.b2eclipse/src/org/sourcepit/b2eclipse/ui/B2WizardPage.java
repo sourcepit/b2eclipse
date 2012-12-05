@@ -493,6 +493,7 @@ public class B2WizardPage extends WizardPage
             setPageComplete(false);
 
             // this is doing the same stuff as modLis
+            wsVal.clear();
             previewTreeViewer.setInput(new Node());
             bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
             bckend.doCheck(dirTreeViewer, null, true);

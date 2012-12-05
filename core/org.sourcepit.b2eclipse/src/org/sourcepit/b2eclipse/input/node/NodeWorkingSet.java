@@ -25,7 +25,6 @@ public class NodeWorkingSet extends Node
 
       this.name = name;
 
-
       longName = name;
       if (name.contains("/"))
       {
@@ -50,6 +49,15 @@ public class NodeWorkingSet extends Node
    // WSNameValidator.removeFromlist(this.name);
    // super.finalize();
    // }
+
+   // Is used in renaming a working set, after that long/short -names aren't available anymore.
+   @Override
+   public void setName(String name)
+   {
+      this.name = name;
+      longName = name;
+      shortName = name;
+   }
 
    public String getLongName()
    {
