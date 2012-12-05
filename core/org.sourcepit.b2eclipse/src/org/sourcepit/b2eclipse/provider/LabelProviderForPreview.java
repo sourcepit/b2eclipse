@@ -25,7 +25,7 @@ import org.sourcepit.b2eclipse.ui.Messages;
 /**
  * 
  * @author WD
- *
+ * 
  */
 public class LabelProviderForPreview extends StyledCellLabelProvider
 {
@@ -44,7 +44,7 @@ public class LabelProviderForPreview extends StyledCellLabelProvider
 
       if (node instanceof NodeModuleProject)
       {
-         label.append(node.getName()+" ");
+         label.append(node.getName() + " ");
          label.append(Messages.msgModuleProject, StyledString.DECORATIONS_STYLER);
          cell.setImage(PlatformUI.getWorkbench().getSharedImages()
             .getImage(org.eclipse.ui.ide.IDE.SharedImages.IMG_OBJ_PROJECT));

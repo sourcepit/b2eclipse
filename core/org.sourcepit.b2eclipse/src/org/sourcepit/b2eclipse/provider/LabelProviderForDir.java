@@ -54,7 +54,7 @@ public class LabelProviderForDir extends StyledCellLabelProvider
 
       if (node instanceof NodeModuleProject)
       {
-         label.append(node.getName()+" ");
+         label.append(node.getName() + " ");
          if (!node.hasConflict())
          {
             label.append(Messages.msgModuleProject, StyledString.DECORATIONS_STYLER);

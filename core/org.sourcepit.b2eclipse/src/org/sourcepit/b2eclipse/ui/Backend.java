@@ -98,7 +98,7 @@ public class Backend
       {
          // Checks the highest ModuleProject Node
          List<Node> prnts = ((Node) viewer.getInput()).getChildren();
-         if(prnts.size() > 0)
+         if (prnts.size() > 0)
          {
             for (Node aNode : prnts.get(0).getChildren())
             {

@@ -7,7 +7,7 @@ import java.util.List;
 public class WSNameValidator
 {
    private List<String> wsNames;
-   
+
    public WSNameValidator()
    {
       wsNames = new ArrayList<String>();

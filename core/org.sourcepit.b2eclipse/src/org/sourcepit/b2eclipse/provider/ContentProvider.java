@@ -13,7 +13,7 @@ import org.sourcepit.b2eclipse.input.node.Node;
 /**
  * 
  * @author WD
- *
+ * 
  */
 public class ContentProvider implements ITreeContentProvider
 {

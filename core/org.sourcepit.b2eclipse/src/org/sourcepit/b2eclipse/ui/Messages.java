@@ -53,7 +53,7 @@ public class Messages extends NLS
 
    public static String msgDefaultWSName;
    public static String msgTask;
-   
+
    public static String msgModuleProject;
    public static String msgErrorOnProjectCreate;
    public static String msgErrorOnProjectCreateSolution;

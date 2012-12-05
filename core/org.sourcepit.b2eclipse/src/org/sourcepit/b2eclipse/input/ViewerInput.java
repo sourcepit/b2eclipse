@@ -88,10 +88,10 @@ public class ViewerInput
                {
                   searchForProjects(me, iter);
                }
-               if (me.getChildren().size() == 0)
-               {
-                  me.deleteNode();
-               }
+               // if (me.getChildren().size() == 0)
+               // {
+               // me.deleteNode();
+               // }
             }
 
             return;
@@ -145,10 +145,10 @@ public class ViewerInput
             {
                empty = searchForProjects(me, iter);
             }
-            if (empty)
-            {
-               me.deleteNode();
-            }
+            // if (empty)
+            // {
+            // me.deleteNode();
+            // }
          }
       }
       else
@@ -191,7 +191,7 @@ public class ViewerInput
                   }
                }
             }
-            // Checks if projects was found, if not the node will be erased
+            // Checks if projects was found, if not the node (NodeFolder) will be erased
             if (parent.getChildren().size() == 0)
             {
                parent.deleteNode();
