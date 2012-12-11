@@ -41,7 +41,7 @@ import org.sourcepit.b2eclipse.svn.handler.B2SVNCheckoutHandler;
 import org.sourcepit.b2eclipse.ui.B2Wizard;
 
 /**
- * SVN Support for b2eclipse Wizard
+ * SVN Support for b2eclipse Wizard.
  * 
  * @author Marco Grupe <marco.grupe@googlemail.com>
  * @author WD
@@ -49,7 +49,6 @@ import org.sourcepit.b2eclipse.ui.B2Wizard;
 @SuppressWarnings("restriction")
 public class B2SVNCheckout extends B2SVNCheckoutHandler
 {
-
    private Shell shell;
    private IRepositoryResource selectedResource;
    private IProject project;
@@ -122,7 +121,6 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
       }
    }
 
-
    @Override
    public Object execute(ExecutionEvent event) throws ExecutionException
    {
@@ -183,5 +181,4 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
 
       return null;
    }
-
 }
