@@ -36,6 +36,13 @@
 			<url>http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site/</url>
 			<layout>p2</layout>
 		</repository>
+		<repository>
+			<!-- for ...team.svn.connector.... -->
+			<id>subversive</id>
+			<url>http://community.polarion.com/projects/subversive/download/eclipse/3.0/juno-site/</url>
+			<layout>p2</layout>
+		</repository>	
+		 
 	</repositories>
 
 	<pluginRepositories>
@@ -93,6 +100,21 @@
 								<versionRange>0.0.0</versionRange>
 								<type>eclipse-feature</type>
 							</requirement>
+							<requirement>
+								<id>org.eclipse.team.svn.source</id>
+								<versionRange>0.0.0</versionRange>
+								<type>eclipse-feature</type>
+							</requirement>
+							<requirement>
+								<id>org.polarion.eclipse.team.svn.connector</id>
+								<versionRange>0.0.0</versionRange>
+								<type>eclipse-feature</type>
+							</requirement>
+							<requirement>
+								<id>org.polarion.eclipse.team.svn.connector.svnkit17</id>
+								<versionRange>0.0.0</versionRange>
+								<type>eclipse-feature</type>
+							</requirement>						
 						</extraRequirements>
 					</dependency-resolution>
 					<environments>

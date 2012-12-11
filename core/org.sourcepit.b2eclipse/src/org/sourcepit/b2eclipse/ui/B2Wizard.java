@@ -22,12 +22,14 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
@@ -124,6 +126,18 @@ public class B2Wizard extends Wizard implements IImportWizard
       {
          throw new IllegalStateException(e);
       }
+      
+      //----------
+      try
+      {
+         ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+      }
+      catch (CoreException e)
+      {
+         // TODO Auto-generated catch block
+         e.printStackTrace();
+      }
+      
 
       // Shows which projects couldn't be created
       if (!error.isEmpty())

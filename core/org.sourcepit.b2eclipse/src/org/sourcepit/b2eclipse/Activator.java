@@ -16,6 +16,7 @@ import org.osgi.framework.BundleContext;
 
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
+ * @author WD
  */
 
 public class Activator extends AbstractUIPlugin

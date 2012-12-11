@@ -15,7 +15,7 @@
         <command
                commandId="org.sourcepit.b2eclipse.ui.B2SVN"
                icon="icons/b2.gif"
-               label="Check out b2 Project/s..."
+               label="b2 Project/s Checkout"
                style="push">
             <visibleWhen
                   checkEnabled="false">
@@ -25,6 +25,9 @@
                   </count>
                   <iterate>
                      <or>
+                        <instanceof
+                              value="org.eclipse.team.svn.ui.repository.model.RepositoryLocation">
+                        </instanceof>
                         <instanceof
                               value="org.eclipse.team.svn.ui.repository.model.RepositoryFolder">
                         </instanceof>
