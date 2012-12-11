@@ -98,11 +98,9 @@ public class B2WizardPage extends WizardPage
    private Shell dialogShell;
    private IStructuredSelection preSelect;
    private String currentDirectory;
-   
+
    private WSNameValidator wsVal;
    private Boolean expanded;
-
-   // TODO work it! .. i need a glass of water ..
 
    protected B2WizardPage(String pageName, B2Wizard parent, IStructuredSelection selection)
    {
@@ -110,7 +108,7 @@ public class B2WizardPage extends WizardPage
       setPageComplete(false);
       setTitle(Messages.msgImportHeader);
       setDescription(Messages.msgImportSuperscription);
-      
+
       wsVal = new WSNameValidator();
       bckend = new Backend(wsVal);
       preSelect = selection;
@@ -475,7 +473,7 @@ public class B2WizardPage extends WizardPage
             if (bckend.testOnLocalDrive(currentDirectory))
             {
                wsVal.clear();
-               previewTreeViewer.setInput(new Node());               
+               previewTreeViewer.setInput(new Node());
                bckend.handleDirTreeViewer(dirTreeViewer, currentDirectory);
                bckend.doCheck(dirTreeViewer, null, true);
                bckend.refreshPreviewViewer(dirTreeViewer, previewTreeViewer);
@@ -567,8 +565,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            new NodeWorkingSet((Node) previewTreeViewer.getInput(),
-               wsVal.validate(Messages.msgDefaultWSName), null);
+            new NodeWorkingSet((Node) previewTreeViewer.getInput(), wsVal.validate(Messages.msgDefaultWSName), null);
             previewTreeViewer.refresh();
          }
       });
@@ -586,7 +583,7 @@ public class B2WizardPage extends WizardPage
       {
          public void handleEvent(Event event)
          {
-            if(expanded)
+            if (expanded)
             {
                previewTreeViewer.collapseAll();
                expanded = false;

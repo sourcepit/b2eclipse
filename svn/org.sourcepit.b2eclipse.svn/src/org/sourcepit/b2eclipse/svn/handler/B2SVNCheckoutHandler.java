@@ -14,11 +14,13 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.team.svn.core.resource.IRepositoryResource;
+import org.eclipse.team.svn.ui.repository.model.RepositoryLocation;
 import org.eclipse.team.svn.ui.repository.model.RepositoryResource;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 /**
  * @author Marco Grupe <marco.grupe@googlemail.com>
+ * @author WD
  */
 
 public abstract class B2SVNCheckoutHandler extends AbstractHandler
@@ -33,6 +35,12 @@ public abstract class B2SVNCheckoutHandler extends AbstractHandler
          if (element instanceof RepositoryResource)
          {
             final IRepositoryResource selectedSVNRepoResource = ((RepositoryResource) element).getRepositoryResource();
+            return selectedSVNRepoResource;
+         }
+         
+         if(element instanceof RepositoryLocation)
+         {
+            final IRepositoryResource selectedSVNRepoResource = ((RepositoryLocation) element).getRepositoryResource();
             return selectedSVNRepoResource;
          }
       }
