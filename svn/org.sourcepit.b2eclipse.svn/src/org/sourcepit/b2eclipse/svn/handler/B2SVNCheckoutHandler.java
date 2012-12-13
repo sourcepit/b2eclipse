@@ -45,7 +45,6 @@ public abstract class B2SVNCheckoutHandler extends AbstractHandler
          }
       }
       return null;
-
    }
 
    public Shell getShell(ExecutionEvent event)

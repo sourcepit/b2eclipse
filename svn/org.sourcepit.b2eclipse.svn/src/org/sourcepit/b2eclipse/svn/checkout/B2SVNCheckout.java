@@ -8,10 +8,8 @@ package org.sourcepit.b2eclipse.svn.checkout;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
-import org.eclipse.core.internal.resources.ResourceException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -22,11 +20,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.team.svn.core.connector.SVNConnectorCancelException;
 import org.eclipse.team.svn.core.operation.CompositeOperation;
 import org.eclipse.team.svn.core.operation.IActionOperation;
 import org.eclipse.team.svn.core.operation.file.CheckoutAsOperation;
@@ -34,7 +33,6 @@ import org.eclipse.team.svn.core.operation.remote.management.AddRepositoryLocati
 import org.eclipse.team.svn.core.operation.remote.management.SaveRepositoryLocationsOperation;
 import org.eclipse.team.svn.core.resource.IRepositoryContainer;
 import org.eclipse.team.svn.core.resource.IRepositoryResource;
-import org.eclipse.team.svn.core.utility.ILoggedOperationFactory;
 import org.eclipse.team.svn.core.utility.ProgressMonitorUtility;
 import org.eclipse.ui.PlatformUI;
 import org.sourcepit.b2eclipse.svn.handler.B2SVNCheckoutHandler;
@@ -46,7 +44,6 @@ import org.sourcepit.b2eclipse.ui.B2Wizard;
  * @author Marco Grupe <marco.grupe@googlemail.com>
  * @author WD
  */
-@SuppressWarnings("restriction")
 public class B2SVNCheckout extends B2SVNCheckoutHandler
 {
    private Shell shell;
@@ -75,50 +72,62 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
       return compOp;
    }
 
-   private void checkout(File location, IProgressMonitor monitor) throws CoreException
+   private void checkout(File location, IProgressMonitor monitor) throws CoreException, OperationCanceledException
    {
       IRepositoryContainer container = (IRepositoryContainer) selectedResource;
 
       IActionOperation op = createOperation(container, location);
-      ProgressMonitorUtility.doTaskExternal(op, monitor, ILoggedOperationFactory.EMPTY);
+      ProgressMonitorUtility.doTaskExternal(op, monitor);
+      // ProgressMonitorUtility.doTaskExternal(op, monitor, ILoggedOperationFactory.EMPTY);
       IStatus status = op.getStatus();
-      if (status != null && !status.isOK())
+      if (status != null)
       {
-         throw new CoreException(status);
+         if (status.isOK())
+         {
+            return;
+         }
+         if (status.isMultiStatus())
+         {
+            for (IStatus exc : status.getChildren())
+            {
+               if (exc.getException() instanceof SVNConnectorCancelException)
+               {
+                  throw new OperationCanceledException();
+               }
+            }
+         }
+         else
+         {
+            throw new CoreException(status);
+         }
       }
-      else
-      {
-         return;
-      }
    }
 
-   private void createProjects(IProgressMonitor monitor) throws CoreException
-   {
-      project = workspace.getRoot().getProject(selectedResource.getName());
-      project.create(monitor);
-      project.open(monitor);
-   }
-
-   public void dispose()
-   {
-   }
-
-   private void doRun(IProgressMonitor monitor) throws CoreException
+   private void createProjects(IProgressMonitor monitor) throws CoreException, OperationCanceledException
    {
       try
       {
-         createProjects(monitor);
-         checkout(project.getLocation().toFile(), monitor);
+         monitor.beginTask("creating Project", IProgressMonitor.UNKNOWN);
+         project = workspace.getRoot().getProject(selectedResource.getName());
+         project.create(new SubProgressMonitor(monitor, SubProgressMonitor.UNKNOWN));
+         project.open(new SubProgressMonitor(monitor, SubProgressMonitor.UNKNOWN));
       }
-      catch (ResourceException e)
+      catch (OperationCanceledException e)
       {
-         MessageDialog.openInformation(new Shell(), "Resource", "Resource already exists.");
-         // throw new CoreException(e.getStatus());
+         throw new OperationCanceledException();
       }
       catch (CoreException e)
       {
          throw new CoreException(e.getStatus());
       }
+      finally
+      {
+         monitor.done();
+      }
+   }
+
+   public void dispose()
+   {
    }
 
    @Override
@@ -129,7 +138,7 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
 
       IRunnableWithProgress dialogRunnable = new IRunnableWithProgress()
       {
-         public void run(IProgressMonitor monitor) throws InvocationTargetException
+         public void run(IProgressMonitor monitor) throws InvocationTargetException, OperationCanceledException
          {
             try
             {
@@ -137,13 +146,31 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
                {
                   public void run(IProgressMonitor monitor) throws CoreException
                   {
-                     doRun(monitor);
+                     monitor.beginTask("Progress", IProgressMonitor.UNKNOWN);
+                     try
+                     {
+                        createProjects(new SubProgressMonitor(monitor, SubProgressMonitor.UNKNOWN));
+                        checkout(project.getLocation().toFile(), new SubProgressMonitor(monitor,
+                           SubProgressMonitor.UNKNOWN));
+                     }
+                     catch (OperationCanceledException e)
+                     {
+                        throw new OperationCanceledException();
+                     }
+                     catch (CoreException e)
+                     {
+                        throw new CoreException(e.getStatus());
+                     }
+                     finally
+                     {
+                        monitor.done();
+                     }
                   }
                }, monitor);
             }
             catch (OperationCanceledException e)
             {
-               /* can't abort */
+               throw new OperationCanceledException();
             }
             catch (CoreException e)
             {
@@ -155,7 +182,7 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
       try
       {
          // Run checkout Operation
-         PlatformUI.getWorkbench().getProgressService().run(true, false, dialogRunnable);
+         PlatformUI.getWorkbench().getProgressService().run(true, true, dialogRunnable);
 
          // refresh Workspace
          workspace.getRoot().refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
@@ -170,8 +197,20 @@ public class B2SVNCheckout extends B2SVNCheckoutHandler
       }
       catch (InterruptedException e)
       {
-         e.printStackTrace();
-         throw new ExecutionException(null);
+         if (project.exists())
+         {
+            try
+            {
+               project.delete(true, new NullProgressMonitor());
+               return null;
+            }
+            catch (CoreException e1)
+            {
+               e1.printStackTrace();
+               throw new ExecutionException(null);
+            }
+         }
+         ;
       }
       catch (CoreException e)
       {

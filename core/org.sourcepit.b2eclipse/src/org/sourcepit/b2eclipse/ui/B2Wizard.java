@@ -113,7 +113,7 @@ public class B2Wizard extends Wizard implements IImportWizard
             }
             catch (OperationCanceledException e)
             {
-               /* can't abort */
+               /* moep */
             }
             catch (CoreException e)
             {
@@ -140,7 +140,9 @@ public class B2Wizard extends Wizard implements IImportWizard
       {
          String message = Messages.msgErrorOnProjectCreate + "\n";
          for (String iter : error)
+         {
             message += iter + "\n";
+         }
          message += "\n" + Messages.msgErrorOnProjectCreateSolution;
          MessageDialog.openError(page.getShell(), "Error", message);
       }
@@ -211,7 +213,6 @@ public class B2Wizard extends Wizard implements IImportWizard
 
    private IProject createOrOpenProject(String path, String name, IWorkspace workspace)
    {
-
       IProject project = null;
       try
       {
