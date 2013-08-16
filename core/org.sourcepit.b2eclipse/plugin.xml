@@ -10,4 +10,39 @@
             name="b2 Project/s Checkout">
       </wizard>
    </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.sourcepit.b2eclipse.core.commands.category"
+            id="org.sourcepit.b2eclipse.core.commands.setupRuntime"
+            name="Setup B2 Runtime">
+      </command>
+      <category
+            id="org.sourcepit.b2eclipse.core.commands.category"
+            name="B2">
+      </category>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="org.sourcepit.b2eclipse.ui.runtime.SetupRuntimeHandler"
+            commandId="org.sourcepit.b2eclipse.core.commands.setupRuntime">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <menu
+               icon="icons/b2.gif"
+               id="org.sourcepit.b2eclipse.ui.popups"
+               label="B2">
+            <command
+                  commandId="org.sourcepit.b2eclipse.core.commands.setupRuntime"
+                  id="org.sourcepit.b2eclipse.popups.setupRuntimeCommand"
+                  label="Setup B2 Runtime">
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
 </plugin>

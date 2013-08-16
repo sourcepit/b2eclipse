@@ -8,7 +8,16 @@ Require-Bundle: org.eclipse.core.runtime;bundle-version="[3.6.0,5.0.0)",
  org.eclipse.core.resources;bundle-version="[3.6.0,5.0.0)",
  org.eclipse.emf.common.ui;bundle-version="[2.7.0,3.0.0)",
  org.eclipse.ui.ide;bundle-version="[3.6.0,5.0.0)",
- org.eclipse.jdt.ui;bundle-version="[3.6.0,5.0.0)"
+ org.eclipse.jdt.ui;bundle-version="[3.6.0,5.0.0)",
+ org.eclipse.ui,
+ org.eclipse.core.commands,
+ org.eclipse.m2e.core,
+ org.sourcepit.b2eclipse.core,
+ org.eclipse.m2e.maven.runtime,
+ org.eclipse.m2e.core.ui;bundle-version="1.4.0",
+ org.sourcepit.common.utils,
+ org.eclipse.jface
 Bundle-Activator: org.sourcepit.b2eclipse.Activator
 Bundle-ActivationPolicy: lazy
 Export-Package: org.sourcepit.b2eclipse.ui
+Import-Package: org.apache.commons.io;version="2.4.0"

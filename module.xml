@@ -17,6 +17,29 @@
 	<properties>
 		<tycho.version>0.18.1</tycho.version>
 		<b2.version>0.1.0-alpha-9</b2.version>
+		<b2.facets.core.requiredFeatures>
+			org.eclipse.platform,
+			org.eclipse.m2e.feature
+		</b2.facets.core.requiredFeatures>
+		<b2.facets.core.requiredSourceFeatures>
+			org.eclipse.platform.source,
+			org.eclipse.m2e.sdk.feature
+		</b2.facets.core.requiredSourceFeatures>
+		<b2.facets.git.requiredFeatures>
+			org.eclipse.egit
+		</b2.facets.git.requiredFeatures>
+		<b2.facets.git.requiredSourceFeatures>
+			org.eclipse.egit.source
+		</b2.facets.git.requiredSourceFeatures>
+		<b2.facets.svn.requiredFeatures>
+			org.eclipse.team.svn,
+			org.polarion.eclipse.team.svn.connector,
+			org.polarion.eclipse.team.svn.connector.svnkit17
+		</b2.facets.svn.requiredFeatures>
+		<b2.facets.svn.requiredSourceFeatures>
+			org.eclipse.team.svn.source,
+			org.polarion.eclipse.team.svn.connector.source
+		</b2.facets.svn.requiredSourceFeatures>
 	</properties>
 
 	<repositories>
@@ -28,6 +51,16 @@
 		<repository>
 			<id>kepler</id>
 			<url>http://download.eclipse.org/releases/kepler</url>
+			<layout>p2</layout>
+		</repository>
+		<repository>
+			<id>egit</id>
+			<url>http://download.eclipse.org/egit/updates</url>
+			<layout>p2</layout>
+		</repository>
+		<repository>
+			<id>m2e</id>
+			<url>http://download.eclipse.org/technology/m2e/releases</url>
 			<layout>p2</layout>
 		</repository>
 		<repository>
@@ -44,15 +77,20 @@
 		</pluginRepository>
 	</pluginRepositories>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.sourcepit.common</groupId>
+			<artifactId>common-utils</artifactId>
+			<version>0.1.0-alpha-8</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>14.0.1</version>
+		</dependency>
+	</dependencies>
 
 	<build>
-		<extensions>
-			<extension>
-				<groupId>org.sourcepit.b2</groupId>
-				<artifactId>b2-maven-plugin</artifactId>
-				<version>${b2.version}</version>
-			</extension>
-		</extensions>
 		<pluginManagement>
 			<plugins>
 				<plugin>
@@ -69,6 +107,21 @@
 			</plugins>
 		</pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.sourcepit.b2</groupId>
+				<artifactId>b2-maven-plugin</artifactId>
+				<version>${b2.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<extensions>
+						<extension>
+							<groupId>org.sourcepit.b2</groupId>
+							<artifactId>b2-maven-dependencies-site-generator</artifactId>
+							<version>${b2.version}</version>
+						</extension>
+					</extensions>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>target-platform-configuration</artifactId>
