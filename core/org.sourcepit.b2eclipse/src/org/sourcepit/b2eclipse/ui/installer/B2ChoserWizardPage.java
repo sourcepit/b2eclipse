@@ -4,39 +4,27 @@
 
 package org.sourcepit.b2eclipse.ui.installer;
 
-import static org.sourcepit.common.utils.lang.Exceptions.pipe;
+import static org.sourcepit.b2eclipse.ui.installer.Selections.structuredSelection;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.ArtifactUtils;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ComboViewer;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.wizard.WizardPage;
-import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.sourcepit.b2eclipse.core.DefaultLocatableArtifactsDetector;
-import org.sourcepit.b2eclipse.core.DefaultMavenContext;
 import org.sourcepit.b2eclipse.core.LocatableArtifactsDetector;
-import org.sourcepit.b2eclipse.core.MavenContext;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.jface.viewers.ComboViewer;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.LabelProvider;
-import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 
 public class B2ChoserWizardPage extends WizardPage
 {
    final LocatableArtifactsDetector artifactsDetector;
-
-   List<ArtifactRepository> artifactRepository;
 
    private ComboViewer comboViewer;
 
@@ -49,16 +37,6 @@ public class B2ChoserWizardPage extends WizardPage
       setTitle("Wizard Page title");
       setDescription("Wizard Page description");
       this.artifactsDetector = artifactsDetector;
-   }
-
-   public void setArtifactRepository(List<ArtifactRepository> artifactRepository)
-   {
-      this.artifactRepository = artifactRepository;
-   }
-
-   public List<ArtifactRepository> getArtifactRepository()
-   {
-      return artifactRepository;
    }
 
    /**
@@ -74,30 +52,7 @@ public class B2ChoserWizardPage extends WizardPage
       container.setLayout(new FillLayout(SWT.HORIZONTAL));
 
       comboViewer = new ComboViewer(container, SWT.NONE);
-
-      comboViewer.setContentProvider(new IStructuredContentProvider()
-      {
-         @Override
-         public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
-         {
-         }
-
-         @Override
-         public Object[] getElements(Object inputElement)
-         {
-            if (inputElement instanceof List)
-            {
-               return ((List<?>) inputElement).toArray();
-            }
-            return null;
-         }
-
-         @Override
-         public void dispose()
-         {
-         }
-      });
-
+      comboViewer.setContentProvider(ArrayContentProvider.getInstance());
       comboViewer.setLabelProvider(new LabelProvider()
       {
          @Override
@@ -111,18 +66,20 @@ public class B2ChoserWizardPage extends WizardPage
          }
       });
 
-      IRunnableWithProgress runnable = new IRunnableWithProgress()
+      comboViewer.addSelectionChangedListener(new ISelectionChangedListener()
+      {
+         public void selectionChanged(SelectionChangedEvent event)
+         {
+            B2ChoserWizardPage.this.selectionChanged(Selections.getFirstElement(event, Artifact.class));
+         }
+      });
+
+      final IRunnableWithProgress runnable = new DetectLocatableArtifactsRunnable(artifactsDetector,
+         "org.sourcepit.b2", "b2-bootstrapper", "jar", null, null)
       {
          @Override
-         public void run(IProgressMonitor monitor)
+         protected void detectedLocatableArtifacts(final List<Artifact> artifacts, final Artifact recommended)
          {
-            final List<Artifact> artifacts = artifactsDetector.detectLocateableArtifacts("org.sourcepit.b2",
-               "b2-bootstrapper", "jar", null, getArtifactRepository(), null, monitor);
-
-            Collections.reverse(artifacts);
-
-            final Artifact recommended = determineRecommended(artifacts);
-
             Display.getDefault().asyncExec(new Runnable()
             {
                @Override
@@ -133,53 +90,18 @@ public class B2ChoserWizardPage extends WizardPage
             });
          }
       };
+      RunnableContexts.run(getContainer(), true, true, runnable);
+   }
 
-      run(runnable);
+   protected void selectionChanged(Artifact artifact)
+   {
+
    }
 
    void setArtifacts(List<Artifact> artifacts, Artifact recommended)
    {
       comboViewer.setInput(artifacts);
-      comboViewer.setSelection(recommended == null ? StructuredSelection.EMPTY : new StructuredSelection(recommended),
-         true);
+      comboViewer.setSelection(structuredSelection(recommended));
    }
 
-   Artifact determineRecommended(List<Artifact> artifacts)
-   {
-      for (Artifact artifact : artifacts)
-      {
-         if (!ArtifactUtils.isSnapshot(artifact.getVersion()))
-         {
-            return artifact;
-         }
-      }
-      return null;
-   }
-
-   void run(IRunnableWithProgress runnable)
-   {
-      try
-      {
-         try
-         {
-            getContainer().run(true, true, runnable);
-         }
-         catch (InvocationTargetException e)
-         {
-            throw e.getCause();
-         }
-      }
-      catch (Exception e)
-      {
-         throw pipe(e);
-      }
-      catch (Error e)
-      {
-         throw pipe(e);
-      }
-      catch (Throwable e)
-      {
-         throw pipe(new IllegalStateException(e));
-      }
-   }
 }

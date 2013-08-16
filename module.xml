@@ -21,6 +21,9 @@
 			org.eclipse.platform,
 			org.eclipse.m2e.feature
 		</b2.facets.core.requiredFeatures>
+		<b2.facets.core.requiredPlugins>
+			org.eclipse.ui.views.log
+		</b2.facets.core.requiredPlugins>
 		<b2.facets.core.requiredSourceFeatures>
 			org.eclipse.platform.source,
 			org.eclipse.m2e.sdk.feature

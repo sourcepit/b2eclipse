@@ -66,7 +66,7 @@ import org.sonatype.aether.util.version.GenericVersionScheme;
 import org.sonatype.aether.version.VersionConstraint;
 import org.sonatype.aether.version.VersionScheme;
 import org.sourcepit.b2eclipse.core.runtime.B2RuntimeUtils;
-import org.sourcepit.b2eclipse.ui.installer.B2InstallationWizard;
+import org.sourcepit.b2eclipse.ui.installer.B2InstallerWizard;
 import org.sourcepit.common.utils.io.Read.FromStream;
 
 public class SetupRuntimeHandler extends AbstractHandler implements IHandler
@@ -85,7 +85,7 @@ public class SetupRuntimeHandler extends AbstractHandler implements IHandler
    {
       IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 
-      WizardDialog dialog = new WizardDialog(window.getShell(), new B2InstallationWizard());
+      WizardDialog dialog = new WizardDialog(window.getShell(), new B2InstallerWizard());
 
       dialog.open();
       

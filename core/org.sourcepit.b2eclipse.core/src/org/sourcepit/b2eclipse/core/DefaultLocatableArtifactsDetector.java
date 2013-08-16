@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,19 +42,22 @@ public class DefaultLocatableArtifactsDetector implements LocatableArtifactsDete
 {
    final MavenContext mavenContext;
 
-   public DefaultLocatableArtifactsDetector(MavenContext mavenContext)
+   final List<ArtifactRepository> repositories;
+
+   public DefaultLocatableArtifactsDetector(MavenContext mavenContext, List<ArtifactRepository> repositories)
    {
       this.mavenContext = mavenContext;
+      this.repositories = repositories;
    }
 
    @Override
-   public List<Artifact> detectLocateableArtifacts(String groupId, String artifactId, String type, String classifier,
-      List<ArtifactRepository> repositories, Predicate<Artifact> artifactFilter, IProgressMonitor monitor)
+   public List<Artifact> detectLocatableArtifacts(String groupId, String artifactId, String type, String classifier,
+      Predicate<Artifact> artifactFilter, IProgressMonitor monitor)
    {
       final List<Artifact> locateableArtifacts = new ArrayList<Artifact>();
       final org.apache.maven.repository.RepositorySystem mavenRepoSession = mavenContext
          .lookup(org.apache.maven.repository.RepositorySystem.class);
-      final List<String> versions = detectLocateableArtifactVersions(groupId, artifactId, repositories, monitor);
+      final List<String> versions = detectLocatableArtifactVersions(groupId, artifactId, monitor);
       for (String version : versions)
       {
          final Artifact artifact = mavenRepoSession.createArtifactWithClassifier(groupId, artifactId, version, type,
@@ -63,11 +67,11 @@ public class DefaultLocatableArtifactsDetector implements LocatableArtifactsDete
             locateableArtifacts.add(artifact);
          }
       }
+      Collections.reverse(locateableArtifacts);
       return locateableArtifacts;
    }
 
-   List<String> detectLocateableArtifactVersions(final String groupId, final String artifactId,
-      final List<ArtifactRepository> repositories, IProgressMonitor monitor)
+   List<String> detectLocatableArtifactVersions(final String groupId, final String artifactId, IProgressMonitor monitor)
    {
       final ICallable<List<String>> callable = new ICallable<List<String>>()
       {

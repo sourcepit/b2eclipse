@@ -7,7 +7,10 @@ package org.sourcepit.b2eclipse.core;
 import static org.sourcepit.common.utils.lang.Exceptions.pipe;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
 import org.eclipse.core.runtime.CoreException;
@@ -104,6 +107,20 @@ public class DefaultMavenContext implements MavenContext
       try
       {
          return maven.execute(callable, monitor);
+      }
+      catch (CoreException e)
+      {
+         throw pipe(e);
+      }
+   }
+
+   @Override
+   public Artifact resolve(Artifact artifact, List<ArtifactRepository> repositories, IProgressMonitor monitor)
+   {
+      try
+      {
+         return maven.resolve(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(),
+            artifact.getType(), artifact.getClassifier(), repositories, monitor);
       }
       catch (CoreException e)
       {

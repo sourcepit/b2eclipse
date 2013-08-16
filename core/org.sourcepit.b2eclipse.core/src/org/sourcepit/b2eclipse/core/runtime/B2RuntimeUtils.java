@@ -37,7 +37,7 @@ public class B2RuntimeUtils
       b2Runtimes.toArray();
    }
 
-   static List<B2Runtime> getB2Runtimes(File mavenDir)
+   public static List<B2Runtime> getB2Runtimes(File mavenDir)
    {
       final List<B2Runtime> b2Runtimes = new ArrayList<B2Runtime>();
       final File extDir = new File(mavenDir, "lib/ext");
