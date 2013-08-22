@@ -18,12 +18,12 @@ public class B2Runtime
       this.files = files;
       this.pomProperties = pomProperties;
    }
-   
+
    public List<File> getFiles()
    {
       return files;
    }
-   
+
    public String getVersion()
    {
       return pomProperties.getProperty("version");

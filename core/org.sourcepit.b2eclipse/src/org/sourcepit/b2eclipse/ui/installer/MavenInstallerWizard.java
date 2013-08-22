@@ -44,7 +44,7 @@ public class MavenInstallerWizard extends Wizard
       installerPage = new MavenInstallerWizardPage(parentDir, artifactsDetector);
       addPage(installerPage);
    }
-   
+
    public File getInstallationDirectory()
    {
       return installationDir;

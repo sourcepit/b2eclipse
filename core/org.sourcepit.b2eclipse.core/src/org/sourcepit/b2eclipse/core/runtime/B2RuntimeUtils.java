@@ -33,7 +33,7 @@ public class B2RuntimeUtils
    {
       LOG.info("Hello :-");
       final List<B2Runtime> b2Runtimes = getB2Runtimes(mavenDir);
-      
+
       b2Runtimes.toArray();
    }
 

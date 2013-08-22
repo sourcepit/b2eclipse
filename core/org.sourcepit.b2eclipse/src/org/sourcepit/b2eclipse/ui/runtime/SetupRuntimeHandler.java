@@ -4,22 +4,17 @@
 
 package org.sourcepit.b2eclipse.ui.runtime;
 
-import static java.util.Collections.sort;
 import static org.apache.maven.RepositoryUtils.toRepo;
 import static org.sourcepit.common.utils.io.IO.buffIn;
 import static org.sourcepit.common.utils.io.IO.fileIn;
 import static org.sourcepit.common.utils.io.IO.read;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetSocketAddress;
 import java.net.Proxy.Type;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,15 +22,11 @@ import java.util.Set;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
-import org.apache.maven.artifact.versioning.ArtifactVersion;
-import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.artifact.versioning.InvalidVersionSpecificationException;
 import org.apache.maven.artifact.versioning.VersionRange;
 import org.apache.maven.repository.Proxy;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -52,15 +43,10 @@ import org.eclipse.m2e.core.embedder.MavenRuntimeManager;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.sonatype.aether.RepositorySystem;
-import org.sonatype.aether.deployment.DeployRequest;
-import org.sonatype.aether.impl.MetadataGenerator;
-import org.sonatype.aether.impl.MetadataGeneratorFactory;
 import org.sonatype.aether.metadata.Metadata;
 import org.sonatype.aether.metadata.Metadata.Nature;
 import org.sonatype.aether.resolution.MetadataRequest;
 import org.sonatype.aether.resolution.MetadataResult;
-import org.sonatype.aether.resolution.VersionResult;
-import org.sonatype.aether.util.artifact.DefaultArtifact;
 import org.sonatype.aether.util.metadata.DefaultMetadata;
 import org.sonatype.aether.util.version.GenericVersionScheme;
 import org.sonatype.aether.version.VersionConstraint;
@@ -88,7 +74,7 @@ public class SetupRuntimeHandler extends AbstractHandler implements IHandler
       WizardDialog dialog = new WizardDialog(window.getShell(), new B2InstallerWizard());
 
       dialog.open();
-      
+
       // try
       // {
       // execute();

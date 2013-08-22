@@ -154,7 +154,7 @@ public class B2InstallerWizard extends Wizard
       }
 
    }
-   
+
    public MavenRuntime getMavenRuntime()
    {
       return mavenRuntime;

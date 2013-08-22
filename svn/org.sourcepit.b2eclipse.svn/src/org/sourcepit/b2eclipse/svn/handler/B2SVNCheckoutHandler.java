@@ -37,8 +37,8 @@ public abstract class B2SVNCheckoutHandler extends AbstractHandler
             final IRepositoryResource selectedSVNRepoResource = ((RepositoryResource) element).getRepositoryResource();
             return selectedSVNRepoResource;
          }
-         
-         if(element instanceof RepositoryLocation)
+
+         if (element instanceof RepositoryLocation)
          {
             final IRepositoryResource selectedSVNRepoResource = ((RepositoryLocation) element).getRepositoryResource();
             return selectedSVNRepoResource;

@@ -35,9 +35,7 @@ import org.eclipse.m2e.actions.MavenLaunchConstants;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.MavenRuntime;
 import org.eclipse.m2e.core.embedder.MavenRuntimeManager;
-import org.eclipse.m2e.internal.launch.Messages;
 import org.eclipse.m2e.ui.internal.launch.MavenLaunchMainTab;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
@@ -126,7 +124,7 @@ public class LaunchShortcut1 implements ILaunchShortcut
       {
          throw pipe(e);
       }
-      
+
       return workingCopy;
    }
 

@@ -64,8 +64,8 @@ import org.sourcepit.b2eclipse.input.node.NodeModuleProject;
 import org.sourcepit.b2eclipse.input.node.NodeProject;
 import org.sourcepit.b2eclipse.input.node.NodeWorkingSet;
 import org.sourcepit.b2eclipse.input.node.WSNameValidator;
-import org.sourcepit.b2eclipse.provider.LabelProviderForDir;
 import org.sourcepit.b2eclipse.provider.ContentProvider;
+import org.sourcepit.b2eclipse.provider.LabelProviderForDir;
 import org.sourcepit.b2eclipse.provider.LabelProviderForPreview;
 
 /**

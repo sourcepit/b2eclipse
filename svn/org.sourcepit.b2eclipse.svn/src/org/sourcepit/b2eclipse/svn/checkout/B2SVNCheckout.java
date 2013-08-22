@@ -8,6 +8,7 @@ package org.sourcepit.b2eclipse.svn.checkout;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
