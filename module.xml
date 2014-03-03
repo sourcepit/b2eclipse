@@ -19,6 +19,10 @@
 		<b2.version>0.13.1</b2.version>
 	</properties>
 
+	<scm>
+		<connection>scm:git:git@github.com:sourcepit/b2eclipse.git</connection>
+	</scm>
+
 	<repositories>
 		<repository>
 			<!-- repo to resolve parent pom from -->
