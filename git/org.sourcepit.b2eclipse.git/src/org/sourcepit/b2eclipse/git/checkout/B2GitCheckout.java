@@ -11,6 +11,7 @@ import java.io.File;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.egit.ui.internal.repository.tree.FolderNode;
+import org.eclipse.egit.ui.internal.repository.tree.RepositoryNode;
 import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNode;
 import org.eclipse.egit.ui.internal.repository.tree.RepositoryTreeNodeType;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -27,7 +28,6 @@ import org.sourcepit.b2eclipse.ui.B2Wizard;
 public class B2GitCheckout extends B2GitCheckoutHandler
 {
 
-
    public Object execute(ExecutionEvent arg0) throws ExecutionException
    {
       final String path;
@@ -37,6 +37,8 @@ public class B2GitCheckout extends B2GitCheckoutHandler
          path = node.getRepository().getWorkTree().toString();
       else if (node.getType() == RepositoryTreeNodeType.FOLDER)
          path = ((File) ((FolderNode) node).getObject()).getPath().toString();
+      else if (node.getType() == RepositoryTreeNodeType.REPO)
+         path = ((RepositoryNode) node).getRepository().getWorkTree().toString();
       else
          return null;
 

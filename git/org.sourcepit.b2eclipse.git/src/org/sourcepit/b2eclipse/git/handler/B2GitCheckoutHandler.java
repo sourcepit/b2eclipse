@@ -25,14 +25,17 @@ public abstract class B2GitCheckoutHandler extends AbstractHandler
    public Object getSelectedNode(ExecutionEvent event) throws ExecutionException
    {
       ISelection selection = HandlerUtil.getCurrentSelectionChecked(event);
-      IStructuredSelection structuredSelection = (IStructuredSelection) selection;
       if (selection instanceof IStructuredSelection)
       {
-         Object element = structuredSelection.getFirstElement();
-         if (element instanceof RepositoryTreeNode)
+         IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+         if (selection instanceof IStructuredSelection)
          {
-            final RepositoryTreeNode<?> selectedGitRepoResource = (RepositoryTreeNode<?>) element;
-            return selectedGitRepoResource;
+            Object element = structuredSelection.getFirstElement();
+            if (element instanceof RepositoryTreeNode)
+            {
+               final RepositoryTreeNode<?> selectedGitRepoResource = (RepositoryTreeNode<?>) element;
+               return selectedGitRepoResource;
+            }
          }
       }
       return null;

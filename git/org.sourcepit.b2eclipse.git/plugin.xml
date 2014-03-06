@@ -31,6 +31,9 @@
                         <instanceof
                               value="org.eclipse.egit.ui.internal.repository.tree.FolderNode">
                         </instanceof>
+                        <instanceof
+                              value="org.eclipse.egit.ui.internal.repository.tree.RepositoryNode">
+                        </instanceof>
                      </or>
                   </iterate>
                </and>
@@ -38,10 +41,4 @@
          </command>
          </menuContribution>
          </extension>
-         <extension point="org.eclipse.ui.bindings">
-<key
-  sequence="M1+1"
-  commandId="org.sourcepit.b2eclipse.ui.B2Git"
-  schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
-</extension>
 </plugin>
