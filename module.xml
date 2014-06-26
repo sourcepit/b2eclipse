@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
@@ -15,13 +16,13 @@
 
 	<properties>
 		<tycho.version>0.19.0</tycho.version>
-		<b2.version>0.13.1</b2.version>
+        <b2.version>0.13.1</b2.version>
 	</properties>
 
 	<scm>
 		<connection>scm:git:git@github.com:sourcepit/b2eclipse.git</connection>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 
 	<repositories>
 		<repository>
@@ -30,13 +31,18 @@
 			<url>http://nexus.sourcepit.org/content/groups/public/</url>
 		</repository>
 		<repository>
-			<id>kepler</id>
-			<url>http://download.eclipse.org/releases/kepler</url>
+			<id>luna</id>
+			<url>http://download.eclipse.org/releases/luna</url>
 			<layout>p2</layout>
 		</repository>
 		<repository>
 			<id>subversive</id>
-			<url>http://community.polarion.com/projects/subversive/download/eclipse/3.0/kepler-site/</url>
+			<url>http://download.eclipse.org/technology/subversive/2.0/update-site/</url>
+			<layout>p2</layout>
+		</repository>
+		<repository>
+			<id>subversive-connectors</id>
+			<url>http://community.polarion.com/projects/subversive/download/eclipse/4.0/update-site/</url>
 			<layout>p2</layout>
 		</repository>
 	</repositories>
