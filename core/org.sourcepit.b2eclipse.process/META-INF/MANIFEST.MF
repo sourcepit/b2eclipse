@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: B2-Process-Integration-Bundle
 Bundle-SymbolicName: org.sourcepit.b2eclipse.process;singleton:=true
-Bundle-Version: 0.4.0
+Bundle-Version: 0.5.0.qualifier
 Bundle-Activator: org.sourcepit.b2eclipse.b2.Activator
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
