@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: B2-Git-Integration-Bundle
 Bundle-SymbolicName: org.sourcepit.b2eclipse.git;singleton:=true
-Bundle-Version: 0.4.0.qualifier
+Bundle-Version: 0.4.0
 Bundle-Activator: org.sourcepit.b2eclipse.git.Activator
 Require-Bundle: org.eclipse.egit.ui,
  org.eclipse.ui,
